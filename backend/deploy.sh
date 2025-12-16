@@ -4,10 +4,11 @@
 # Deployment Script for Serverless Backend
 # ============================================
 # Usage:
-#   ./deploy.sh dev           - Deploy to development
+#   ./deploy.sh heet          - Deploy to Heet's environment
+#   ./deploy.sh test          - Deploy to test environment
 #   ./deploy.sh prod          - Deploy to production
-#   ./deploy.sh dev --skip-dns - Skip Cloudflare DNS update
-#   ./deploy.sh dev --domain-only - Only create/update custom domain
+#   ./deploy.sh heet --skip-dns - Skip Cloudflare DNS update
+#   ./deploy.sh heet --domain-only - Only create/update custom domain
 # ============================================
 
 set -e  # Exit on error
@@ -22,7 +23,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Default values
-STAGE="${1:-dev}"
+INPUT_STAGE="${1:-heet}"
 SKIP_DNS=false
 DOMAIN_ONLY=false
 
@@ -45,12 +46,40 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Validate stage
-if [[ "$STAGE" != "dev" && "$STAGE" != "prod" ]]; then
-    echo -e "${RED}❌ Invalid stage: $STAGE${NC}"
-    echo "Usage: ./deploy.sh [dev|prod] [--skip-dns] [--domain-only]"
-    exit 1
-fi
+# Normalize stage name - accept both "heet" and "dev-heet" formats
+case "$INPUT_STAGE" in
+    dhruv|dev-dhruv|devdhruv)
+        STAGE="dev-dhruv"
+        ;;
+    tirth|dev-tirth|devtirth)
+        STAGE="dev-tirth"
+        ;;
+    pooja|dev-pooja|devpooja)
+        STAGE="dev-pooja"
+        ;;
+    heet|dev-heet|devheet)
+        STAGE="dev-heet"
+        ;;
+    test)
+        STAGE="test"
+        ;;
+    prod|production)
+        STAGE="prod"
+        ;;
+    *)
+        echo -e "${RED}❌ Invalid stage: $INPUT_STAGE${NC}"
+        echo "Usage: ./deploy.sh [dhruv|tirth|pooja|heet|test|prod] [--skip-dns] [--domain-only]"
+        echo ""
+        echo "Available stages:"
+        echo "  dhruv (or dev-dhruv):  Dhruv's development environment"
+        echo "  tirth (or dev-tirth):  Tirth's development environment"
+        echo "  pooja (or dev-pooja):  Pooja's development environment"
+        echo "  heet  (or dev-heet):   Heet's development environment"
+        echo "  test:                  Integration/testing environment"
+        echo "  prod:                  Production environment"
+        exit 1
+        ;;
+esac
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║${NC}  🚀 ${CYAN}Deploying to ${YELLOW}$STAGE${CYAN} environment${NC}                          ${BLUE}║${NC}"
@@ -67,17 +96,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Check for environment file
-ENV_FILE=".env.${STAGE}"
-if [[ ! -f "$ENV_FILE" ]]; then
-    echo -e "${YELLOW}⚠️  Warning: $ENV_FILE not found. Using .env${NC}"
-    if [[ ! -f ".env" ]]; then
+if [[ "$STAGE" == "prod" ]]; then
+    ENV_FILE=".env.prod"
+    if [[ ! -f "$ENV_FILE" ]]; then
+        echo -e "${RED}❌ Production environment file not found: $ENV_FILE${NC}"
+        echo -e "${YELLOW}Please create .env.prod from .env.example${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ Using production environment file: $ENV_FILE${NC}"
+    # Copy prod env to .env (serverless-dotenv-plugin uses .env)
+    cp "$ENV_FILE" .env
+else
+    # All dev and test stages use .env
+    ENV_FILE=".env"
+    if [[ ! -f "$ENV_FILE" ]]; then
         echo -e "${RED}❌ No .env file found. Please create one from .env.example${NC}"
         exit 1
     fi
-else
     echo -e "${GREEN}✓ Using environment file: $ENV_FILE${NC}"
-    # Copy stage-specific env to .env (serverless-dotenv-plugin uses .env)
-    cp "$ENV_FILE" .env
 fi
 
 # Load environment variables for Cloudflare (export them for subshells)
@@ -259,14 +295,21 @@ echo -e "${BLUE}║${NC}  🌐 ${CYAN}Custom Domain Configuration${NC}          
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Determine custom domain names
-if [[ "$STAGE" == "prod" ]]; then
-    HTTP_CUSTOM_DOMAIN="api.${BASE_DOMAIN:-yourdomain.com}"
-    WS_CUSTOM_DOMAIN="ws.${BASE_DOMAIN:-yourdomain.com}"
-else
-    HTTP_CUSTOM_DOMAIN="api-dev.${BASE_DOMAIN:-yourdomain.com}"
-    WS_CUSTOM_DOMAIN="ws-dev.${BASE_DOMAIN:-yourdomain.com}"
-fi
+# Determine custom domain names based on stage
+case "$STAGE" in
+    prod)
+        HTTP_CUSTOM_DOMAIN="api.${BASE_DOMAIN:-yourdomain.com}"
+        WS_CUSTOM_DOMAIN="ws.${BASE_DOMAIN:-yourdomain.com}"
+        ;;
+    test)
+        HTTP_CUSTOM_DOMAIN="api-test.${BASE_DOMAIN:-yourdomain.com}"
+        WS_CUSTOM_DOMAIN="ws-test.${BASE_DOMAIN:-yourdomain.com}"
+        ;;
+    dev-dhruv|dev-tirth|dev-pooja|dev-heet)
+        HTTP_CUSTOM_DOMAIN="api-${STAGE}.${BASE_DOMAIN:-yourdomain.com}"
+        WS_CUSTOM_DOMAIN="ws-${STAGE}.${BASE_DOMAIN:-yourdomain.com}"
+        ;;
+esac
 
 echo -e "${BLUE}🔧 Setting up HTTP API custom domain: ${YELLOW}$HTTP_CUSTOM_DOMAIN${NC}"
 

@@ -6,7 +6,7 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: ap-south-1
-  stage: ${opt:stage, 'dev'}
+  stage: ${opt:stage, 'dev-heet'}
   memorySize: ${self:custom.stageConfig.memorySize}
   timeout: ${self:custom.stageConfig.timeout}
   
@@ -19,18 +19,6 @@ provider:
     CLERK_SECRET_KEY: ${env:CLERK_SECRET_KEY}
     CLERK_PUBLISHABLE_KEY: ${env:CLERK_PUBLISHABLE_KEY}
     NODE_ENV: ${self:provider.stage}
-    # WebSocket API configuration (will be set after WebSocket API is created)
-    # WEBSOCKET_API_ID: 
-    #   Ref: WebsocketsApi
-    # WEBSOCKET_API_ENDPOINT: 
-    #   Fn::Join:
-    #     - ''
-    #     - - 'wss://'
-    #       - Ref: WebsocketsApi
-    #       - '.execute-api.'
-    #       - ${self:provider.region}
-    #       - '.amazonaws.com/'
-    #       - ${self:provider.stage}
 
   # HTTP API (API Gateway v2) with JWT Authorizer
   httpApi:
@@ -85,11 +73,19 @@ custom:
   # Domain settings per stage
   baseDomain: ${env:BASE_DOMAIN, 'yourdomain.com'}
   domains:
-    dev: api-dev.${self:custom.baseDomain}
+    dev-dhruv: api-dev-dhruv.${self:custom.baseDomain}
+    dev-tirth: api-dev-tirth.${self:custom.baseDomain}
+    dev-pooja: api-dev-pooja.${self:custom.baseDomain}
+    dev-heet: api-dev-heet.${self:custom.baseDomain}
+    test: api-test.${self:custom.baseDomain}
     prod: api.${self:custom.baseDomain}
   # WebSocket domain settings
   wsDomains:
-    dev: ws-dev.${self:custom.baseDomain}
+    dev-dhruv: ws-dev-dhruv.${self:custom.baseDomain}
+    dev-tirth: ws-dev-tirth.${self:custom.baseDomain}
+    dev-pooja: ws-dev-pooja.${self:custom.baseDomain}
+    dev-heet: ws-dev-heet.${self:custom.baseDomain}
+    test: ws-test.${self:custom.baseDomain}
     prod: ws.${self:custom.baseDomain}
   
   # serverless-domain-manager plugin configuration
@@ -114,19 +110,42 @@ custom:
 
   # Stage-specific settings
   stages:
-    dev:
+    # Individual developer stages
+    dev-dhruv:
+      memorySize: 256
+      timeout: 29
+      logRetentionInDays: 3
+      deletionPolicy: Delete
+    dev-tirth:
+      memorySize: 256
+      timeout: 29
+      logRetentionInDays: 3
+      deletionPolicy: Delete
+    dev-pooja:
+      memorySize: 256
+      timeout: 29
+      logRetentionInDays: 3
+      deletionPolicy: Delete
+    dev-heet:
+      memorySize: 256
+      timeout: 29
+      logRetentionInDays: 3
+      deletionPolicy: Delete
+    # Test/staging environment
+    test:
       memorySize: 512
       timeout: 29
-      logRetentionInDays: 7
+      logRetentionInDays: 14
       deletionPolicy: Delete
+    # Production environment
     prod:
-      memorySize: 1024
+      memorySize: 512
       timeout: 29
       logRetentionInDays: 30
       deletionPolicy: Retain
 
   # Current stage settings (resolved from stages above)
-  stageConfig: ${self:custom.stages.${self:provider.stage}, self:custom.stages.dev}
+  stageConfig: ${self:custom.stages.${self:provider.stage}, self:custom.stages.dev-heet}
 
   esbuild:
     bundle: true
