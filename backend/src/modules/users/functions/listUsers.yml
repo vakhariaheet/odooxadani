@@ -1,0 +1,9 @@
+# List Users function - Admin only
+listUsers:
+  handler: src/modules/users/handlers/listUsers.handler
+  events:
+    - httpApi:
+        path: /api/admin/users
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer

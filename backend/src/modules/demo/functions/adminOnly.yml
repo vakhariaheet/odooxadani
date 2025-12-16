@@ -1,0 +1,9 @@
+# Admin Only demo function - Accessible ONLY by 'admin' role
+adminOnly:
+  handler: src/modules/demo/handlers/adminOnly.handler
+  events:
+    - httpApi:
+        path: /api/demo/admin
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer

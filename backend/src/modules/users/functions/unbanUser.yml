@@ -1,0 +1,9 @@
+# Unban User function - Admin only
+unbanUser:
+  handler: src/modules/users/handlers/unbanUser.handler
+  events:
+    - httpApi:
+        path: /api/admin/users/{userId}/unban
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer

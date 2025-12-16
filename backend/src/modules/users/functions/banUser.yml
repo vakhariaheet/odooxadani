@@ -1,0 +1,9 @@
+# Ban User function - Admin only
+banUser:
+  handler: src/modules/users/handlers/banUser.handler
+  events:
+    - httpApi:
+        path: /api/admin/users/{userId}/ban
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer

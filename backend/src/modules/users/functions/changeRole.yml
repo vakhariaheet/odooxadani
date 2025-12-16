@@ -1,0 +1,9 @@
+# Change User Role function - Admin only
+changeRole:
+  handler: src/modules/users/handlers/changeRole.handler
+  events:
+    - httpApi:
+        path: /api/admin/users/{userId}/role
+        method: PUT
+        authorizer:
+          name: clerkJwtAuthorizer

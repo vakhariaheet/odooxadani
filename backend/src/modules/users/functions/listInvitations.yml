@@ -1,0 +1,9 @@
+# List Invitations function - Admin only
+listInvitations:
+  handler: src/modules/users/handlers/listInvitations.handler
+  events:
+    - httpApi:
+        path: /api/admin/invitations
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer

@@ -1,0 +1,210 @@
+service: odoo-xadani-backend
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-south-1
+  stage: ${opt:stage, 'dev'}
+  memorySize: ${self:custom.stageConfig.memorySize}
+  timeout: ${self:custom.stageConfig.timeout}
+  
+  # Log configuration
+  logRetentionInDays: ${self:custom.stageConfig.logRetentionInDays}
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    CLERK_SECRET_KEY: ${env:CLERK_SECRET_KEY}
+    CLERK_PUBLISHABLE_KEY: ${env:CLERK_PUBLISHABLE_KEY}
+    NODE_ENV: ${self:provider.stage}
+    # WebSocket API configuration (will be set after WebSocket API is created)
+    # WEBSOCKET_API_ID: 
+    #   Ref: WebsocketsApi
+    # WEBSOCKET_API_ENDPOINT: 
+    #   Fn::Join:
+    #     - ''
+    #     - - 'wss://'
+    #       - Ref: WebsocketsApi
+    #       - '.execute-api.'
+    #       - ${self:provider.region}
+    #       - '.amazonaws.com/'
+    #       - ${self:provider.stage}
+
+  # HTTP API (API Gateway v2) with JWT Authorizer
+  httpApi:
+    cors: true
+    authorizers:
+      clerkJwtAuthorizer:
+        # Native JWT Authorizer for HTTP API (API Gateway v2)
+        type: jwt
+        identitySource: $request.header.Authorization
+        # =============================================================
+        # CLERK CONFIGURATION - How to set up:
+        # =============================================================
+        # 1. Go to Clerk Dashboard → Configure → JWT Templates
+        # 2. Create a new template OR use "Convex" template as base
+        # 3. Copy the "Issuer" URL and paste below
+        # 4. The issuer URL format: https://<your-clerk-frontend-api>.clerk.accounts.dev
+        # 
+        # IMPORTANT: In your JWT Template, add custom claims:
+        # {
+        #   "role": "{{user.public_metadata.role}}",
+        #   "email": "{{user.primary_email_address}}",
+        #   "userid": "{{user.id}}"
+        # }
+        # 
+        # Set default role in Clerk Dashboard → Users → User → Public Metadata:
+        # { "role": "user" }  OR  { "role": "admin" }
+        # =============================================================
+        issuerUrl: ${env:CLERK_ISSUER_URL, 'https://your-clerk-instance.clerk.accounts.dev'}
+        # The audience should match the 'aud' claim in your Clerk JWT Template
+        # Typically this is your frontend URL or Clerk Frontend API URL
+        audience:
+          - ${env:CLERK_AUDIENCE, 'https://your-frontend-url.com'}
+
+  # WebSocket API configuration
+  # Note: WebSocket API will be created automatically when websocket events are defined
+
+useDotenv: true
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-esbuild
+  - serverless-domain-manager
+  - serverless-offline
+
+custom:
+  # =============================================================
+  # CUSTOM DOMAIN CONFIGURATION
+  # =============================================================
+  # Set to true to enable custom domain (requires ACM certificate)
+  customDomainEnabled: ${env:CUSTOM_DOMAIN_ENABLED, 'false'}
+  
+  # Domain settings per stage
+  baseDomain: ${env:BASE_DOMAIN, 'yourdomain.com'}
+  domains:
+    dev: api-dev.${self:custom.baseDomain}
+    prod: api.${self:custom.baseDomain}
+  # WebSocket domain settings
+  wsDomains:
+    dev: ws-dev.${self:custom.baseDomain}
+    prod: ws.${self:custom.baseDomain}
+  
+  # serverless-domain-manager plugin configuration
+  # Only active when CUSTOM_DOMAIN_ENABLED=true
+  customDomain:
+    domainName: ${self:custom.domains.${self:provider.stage}}
+    # Use regional endpoint for ap-south-1 (edge not supported in all regions)
+    endpointType: regional
+    # Certificate ARN (use this instead of certificateName to avoid needing acm:ListCertificates)
+    # Get ARN from AWS Console: ACM → Certificates → Copy ARN
+    certificateArn: ${env:ACM_CERTIFICATE_ARN, ''}
+    # Create Route53 record (set to false since we use Cloudflare)
+    createRoute53Record: false
+    # For HTTP API (API Gateway v2)
+    apiType: http
+    # Auto-create the custom domain if it doesn't exist
+    autoDomain: true
+    # Stage
+    stage: ${self:provider.stage}
+    # Enable/disable based on env var
+    enabled: ${self:custom.customDomainEnabled}
+
+  # Stage-specific settings
+  stages:
+    dev:
+      memorySize: 512
+      timeout: 29
+      logRetentionInDays: 7
+      deletionPolicy: Delete
+    prod:
+      memorySize: 1024
+      timeout: 29
+      logRetentionInDays: 30
+      deletionPolicy: Retain
+
+  # Current stage settings (resolved from stages above)
+  stageConfig: ${self:custom.stages.${self:provider.stage}, self:custom.stages.dev}
+
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: node22
+    define:
+      'require.resolve': undefined
+    platform: node
+    concurrency: 10
+    
+  serverless-offline:
+    httpPort: 3000
+    babelOptions:
+      presets: ["env"]
+
+resources:
+  Outputs:
+    # HTTP API Outputs (existing)
+    HttpApiId:
+      Description: HTTP API ID
+      Value:
+        Ref: HttpApi
+      Export:
+        Name: ${self:service}-${self:provider.stage}-http-api-id
+    
+    HttpApiUrl:
+      Description: HTTP API URL
+      Value:
+        Fn::Join:
+          - ''
+          - - 'https://'
+            - Ref: HttpApi
+            - '.execute-api.'
+            - ${self:provider.region}
+            - '.amazonaws.com'
+      Export:
+        Name: ${self:service}-${self:provider.stage}-http-api-url
+    
+    # WebSocket API Outputs
+    WebSocketApiId:
+      Description: WebSocket API ID
+      Value:
+        Ref: WebsocketsApi
+      Export:
+        Name: ${self:service}-${self:provider.stage}-websocket-api-id
+    
+    WebSocketApiUrl:
+      Description: WebSocket API URL
+      Value:
+        Fn::Join:
+          - ''
+          - - 'wss://'
+            - Ref: WebsocketsApi
+            - '.execute-api.'
+            - ${self:provider.region}
+            - '.amazonaws.com/'
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-websocket-url
+
+# Functions - imported from modules (one file per handler)
+functions:
+  # Users module - Admin operations (Clerk-based)
+  - ${file(src/modules/users/functions/listUsers.yml)}
+  - ${file(src/modules/users/functions/getUserDetails.yml)}
+  - ${file(src/modules/users/functions/inviteUser.yml)}
+  - ${file(src/modules/users/functions/listInvitations.yml)}
+  - ${file(src/modules/users/functions/revokeInvitation.yml)}
+  - ${file(src/modules/users/functions/resendInvitation.yml)}
+  - ${file(src/modules/users/functions/changeRole.yml)}
+  - ${file(src/modules/users/functions/banUser.yml)}
+  - ${file(src/modules/users/functions/unbanUser.yml)}
+  - ${file(src/modules/users/functions/deleteUser.yml)}
+  - ${file(src/modules/users/functions/getAdminStats.yml)}
+  # Demo module
+  - ${file(src/modules/demo/functions/userOnly.yml)}
+  - ${file(src/modules/demo/functions/adminOnly.yml)}
+  - ${file(src/modules/demo/functions/whoami.yml)}
+  # WebSocket module
+  - ${file(src/modules/websocket/functions/websocket.yml)}

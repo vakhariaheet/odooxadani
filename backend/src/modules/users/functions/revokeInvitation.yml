@@ -1,0 +1,9 @@
+# Revoke Invitation function - Admin only
+revokeInvitation:
+  handler: src/modules/users/handlers/revokeInvitation.handler
+  events:
+    - httpApi:
+        path: /api/admin/invitations/{invitationId}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer

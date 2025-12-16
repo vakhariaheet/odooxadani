@@ -1,0 +1,9 @@
+# Delete User function - Admin only
+deleteUser:
+  handler: src/modules/users/handlers/deleteUser.handler
+  events:
+    - httpApi:
+        path: /api/admin/users/{userId}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer

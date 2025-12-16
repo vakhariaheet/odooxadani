@@ -1,0 +1,9 @@
+# User Only demo function - Accessible by both 'user' and 'admin' roles
+userOnly:
+  handler: src/modules/demo/handlers/userOnly.handler
+  events:
+    - httpApi:
+        path: /api/demo/user
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer

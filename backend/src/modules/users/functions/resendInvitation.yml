@@ -1,0 +1,9 @@
+# Resend Invitation function - Admin only
+resendInvitation:
+  handler: src/modules/users/handlers/resendInvitation.handler
+  events:
+    - httpApi:
+        path: /api/admin/invitations/{invitationId}/resend
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer

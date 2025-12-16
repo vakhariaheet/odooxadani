@@ -1,0 +1,9 @@
+# Get User Details function - Admin only
+getUserDetails:
+  handler: src/modules/users/handlers/getUserDetails.handler
+  events:
+    - httpApi:
+        path: /api/admin/users/{userId}
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer

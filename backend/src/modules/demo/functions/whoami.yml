@@ -1,0 +1,9 @@
+# Whoami demo function - Get current user's role and permissions
+whoami:
+  handler: src/modules/demo/handlers/whoami.handler
+  events:
+    - httpApi:
+        path: /api/demo/whoami
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer

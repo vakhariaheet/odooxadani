@@ -1,0 +1,9 @@
+# Invite User function - Admin only
+inviteUser:
+  handler: src/modules/users/handlers/inviteUser.handler
+  events:
+    - httpApi:
+        path: /api/admin/users/invite
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer

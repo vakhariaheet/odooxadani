@@ -1,0 +1,15 @@
+# Backend-specific ignores
+# (Root .gitignore handles most patterns)
+
+# Serverless deployment artifacts
+.serverless
+
+# Build outputs
+dist
+build
+
+# Local env files (keep examples)
+.env
+.env.dev
+.env.prod
+!.env.example

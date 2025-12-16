@@ -1,0 +1,9 @@
+# Admin Stats function - Admin only
+getAdminStats:
+  handler: src/modules/users/handlers/getAdminStats.handler
+  events:
+    - httpApi:
+        path: /api/admin/stats
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
