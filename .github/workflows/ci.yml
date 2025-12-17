@@ -47,7 +47,7 @@ jobs:
 
       - name: Test backend
         working-directory: ./backend
-        run: bun test
+        run: bun run test
         env:
           CI: true
 
@@ -87,7 +87,6 @@ jobs:
           CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID=${{ secrets.CLOUDFLARE_ZONE_ID }}
           BASE_DOMAIN=${{ secrets.BASE_DOMAIN }}
-          AWS_REGION=ap-south-1
           EOF
 
       - name: Configure AWS credentials
@@ -141,7 +140,6 @@ jobs:
           CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID=${{ secrets.CLOUDFLARE_ZONE_ID }}
           BASE_DOMAIN=${{ secrets.BASE_DOMAIN }}
-          AWS_REGION=ap-south-1
           EOF
 
       - name: Configure AWS credentials
