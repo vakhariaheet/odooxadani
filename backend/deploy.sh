@@ -170,49 +170,64 @@ npx tsc --noEmit || {
     echo -e "${YELLOW}⚠️  TypeScript warnings found (continuing anyway)${NC}"
 }
 
-# Get AWS profile from environment
-AWS_PROFILE=${AWS_PROFILE:-heetvakharia}
-echo -e "${GREEN}✓ Using AWS Profile: $AWS_PROFILE${NC}"
+# Check if running in CI environment
+if [[ -n "$CI" || -n "$GITHUB_ACTIONS" ]]; then
+    echo -e "${BLUE}🔍 Running in CI environment${NC}"
+    echo -e "${GREEN}✓ Using credentials from CI environment${NC}"
+    
+    # Verify credentials work
+    echo -e "${BLUE}🔍 Verifying credentials...${NC}"
+    CALLER_IDENTITY=$(aws sts get-caller-identity --output json 2>&1)
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}❌ Credential verification failed: $CALLER_IDENTITY${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ Credentials verified: $(echo "$CALLER_IDENTITY" | jq -r '.Arn')${NC}"
+else
+    # Local development - assume DevRole
+    AWS_PROFILE=${AWS_PROFILE:-heetvakharia}
+    echo -e "${GREEN}✓ Using AWS Profile: $AWS_PROFILE${NC}"
 
-# Assume DevRole for deployment
-echo -e "${BLUE}🔐 Assuming DevRole...${NC}"
-DEV_ROLE_ARN="arn:aws:iam::739689500485:role/DevRole"
+    # Assume DevRole for deployment
+    echo -e "${BLUE}🔐 Assuming DevRole...${NC}"
+    DEV_ROLE_ARN="arn:aws:iam::739689500485:role/DevRole"
 
-# Get temporary credentials by assuming the role
-ASSUME_ROLE_OUTPUT=$(aws sts assume-role \
-    --role-arn "$DEV_ROLE_ARN" \
-    --role-session-name "serverless-deploy-$STAGE-$(date +%s)" \
-    --profile "$AWS_PROFILE" \
-    --output json 2>&1)
+    # Get temporary credentials by assuming the role
+    ASSUME_ROLE_OUTPUT=$(aws sts assume-role \
+        --role-arn "$DEV_ROLE_ARN" \
+        --role-session-name "serverless-deploy-$STAGE-$(date +%s)" \
+        --profile "$AWS_PROFILE" \
+        --output json 2>&1)
 
-if [[ $? -ne 0 ]]; then
-    echo -e "${RED}❌ Failed to assume DevRole: $ASSUME_ROLE_OUTPUT${NC}"
-    exit 1
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}❌ Failed to assume DevRole: $ASSUME_ROLE_OUTPUT${NC}"
+        exit 1
+    fi
+
+    # Parse credentials using jq (faster and more reliable)
+    export AWS_ACCESS_KEY_ID=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.AccessKeyId')
+    export AWS_SECRET_ACCESS_KEY=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SecretAccessKey')
+    export AWS_SESSION_TOKEN=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SessionToken')
+
+    # Unset AWS_PROFILE to ensure we use the exported credentials
+    unset AWS_PROFILE
+
+    if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" || -z "$AWS_SESSION_TOKEN" ]]; then
+        echo -e "${RED}❌ Failed to parse assumed role credentials${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}✓ Successfully assumed DevRole${NC}"
+
+    # Verify credentials work
+    echo -e "${BLUE}🔍 Verifying credentials...${NC}"
+    CALLER_IDENTITY=$(aws sts get-caller-identity --output json 2>&1)
+    if [[ $? -ne 0 ]]; then
+        echo -e "${RED}❌ Credential verification failed: $CALLER_IDENTITY${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ Credentials verified: $(echo "$CALLER_IDENTITY" | jq -r '.Arn')${NC}"
 fi
-
-# Parse credentials using jq (faster and more reliable)
-export AWS_ACCESS_KEY_ID=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.AccessKeyId')
-export AWS_SECRET_ACCESS_KEY=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SecretAccessKey')
-export AWS_SESSION_TOKEN=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SessionToken')
-
-# Unset AWS_PROFILE to ensure we use the exported credentials
-unset AWS_PROFILE
-
-if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" || -z "$AWS_SESSION_TOKEN" ]]; then
-    echo -e "${RED}❌ Failed to parse assumed role credentials${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Successfully assumed DevRole${NC}"
-
-# Verify credentials work
-echo -e "${BLUE}🔍 Verifying credentials...${NC}"
-CALLER_IDENTITY=$(aws sts get-caller-identity --output json 2>&1)
-if [[ $? -ne 0 ]]; then
-    echo -e "${RED}❌ Credential verification failed: $CALLER_IDENTITY${NC}"
-    exit 1
-fi
-echo -e "${GREEN}✓ Credentials verified: $(echo "$CALLER_IDENTITY" | jq -r '.Arn')${NC}"
 
 # Domain only mode
 if [[ "$DOMAIN_ONLY" == true ]]; then
