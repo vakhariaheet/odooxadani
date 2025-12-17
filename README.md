@@ -1,51 +1,62 @@
-# Hackathon Starter Template
+# Odoo Xadani
 
-Full-stack serverless application template with authentication, admin dashboard, and real-time features.
+Production-grade serverless application with authentication, admin dashboard, and real-time features.
+
+[![CI](https://github.com/your-org/odooxadani/workflows/CI/badge.svg)](https://github.com/your-org/odooxadani/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ or Bun
+- Node.js 20+ (see `.nvmrc`)
 - AWS Account with credentials configured
 - Clerk account (free tier works)
+- jq (for deployment script)
 
-### Setup
+### Automated Setup
 
-1. **Clone and install dependencies:**
+Run the setup script to configure everything automatically:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+This will:
+- Install all dependencies
+- Set up Git hooks (Husky)
+- Create environment files
+- Configure the project
+
+### Manual Setup
+
+1. **Install dependencies:**
+```bash
+npm install
+```
+
+2. **Configure environment variables:**
 ```bash
 # Backend
 cd backend
-npm install  # or bun install
+cp .env.example .env
+# Edit .env with your credentials
 
 # Client
 cd ../client
-npm install  # or bun install
+cp .env.example .env.local
+# Edit .env.local with your credentials
 ```
 
-2. **Configure Clerk:**
-   - Create account at [clerk.com](https://clerk.com)
-   - Get your publishable and secret keys
-   - See `client/CLERK_SETUP.md` for detailed setup
-
-3. **Environment variables:**
-```bash
-# Backend (.env.dev)
-CLERK_SECRET_KEY=sk_test_...
-CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_ISSUER_URL=https://your-instance.clerk.accounts.dev
-CLERK_AUDIENCE=https://your-frontend-url.com
-
-# Client (.env.local)
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
-```
-
-4. **Deploy backend:**
+3. **Deploy backend to your dev stage:**
 ```bash
 cd backend
-./deploy.sh dev
+./deploy.sh heet  # or dhruv, tirth, pooja
 ```
 
-5. **Run frontend:**
+4. **Run frontend:**
 ```bash
 cd client
 npm run dev
@@ -122,10 +133,134 @@ Check `FEATURES.md` for complete list of implemented and missing features.
 - `FEATURES.md` - Complete feature list
 - `hackathon-guide.md` - Hackathon-specific guide
 
+## 🔄 Development Workflow
+
+### Multi-Stage Deployment
+
+We use a multi-stage deployment strategy:
+
+```
+dev-dhruv, dev-tirth, dev-pooja, dev-heet → test → prod
+```
+
+**Deploy to your dev stage:**
+```bash
+./deploy.sh heet  # Short form
+./deploy.sh dev-heet  # Full stage name
+```
+
+**View deployment info:**
+```bash
+npx serverless info --stage dev-heet
+```
+
+See `backend/DEPLOYMENT.md` for complete deployment guide.
+
+### Commit Guidelines
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```bash
+feat(users): add user invitation system
+fix(websocket): resolve connection timeout
+docs(deploy): update deployment guide
+```
+
+**Commit types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation
+- `refactor`: Code refactoring
+- `test`: Tests
+- `chore`: Maintenance
+
+**Scopes:**
+- `backend`, `client`, `api`, `auth`, `users`, `websocket`, `deploy`, etc.
+
+### Git Hooks
+
+Automated checks on commit:
+- **pre-commit**: Linting and formatting
+- **commit-msg**: Commit message validation
+
+### Pull Request Process
+
+1. Create feature branch: `feat/your-feature`
+2. Make changes and commit with conventional commits
+3. Deploy and test in your dev stage
+4. Create PR to `test` branch
+5. After QA approval, merge to `main` for production
+
+See `CONTRIBUTING.md` for detailed guidelines.
+
+## 📋 Available Scripts
+
+### Root
+```bash
+npm run backend      # Start backend dev server
+npm run client       # Start client dev server
+npm test            # Run all tests
+npm run lint        # Lint all workspaces
+npm run typecheck   # Type check all workspaces
+npm run format      # Format code with Prettier
+```
+
+### Backend
+```bash
+npm run dev         # Start offline development
+npm test           # Run tests
+npm run lint       # Lint code
+npm run typecheck  # Type check
+./deploy.sh heet   # Deploy to dev stage
+```
+
+### Client
+```bash
+npm run dev        # Start dev server
+npm run build      # Build for production
+npm test          # Run tests
+npm run lint      # Lint code
+```
+
+## 🧪 Testing
+
+```bash
+# Backend tests
+cd backend
+npm test
+
+# Client tests
+cd client
+npm test
+
+# All tests
+npm test
+```
+
 ## 🤝 Contributing
 
-This is a hackathon template. Fork it, customize it, build something awesome!
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- Code of Conduct
+- Development workflow
+- Commit guidelines
+- Pull request process
+- Coding standards
 
 ## 📄 License
 
-MIT
+MIT - see [LICENSE](LICENSE) file for details
+
+## 👥 Team
+
+- Dhruv - `dev-dhruv`
+- Tirth - `dev-tirth`
+- Pooja - `dev-pooja`
+- Heet - `dev-heet`
+
+## 🔗 Links
+
+- [Deployment Guide](backend/DEPLOYMENT.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Feature List](FEATURES.md)
+- [Quick Start Guide](backend/QUICK-START.md)
