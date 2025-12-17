@@ -23,7 +23,7 @@ export interface UserResponse {
 // -----------------------------------------------------------------------------
 export enum UserRole {
   ADMIN = 'admin',
-  USER = 'user'
+  USER = 'user',
 }
 
 // -----------------------------------------------------------------------------
@@ -56,6 +56,7 @@ export interface ListUsersQuery {
   limit?: number;
   offset?: number;
   orderBy?: 'created_at' | 'updated_at' | 'last_sign_in_at';
+  query?: string; // Search query for email or name
 }
 
 /** GET /api/admin/users response */
