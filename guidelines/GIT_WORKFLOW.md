@@ -10,7 +10,6 @@ Best practices for version control, branching, and collaboration.
 
 - `main` - Production-ready code
 - `test` - QA/testing environment
-- `dev` - Development integration branch (optional)
 
 **Feature branches:**
 
