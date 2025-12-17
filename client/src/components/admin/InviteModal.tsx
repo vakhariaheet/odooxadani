@@ -28,44 +28,52 @@ export function InviteModal({ isOpen, onClose, onInvite, isLoading }: InviteModa
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(0,0,0,0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 50,
-      backdropFilter: 'blur(4px)',
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '2.5rem',
-        borderRadius: '1rem',
-        width: '100%',
-        maxWidth: '450px',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-        border: '1px solid #f1f5f9',
-        animation: 'modalFadeIn 0.2s ease-out',
-      }}>
-        <h3 style={{ 
-          margin: '0 0 1.5rem',
-          fontSize: '1.5rem',
-          fontWeight: 700,
-          color: '#111827',
-          textAlign: 'center'
-        }}>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 50,
+        backdropFilter: 'blur(4px)',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: 'white',
+          padding: '2.5rem',
+          borderRadius: '1rem',
+          width: '100%',
+          maxWidth: '450px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          border: '1px solid #f1f5f9',
+          animation: 'modalFadeIn 0.2s ease-out',
+        }}
+      >
+        <h3
+          style={{
+            margin: '0 0 1.5rem',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            color: '#111827',
+            textAlign: 'center',
+          }}
+        >
           Invite New User
         </h3>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '0.75rem', 
-              fontWeight: 600,
-              color: '#374151',
-              fontSize: '0.95rem'
-            }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '0.75rem',
+                fontWeight: 600,
+                color: '#374151',
+                fontSize: '0.95rem',
+              }}
+            >
               Email Address
             </label>
             <input
@@ -94,22 +102,18 @@ export function InviteModal({ isOpen, onClose, onInvite, isLoading }: InviteModa
             />
           </div>
           <div style={{ marginBottom: '2rem' }}>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '0.75rem', 
-              fontWeight: 600,
-              color: '#374151',
-              fontSize: '0.95rem'
-            }}>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '0.75rem',
+                fontWeight: 600,
+                color: '#374151',
+                fontSize: '0.95rem',
+              }}
+            >
               Role
             </label>
-            <RoleSelect
-              value={role}
-              onChange={setRole}
-              style={{
-                width: '100%',
-              }}
-            />
+            <RoleSelect value={role} onChange={setRole} />
           </div>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
             <button

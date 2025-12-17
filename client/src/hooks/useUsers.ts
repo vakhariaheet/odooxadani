@@ -5,14 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersApi, authApi } from '../services/usersApi';
-import type {
-  User,
-  UserRole,
-  UserListResponse,
-  AdminStatsResponse,
-  InviteUserRequest,
-  Invitation,
-} from '../types/user';
+import type { UserRole, UserListResponse, InviteUserRequest, Invitation } from '../types/user';
 
 // =============================================================================
 // QUERY KEYS
@@ -47,7 +40,7 @@ export function useUsers(params?: {
   enabled?: boolean;
 }) {
   const { enabled = true, ...queryParams } = params || {};
-  
+
   return useQuery({
     queryKey: userKeys.list(queryParams),
     queryFn: () => usersApi.listUsers(queryParams),
@@ -101,7 +94,7 @@ export function useInvitations(params?: {
   enabled?: boolean;
 }) {
   const { enabled = true, ...queryParams } = params || {};
-  
+
   return useQuery({
     queryKey: [...userKeys.invitations(), queryParams],
     queryFn: () => usersApi.listInvitations(queryParams),
@@ -133,25 +126,22 @@ export function useInviteUser() {
         updatedAt: Date.now(),
       };
 
-      queryClient.setQueriesData(
-        { queryKey: userKeys.invitations() },
-        (oldData: any) => {
-          if (!oldData?.data) return oldData;
-          
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              invitations: [newInvitation, ...oldData.data.invitations],
-              totalCount: oldData.data.totalCount + 1
-            }
-          };
-        }
-      );
+      queryClient.setQueriesData({ queryKey: userKeys.invitations() }, (oldData: any) => {
+        if (!oldData?.data) return oldData;
+
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            invitations: [newInvitation, ...oldData.data.invitations],
+            totalCount: oldData.data.totalCount + 1,
+          },
+        };
+      });
 
       // Invalidate stats for accurate counts
       queryClient.invalidateQueries({ queryKey: userKeys.stats() });
-      
+
       // Also invalidate invitations to ensure data consistency
       queryClient.invalidateQueries({ queryKey: userKeys.invitations() });
     },
@@ -172,21 +162,20 @@ export function useRevokeInvitation() {
       const previousInvitations = queryClient.getQueriesData({ queryKey: userKeys.invitations() });
 
       // Optimistically remove invitation
-      queryClient.setQueriesData(
-        { queryKey: userKeys.invitations() },
-        (oldData: any) => {
-          if (!oldData?.data?.invitations) return oldData;
-          
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              invitations: oldData.data.invitations.filter((inv: Invitation) => inv.id !== invitationId),
-              totalCount: Math.max(0, oldData.data.totalCount - 1)
-            }
-          };
-        }
-      );
+      queryClient.setQueriesData({ queryKey: userKeys.invitations() }, (oldData: any) => {
+        if (!oldData?.data?.invitations) return oldData;
+
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            invitations: oldData.data.invitations.filter(
+              (inv: Invitation) => inv.id !== invitationId
+            ),
+            totalCount: Math.max(0, oldData.data.totalCount - 1),
+          },
+        };
+      });
 
       return { previousInvitations };
     },
@@ -194,7 +183,7 @@ export function useRevokeInvitation() {
       // Invalidate queries to ensure data consistency
       queryClient.invalidateQueries({ queryKey: userKeys.invitations() });
     },
-    onError: (err, invitationId, context) => {
+    onError: (_err, _invitationId, context) => {
       if (context?.previousInvitations) {
         context.previousInvitations.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -242,29 +231,26 @@ export function useChangeRole() {
         { queryKey: userKeys.lists() },
         (oldData: UserListResponse | undefined) => {
           if (!oldData?.data?.users) return oldData;
-          
+
           return {
             ...oldData,
             data: {
               ...oldData.data,
-              users: oldData.data.users.map(user =>
+              users: oldData.data.users.map((user) =>
                 user.id === userId ? { ...user, role } : user
-              )
-            }
+              ),
+            },
           };
         }
       );
 
-      queryClient.setQueryData(
-        userKeys.detail(userId),
-        (oldData: any) => {
-          if (!oldData?.data) return oldData;
-          return {
-            ...oldData,
-            data: { ...oldData.data, role }
-          };
-        }
-      );
+      queryClient.setQueryData(userKeys.detail(userId), (oldData: any) => {
+        if (!oldData?.data) return oldData;
+        return {
+          ...oldData,
+          data: { ...oldData.data, role },
+        };
+      });
 
       return { previousUserLists, previousUserDetail };
     },
@@ -273,7 +259,7 @@ export function useChangeRole() {
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
       queryClient.invalidateQueries({ queryKey: userKeys.stats() });
     },
-    onError: (err, { userId }, context) => {
+    onError: (_err, { userId }, context) => {
       // Rollback on error
       if (context?.previousUserLists) {
         context.previousUserLists.forEach(([queryKey, data]) => {
@@ -312,33 +298,30 @@ export function useBanUser() {
         { queryKey: userKeys.lists() },
         (oldData: UserListResponse | undefined) => {
           if (!oldData?.data?.users) return oldData;
-          
+
           return {
             ...oldData,
             data: {
               ...oldData.data,
-              users: oldData.data.users.map(user =>
+              users: oldData.data.users.map((user) =>
                 user.id === userId ? { ...user, banned: true } : user
-              )
-            }
+              ),
+            },
           };
         }
       );
 
-      queryClient.setQueryData(
-        userKeys.detail(userId),
-        (oldData: any) => {
-          if (!oldData?.data) return oldData;
-          return {
-            ...oldData,
-            data: { ...oldData.data, banned: true }
-          };
-        }
-      );
+      queryClient.setQueryData(userKeys.detail(userId), (oldData: any) => {
+        if (!oldData?.data) return oldData;
+        return {
+          ...oldData,
+          data: { ...oldData.data, banned: true },
+        };
+      });
 
       return { previousUserLists, previousUserDetail };
     },
-    onError: (err, { userId }, context) => {
+    onError: (_err, { userId }, context) => {
       if (context?.previousUserLists) {
         context.previousUserLists.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -374,33 +357,30 @@ export function useUnbanUser() {
         { queryKey: userKeys.lists() },
         (oldData: UserListResponse | undefined) => {
           if (!oldData?.data?.users) return oldData;
-          
+
           return {
             ...oldData,
             data: {
               ...oldData.data,
-              users: oldData.data.users.map(user =>
+              users: oldData.data.users.map((user) =>
                 user.id === userId ? { ...user, banned: false } : user
-              )
-            }
+              ),
+            },
           };
         }
       );
 
-      queryClient.setQueryData(
-        userKeys.detail(userId),
-        (oldData: any) => {
-          if (!oldData?.data) return oldData;
-          return {
-            ...oldData,
-            data: { ...oldData.data, banned: false }
-          };
-        }
-      );
+      queryClient.setQueryData(userKeys.detail(userId), (oldData: any) => {
+        if (!oldData?.data) return oldData;
+        return {
+          ...oldData,
+          data: { ...oldData.data, banned: false },
+        };
+      });
 
       return { previousUserLists, previousUserDetail };
     },
-    onError: (err, userId, context) => {
+    onError: (_err, userId, context) => {
       if (context?.previousUserLists) {
         context.previousUserLists.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -434,21 +414,21 @@ export function useDeleteUser() {
         { queryKey: userKeys.lists() },
         (oldData: UserListResponse | undefined) => {
           if (!oldData?.data?.users) return oldData;
-          
+
           return {
             ...oldData,
             data: {
               ...oldData.data,
-              users: oldData.data.users.filter(user => user.id !== userId),
-              totalCount: Math.max(0, oldData.data.totalCount - 1)
-            }
+              users: oldData.data.users.filter((user) => user.id !== userId),
+              totalCount: Math.max(0, oldData.data.totalCount - 1),
+            },
           };
         }
       );
 
       return { previousUserLists };
     },
-    onError: (err, userId, context) => {
+    onError: (_err, _userId, context) => {
       if (context?.previousUserLists) {
         context.previousUserLists.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);

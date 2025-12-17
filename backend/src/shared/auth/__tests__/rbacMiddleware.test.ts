@@ -5,10 +5,9 @@
 
 import { withRbac } from '../rbacMiddleware';
 import { AuthenticatedAPIGatewayEvent } from '../../types';
-import { APIGatewayProxyResultV2 } from 'aws-lambda';
 
 describe('RBAC Middleware', () => {
-  const mockHandler = jest.fn(async (event: AuthenticatedAPIGatewayEvent) => {
+  const mockHandler = jest.fn(async (_event: AuthenticatedAPIGatewayEvent) => {
     return {
       statusCode: 200,
       body: JSON.stringify({ message: 'Success' }),
@@ -39,7 +38,7 @@ describe('RBAC Middleware', () => {
       const result = await wrappedHandler(event);
 
       expect(mockHandler).toHaveBeenCalledWith(event);
-      expect(result.statusCode).toBe(200);
+      expect((result as { statusCode: number }).statusCode).toBe(200);
     });
 
     it('should deny user access to admin-only resources', async () => {
@@ -61,7 +60,7 @@ describe('RBAC Middleware', () => {
       const result = await wrappedHandler(event);
 
       expect(mockHandler).not.toHaveBeenCalled();
-      expect(result.statusCode).toBe(403);
+      expect((result as { statusCode: number }).statusCode).toBe(403);
     });
 
     it('should return 401 when no JWT claims present', async () => {
@@ -75,7 +74,7 @@ describe('RBAC Middleware', () => {
       const result = await wrappedHandler(event);
 
       expect(mockHandler).not.toHaveBeenCalled();
-      expect(result.statusCode).toBe(401);
+      expect((result as { statusCode: number }).statusCode).toBe(401);
     });
   });
 });

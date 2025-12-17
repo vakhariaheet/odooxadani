@@ -9,11 +9,12 @@
   ],
   "scripts": {
     "prepare": "husky install",
-    "backend": "cd backend && npm run dev",
-    "client": "cd client && npm run dev",
-    "test": "npm run test --workspaces",
-    "lint": "npm run lint --workspaces",
-    "typecheck": "npm run typecheck --workspaces",
+    "backend": "cd backend && bun run dev",
+    "client": "cd client && bun run dev",
+    "test": "bun run --filter '*' test",
+    "lint": "bun run --filter '*' lint",
+    "lint:fix": "bun run --filter '*' lint:fix",
+    "typecheck": "bun run --filter '*' typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\""
   },
