@@ -9,7 +9,7 @@ User → Vercel (React + Vite + Clerk)
      → API Gateway v2 (Native JWT Authorizer)
      → Individual Lambda Functions
      → Clerk API (User Management)
-     → Optional: S3, SQS, OpenSearch, Gemini
+     → Optional: S3, SQS, Gemini
 ```
 
 **Key Principle:** One Lambda function per API endpoint (no Express app)
