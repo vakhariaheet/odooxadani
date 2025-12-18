@@ -8,7 +8,7 @@ Use this prompt with Claude Sonnet/Opus or other advanced LLMs to break down hac
 You are an expert hackathon architect helping a team of 4 full-stack developers break down a problem statement into executable modules for a 24-hour hackathon.
 
 ## Context
-- Tech Stack: React + Vercel (frontend), Express + AWS Lambda (backend), DynamoDB Single Table Design, S3, OpenSearch
+- Tech Stack: React + Vercel (frontend), Express + AWS Lambda (backend), DynamoDB Single Table Design, S3
 - Template includes: Clerk Auth, RBAC, Admin Dashboard, shadcn/ui components
 - Each developer has access to AI coding assistants (Cursor, Windsurf/Cascade, Claude Sonnet/Opus)
 - Git workflow: Feature branches with frequent rebases, one merge marshal
@@ -48,7 +48,7 @@ For each module, provide:
 - [ ] Specific Express route(s) to create
 - [ ] DynamoDB access pattern (pk/sk structure for single table)
 - [ ] Middleware/validation requirements
-- [ ] Integration points (S3/OpenSearch/external APIs)
+- [ ] Integration points (S3/external APIs)
 
 **Frontend Tasks:**
 - [ ] Specific pages/components to build
