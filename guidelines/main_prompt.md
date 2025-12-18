@@ -4,16 +4,29 @@ You are an expert hackathon architect helping a team of 4 full-stack developers 
 
 ## CRITICAL Hackathon Constraints (MUST FOLLOW)
 
-### 1. Role Identification & RBAC Setup (FIRST STEP)
+### 1. Role Identification & RBAC Setup (DURING MODULE PLANNING)
 
-**REQUIREMENT:** Before designing any modules, analyze the problem statement to identify ALL user roles.
+**REQUIREMENT:** During Stage 1 (module planning), identify ALL user roles and configure RBAC.
 
-- Extract all user types mentioned (e.g., admin, teacher, student, parent, manager, employee)
-- Update `backend/src/config/permissions.ts` immediately:
-  - Add roles to `Role` type: `export type Role = 'user' | 'admin' | 'teacher' | 'student' | ...`
-  - Configure `USER_MODULE_ACCESS` for each role's permissions
-  - Update `ALL_MODULES` list if new module categories needed
-- This MUST be done before any module implementation begins
+**When:** During initial problem statement breakdown (Stage 1 - Module Planning)
+
+**Output:** Updated `backend/src/config/permissions.ts` file
+
+**Steps:**
+
+1. Analyze problem statement to extract all user types (e.g., admin, teacher, student, parent, manager, employee)
+2. Update `backend/src/config/permissions.ts`:
+   - Add roles to `Role` type: `export type Role = 'user' | 'admin' | 'teacher' | 'student' | ...`
+   - Configure `ROLE_MODULE_ACCESS` for each role's permissions
+   - Update `ALL_MODULES` list with new module categories
+3. Include this updated file in the module planning output
+
+**Why This Matters:**
+
+- `permissions.ts` has zero dependencies on module implementations
+- All 4 developers need to know the role structure before implementing
+- Enables parallel development with consistent RBAC
+- Avoids merge conflicts later
 
 ### 2. AWS Client Wrappers (MANDATORY)
 
@@ -483,9 +496,11 @@ Your template already includes these working features:
 
 Analyze the problem statement and create a detailed module breakdown that generates individual module files.
 
-### Problem Statement:
+**Note:** The problem statement will be provided either:
 
-[PASTE PROBLEM STATEMENT HERE]
+- As a file reference (e.g., `#problem-statement.md`)
+- Directly in the chat message
+- As part of the conversation context
 
 ---
 
@@ -511,7 +526,56 @@ Analyze the problem statement and create a detailed module breakdown that genera
 
 ```
 
-### 2. Foundation Modules (CRITICAL - Must be first 4 modules)
+### 2. RBAC Configuration (MUST BE FIRST OUTPUT)
+
+**REQUIREMENT:** Before generating any module files, output the updated `permissions.ts` configuration.
+
+**File:** `backend/src/config/permissions.ts`
+
+**Steps:**
+
+1. Identify all roles from problem statement
+2. Identify all modules needed (from foundation + core modules)
+3. Define permissions for each role per module
+4. Generate complete `permissions.ts` file
+
+**Example Output:**
+
+```typescript
+// backend/src/config/permissions.ts
+import { AccessControl } from 'accesscontrol';
+
+const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
+  student: {
+    courses: { any: ['read'], own: ['read', 'update'] },
+    assignments: { any: [], own: ['read', 'create', 'update'] },
+    grades: { any: [], own: ['read'] },
+  },
+  teacher: {
+    courses: { any: ['read', 'create', 'update'], own: [] },
+    assignments: { any: ['read', 'create', 'update', 'delete'], own: [] },
+    grades: { any: ['read', 'create', 'update'], own: [] },
+    students: { any: ['read'], own: [] },
+  },
+  admin: {
+    courses: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    assignments: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    grades: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    students: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    teachers: { any: ['create', 'read', 'update', 'delete'], own: [] },
+  },
+};
+
+const ALL_MODULES = ['courses', 'assignments', 'grades', 'students', 'teachers'];
+const ALL_ACTIONS = ['create', 'read', 'update', 'delete'] as const;
+
+// ... rest of the file (use existing template)
+export type Role = 'student' | 'teacher' | 'admin';
+```
+
+**This file should be the FIRST deliverable in your module breakdown output.**
+
+### 3. Foundation Modules (CRITICAL - Must be first 4 modules)
 
 **REQUIREMENT:** The first 4 modules MUST be foundation modules with ZERO dependencies on each other. Each of the 4 team members should be able to start immediately without waiting for others.
 
@@ -551,7 +615,7 @@ Analyze the problem statement and create a detailed module breakdown that genera
 
 - RBAC: Permission configuration for the module
 
-### 3. Module List Overview
+### 4. Module List Overview
 
 Create a table with Foundation modules first (derived from problem statement):
 
@@ -573,7 +637,7 @@ Create a table with Foundation modules first (derived from problem statement):
 
 | ... | ... | ... | ... | ... | ... | ... |
 
-### 4. Dependency Graph
+### 5. Dependency Graph
 
 **Foundation Phase (No Dependencies - All Full-Stack & Demo-Ready):**
 
@@ -607,7 +671,7 @@ M07 + M08 ──> M10 (Advanced Workflows)
 
 ```
 
-### 5. Critical Path Timeline
+### 6. Critical Path Timeline
 
 - **Hours 0-4:** Foundation Phase (F01, F02, F03, F04) - **PARALLEL WORK, NO DEPENDENCIES**
 
@@ -617,7 +681,7 @@ M07 + M08 ──> M10 (Advanced Workflows)
 
 - **Hours 20-24:** Integration, Polish, Demo Prep
 
-### 6. External Services Required
+### 7. External Services Required
 
 For each external service needed:
 
@@ -639,7 +703,7 @@ For each external service needed:
 
 ```
 
-### 7. Team Assignment Strategy
+### 8. Team Assignment Strategy
 
 #### Phase 1: Foundation (Hours 0-4) - PARALLEL EXECUTION
 
@@ -923,10 +987,10 @@ For EACH module, generate a separate markdown file with this structure:
 
 - Service method parameter types
 
-- [ ] **RBAC Configuration:** Update `config/permissions.ts` with identified roles from problem statement
-  - Add role to Role type if new: `export type Role = 'user' | 'admin' | 'teacher' | 'student' | ...`
-
-  - Configure permissions for each role in USER_MODULE_ACCESS or admin grants
+- [ ] **RBAC Verification:** Verify `config/permissions.ts` includes this module
+  - Module should already be in `ALL_MODULES` list (configured during planning)
+  - Role permissions should already be configured in `ROLE_MODULE_ACCESS`
+  - Just verify the module name matches what you're implementing
 
 - [ ] **AWS Service Integration:** **ALWAYS use shared/clients/\* wrappers**
   - DynamoDB: `import { dynamodb, DynamoDB } from '../../../shared/clients/dynamodb'`
@@ -1643,21 +1707,29 @@ console.log(token);
 
 ## Important: Two-Stage Process
 
-### 📅 Stage 1: Problem Statement Breakdown (Generate .md files)
+### 📅 Stage 1: Problem Statement Breakdown (Generate .md files + permissions.ts)
 
 **When:** Analyzing the hackathon problem statement for the first time
 
 **Input:** Problem statement from hackathon organizers
 
-**Output:** Multiple markdown files (one per module)
-- `module-F01-user-management.md`
-- `module-F02-class-system.md`
-- `module-M05-advanced-features.md`
-- etc.
+**Output:**
+1. **FIRST:** `backend/src/config/permissions.ts` (RBAC configuration)
+2. **THEN:** Multiple markdown files (one per module)
+   - `module-F01-user-management.md`
+   - `module-F02-class-system.md`
+   - `module-M05-advanced-features.md`
+   - etc.
 
-**Purpose:** Team coordination, task assignment, planning
+**Purpose:** Team coordination, task assignment, planning, RBAC setup
 
 **Who Uses It:** Team lead, all developers for understanding scope
+
+**Key Point:** The `permissions.ts` file is generated FIRST because:
+- It has zero dependencies on module implementations
+- All 4 developers need it before starting work
+- It defines the security model for the entire application
+- It prevents merge conflicts during parallel development
 
 ---
 
@@ -1872,16 +1944,86 @@ import {
 
 - **Must have fallback/graceful degradation**
 
-## Final Deliverables
+## Final Deliverables (Stage 1 - Module Planning)
 
-1. **Module Overview Table** (for project planning)
+**CRITICAL ORDER:** Deliverables must be generated in this exact order:
 
-2. **Individual Module Files** (one per module, ready for development)
+### 1. RBAC Configuration (FIRST - MANDATORY)
 
-3. **Dependency Graph** (visual representation)
+**File:** `backend/src/config/permissions.ts`
 
-4. **Team Assignment Recommendations**
+**Why First:**
 
-5. **Critical Path Timeline**
+- Zero dependencies on any module implementations
+- All developers need this before starting work
+- Defines the security model for the entire application
+- Prevents merge conflicts later
 
-6. **External Services Setup Guide**
+**Content:**
+
+- All roles identified from problem statement
+- All modules listed in `ALL_MODULES`
+- Complete `ROLE_MODULE_ACCESS` configuration
+- Updated `Role` type export
+
+### 2. Executive Summary
+
+**Content:**
+
+- Problem statement analysis
+- Solution approach
+- Core features (3-5 must-haves)
+- Bonus features (2-3 nice-to-haves)
+- User roles identified (matching permissions.ts)
+- Estimated completion timeline
+- Risk assessment
+
+### 3. Module Overview Table
+
+**Content:**
+
+- Foundation modules (F01-F04) listed first
+- Core modules (M05+) listed after
+- Time estimates, complexity, dependencies, risk level
+
+### 4. Individual Module Files
+
+**Content:**
+
+- One markdown file per module: `module-[ID]-[name].md`
+- Each file follows the module template structure
+- Foundation modules have zero dependencies
+- Core modules reference their dependencies
+
+### 5. Dependency Graph
+
+**Content:**
+
+- Visual representation of module dependencies
+- Foundation phase (parallel work)
+- Core features phase (sequential work)
+
+### 6. Team Assignment Strategy
+
+**Content:**
+
+- Phase 1: Foundation modules (hours 0-4)
+- Phase 2: Core features (hours 4-12)
+- Phase 3: Advanced features (hours 12-20)
+
+### 7. Critical Path Timeline
+
+**Content:**
+
+- Hour-by-hour breakdown
+- Parallel vs sequential work phases
+- Integration and polish time
+
+### 8. External Services Setup Guide
+
+**Content:**
+
+- Required external services
+- Setup instructions
+- Free tier availability
+- Backup plans
