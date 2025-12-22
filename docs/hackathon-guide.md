@@ -26,7 +26,6 @@
 - **User Management:** Clerk API via ClerkUserService (no database for users)
 - **File Storage:** S3 with presigned URLs (optional)
 - **Message Queue:** SQS for async processing (optional)
-- **Search:** OpenSearch for full-text search (optional)
 - **AI Integration:** Gemini API (optional)
 - **Infrastructure:** Pure serverless - no VPCs or complex networking
 
@@ -37,7 +36,7 @@ User → Vercel (React + Clerk) → API Gateway v2 (Native JWT Auth) → Individ
                                                                               ↓
                                                                     Clerk API (User Management)
                                                                               ↓
-                                                            Optional: S3 + SQS + OpenSearch + Gemini
+                                                            Optional: S3 + SQS + SES + Gemini
 ```
 
 **Key Pattern:** Each API endpoint = One Lambda function (no Express app, pure serverless)
@@ -48,7 +47,6 @@ User → Vercel (React + Clerk) → API Gateway v2 (Native JWT Auth) → Individ
 - **DynamoDB:** ~$0.25 (on-demand pricing)
 - **API Gateway:** ~$0.10 (HTTP API v2 is cheaper)
 - **S3:** ~$0.05 (minimal storage)
-- **OpenSearch:** ~$0.50 (t3.small.search for 24h)
 - **Total:** ~$1.40 for entire hackathon
 
 ## Development Workflow
@@ -121,7 +119,7 @@ User → Vercel (React + Clerk) → API Gateway v2 (Native JWT Auth) → Individ
 - **Authentication:** Clerk fully integrated with JWT authorizer (no custom auth needed)
 - **Authorization:** Complete RBAC system with `withRbac` and `withRbacOwn` middleware
 - **Admin Dashboard:** Full-featured admin interface with user management
-- **AWS Services:** Lightweight wrappers for Lambda, DynamoDB, S3, SQS, OpenSearch
+- **AWS Services:** Lightweight wrappers for Lambda, DynamoDB, S3, SQS
 - **AI Integration:** Gemini API wrapper for text generation and analysis
 - **User Management:** Complete CRUD with invitations, role changes, ban/unban
 - **Custom Hooks:** useApi, useUsers, useLocalStorage, useDebounce, useAsync
@@ -213,7 +211,7 @@ bun dev  # API available locally
 - **S3 Uploads:** Use presigned URLs, no direct uploads to Lambda (optional)
 - **Clerk Integration:** All user management via Clerk API (invitations, roles, ban/unban)
 - **WebSocket:** API Gateway WebSocket API with Lambda handlers for connect/disconnect/message
-- **Search:** OpenSearch integration for full-text search (optional)
+
 - **AI Features:** Gemini API for text generation, analysis, or chat features
 - **Message Queue:** SQS for async processing and background jobs
 - **External APIs:** Real integrations only, no mocks
@@ -326,7 +324,6 @@ _This guide represents the distilled strategy from extensive planning and testin
 - **Clerk API:** User management (list, invite, ban, delete, role changes)
 - **S3:** File upload/download with presigned URLs (optional)
 - **SQS:** Message queuing for async processing (optional)
-- **OpenSearch:** Full-text search (optional, adds ~$0.50/day)
 - **Gemini API:** AI text generation and analysis capabilities (optional)
 
 ### Frontend Architecture

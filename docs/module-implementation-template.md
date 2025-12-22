@@ -24,7 +24,7 @@
   - SK: `[pattern]` (e.g., `PROFILE` or `BOOK#${bookId}`)
   - GSI: `[if needed]`
 - [ ] **Middleware:** [Auth/validation requirements]
-- [ ] **External Integration:** [If any - S3, OpenSearch, APIs]
+- [ ] **External Integration:** [If any - S3, APIs]
 
 ### Frontend Tasks
 
