@@ -317,6 +317,7 @@ All Devs: Final preparation
    cat guidelines/QUICK_REFERENCE.md
    cat guidelines/CODING_GUIDELINES.md
    cat guidelines/API_DESIGN.md
+   cat guidelines/STYLE_GUIDE.md      # CRITICAL: Read for UI/UX consistency
    cat guidelines/GIT_WORKFLOW.md
    ```
 

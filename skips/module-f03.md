@@ -200,6 +200,7 @@ Fields:
    ```bash
    cat guidelines/QUICK_REFERENCE.md
    cat guidelines/CODING_GUIDELINES.md
+   cat guidelines/STYLE_GUIDE.md  # IMPORTANT: Read for UI/UX consistency
    ```
 
 2. **Study Similar Existing Modules:**
@@ -209,7 +210,15 @@ Fields:
    cat backend/src/modules/users/services/ClerkUserService.ts
    ```
 
-3. **Study F01 (Proposal Management):**
+3. **Review Style Guide for This Module:**
+   - **Number Formatting:** Right-align all currency amounts, use monospace font
+   - **Line Items Editor:** Dynamic add/remove rows with real-time calculations
+   - **Status Colors:** Draft (gray), Sent (blue), Paid (green), Overdue (red)
+   - **Overdue Highlighting:** Red background tint for overdue invoices
+   - **Currency Display:** Use Intl.NumberFormat for consistent formatting
+   - See `guidelines/STYLE_GUIDE.md` → "F03: Invoice Management" section
+
+4. **Study F01 (Proposal Management):**
    - Similar structure and patterns
    - Reuse email sending logic
    - Similar status workflow

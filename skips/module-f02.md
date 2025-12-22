@@ -159,6 +159,7 @@ None required for this module.
    cat guidelines/QUICK_REFERENCE.md
    cat guidelines/CODING_GUIDELINES.md
    cat guidelines/API_DESIGN.md
+   cat guidelines/STYLE_GUIDE.md  # IMPORTANT: Read for UI/UX consistency
    ```
 
 2. **Study Similar Existing Modules:**
@@ -169,7 +170,14 @@ None required for this module.
    cat backend/src/config/permissions.ts
    ```
 
-3. **Identify Reusable Patterns:**
+3. **Review Style Guide for This Module:**
+   - **Card Grid Layout:** 3 columns on desktop, responsive on mobile
+   - **Avatar Pattern:** Use initials for client avatars
+   - **Search Bar:** Prominent at top of page
+   - **Quick Actions:** Floating action button on mobile
+   - See `guidelines/STYLE_GUIDE.md` → "F02: Client Management" section
+
+4. **Identify Reusable Patterns:**
    - Lambda handler structure
    - Service layer pattern
    - RBAC middleware usage
