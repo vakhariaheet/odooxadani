@@ -32,18 +32,16 @@ You are an expert hackathon architect helping a team of 4 full-stack developers 
 
 **REQUIREMENT:** NEVER use AWS SDK directly. Always use existing client wrappers.
 
-**Available Wrappers** (in `backend/src/shared/clients/`):
+**Available Wrappers** (documented in `guidelines/project-architecture.md`):
 
-- `dynamodb.ts` - DynamoDB operations (get, put, update, delete, query, scan, batch, transactions)
-- `s3.ts` - S3 file operations (upload, download, presigned URLs)
-- `ses.ts` - Email service (transactional emails)
-- `sqs.ts` - Message queue operations
-- `gemini.ts` - Google Gemini AI integration
+- Complete list of pre-configured AWS service clients
+- Usage patterns and examples
+- Integration guidelines
 
 **Usage Pattern:**
 
 ```typescript
-// CORRECT - Use wrapper
+// CORRECT - Use wrapper (see architecture doc for complete list)
 import { dynamodb } from '../../../shared/clients/dynamodb';
 const result = await dynamodb.get({ PK: 'USER#123', SK: 'PROFILE' });
 
@@ -97,36 +95,38 @@ Day 1 (Implementation): Developer reads module-F01-user-mgmt.md → Writes ONLY 
 
 ### 6. Pre-Implementation Study (MANDATORY)
 
-**REQUIREMENT:** Before implementing ANY module, study the existing codebase and guidelines.
+**CRITICAL REQUIREMENT:** Before implementing ANY module, you MUST read the complete project architecture documentation.
 
-**Study Order:**
+**MANDATORY Reading Order:**
 
-1. **Read `guidelines/` folder** (MUST READ BEFORE CODING):
-   - `QUICK_REFERENCE.md` - Quick patterns and examples
-   - `CODING_GUIDELINES.md` - Code standards and best practices
-   - `API_DESIGN.md` - API endpoint design patterns
-   - `INFRASTRUCTURE.md` - Deployment and AWS setup
-   - `GIT_WORKFLOW.md` - Git branching and commit conventions
-   - `CHEAT_SHEET.md` - Common commands and shortcuts
-   - `README.md` - Guidelines overview
+1. **Read `guidelines/project-architecture.md` COMPLETELY** (REQUIRED BEFORE ANY CODING):
+   - Complete backend and frontend architecture
+   - Technology stack and patterns
+   - Database design and conventions
+   - Authentication and authorization flow
+   - API endpoint conventions
+   - Clean architecture layers
+   - Existing features and capabilities
+   - Development workflow and deployment
 
-2. **Study existing codebase patterns**:
-   - `backend/src/modules/users/` - Example CRUD module with Clerk integration
-   - `backend/src/modules/demo/` - Example RBAC-protected endpoints
-   - `backend/src/modules/websocket/` - Real-time communication example
-   - `backend/src/shared/` - Reusable utilities and middleware
-   - `backend/src/config/permissions.ts` - RBAC configuration pattern
-   - `client/src/components/admin/` - Complex admin UI patterns
-   - `client/src/hooks/useUsers.ts` - React Query integration example
-   - `client/src/services/apiClient.ts` - API client with auth
+2. **Read `guidelines/style-guide.md`** (will be added on event day):
+   - Code style and formatting conventions
+   - Naming conventions and best practices
 
-3. **Understand the architecture**:
-   - Lambda handler pattern (handler → service → client)
-   - RBAC middleware usage (`withRbac`, `withRbacOwn`)
-   - Response format (`successResponse`, `commonErrors`)
-   - Type safety (shared types, event types)
-   - Frontend hooks pattern (React Query for API state)
-   - shadcn/ui component usage
+3. **Study existing codebase patterns** (documented in `guidelines/project-architecture.md`):
+   - Complete module examples and patterns
+   - Clean architecture layers
+   - RBAC middleware usage
+   - Response format standards
+   - Type safety patterns
+   - Frontend hooks and component patterns
+
+4. **Understand the architecture** (from `guidelines/project-architecture.md`):
+   - Complete serverless Lambda patterns
+   - RBAC middleware usage patterns
+   - Response format standards
+   - Type safety implementation
+   - Frontend integration patterns
 
 **Why This Matters:**
 
@@ -142,339 +142,54 @@ Day 1 (Implementation): Developer reads module-F01-user-mgmt.md → Writes ONLY 
 
 ## Team Context
 
-- **Tech Stack:** React + Vite + Vercel (frontend), Serverless Framework + AWS Lambda (backend), Clerk API (user management)
-
-- **Backend Pattern:** Individual Lambda functions per endpoint (no Express), API Gateway v2 with native JWT authorizer, Service layer pattern
-
-- **Pre-built Template:** Clerk Auth, RBAC middleware (`withRbac`, `withRbacOwn`), Admin Dashboard, shadcn/ui components, custom hooks (`useApi`, `useAsync`, `useLocalStorage`, `useDebounce`)
-
 - **AI Tools:** Each developer has Cursor, Windsurf/Cascade, Claude Sonnet/Opus access
-
 - **Git Workflow:** Feature branches, frequent rebases, designated merge marshal
-
 - **Experience Level:** Senior developers familiar with serverless Lambda patterns, React hooks, and TypeScript
 
 ## Project Structure Template
 
-Your workspace should follow this structure for optimal development:
+## Project Structure Reference
 
-### Backend Folder Structure
+**CRITICAL:** All project structure details are documented in `guidelines/project-architecture.md`.
 
-```
+**You MUST read the complete architecture document before implementing any modules.**
 
-backend/
+The architecture document contains:
 
-├── package.json              # Dependencies: @clerk/backend, aws-sdk
+- Complete backend folder structure and patterns
+- Complete frontend folder structure and patterns
+- Technology stack details
+- Database design (DynamoDB single-table)
+- Authentication & authorization flow
+- API endpoint conventions
+- Clean architecture layers
+- Existing features and capabilities
+- Development workflow and deployment
 
-├── tsconfig.json            # TypeScript configuration
-
-├── serverless.yml           # Main Serverless Framework config
-
-├── deploy.sh                # Deployment script with AWS role assumption
-
-├── README.md                # Backend setup instructions
-
-├── src/
-
-│   ├── config/
-
-│   │   ├── permissions.ts   # RBAC configuration with accesscontrol
-
-│   │   └── environment.ts   # Environment variables validation
-
-│   ├── shared/
-
-│   │   ├── types.ts         # Shared TypeScript types
-
-│   │   ├── response.ts      # Response helpers (successResponse, commonErrors)
-
-│   │   ├── logger.ts        # Logging utility
-
-│   │   └── auth/
-
-│   │       ├── rbacMiddleware.ts  # withRbac, withRbacOwn wrappers
-
-│   │       └── clerkAuth.ts       # Clerk authentication helpers
-
-│   ├── modules/
-
-│   │   └── [domain]/        # Domain module (e.g., users, demo, websocket)
-
-│   │       ├── handlers/        # Lambda handler functions
-
-│   │       │   ├── listEntity.ts    # GET /api/entity
-
-│   │       │   ├── getEntity.ts     # GET /api/entity/:id
-
-│   │       │   ├── createEntity.ts  # POST /api/entity
-
-│   │       │   ├── updateEntity.ts  # PUT /api/entity/:id
-
-│   │       │   └── deleteEntity.ts  # DELETE /api/entity/:id
-
-│   │       ├── functions/       # Serverless function definitions
-
-│   │       │   ├── listEntity.yml   # Function config for listEntity
-
-│   │       │   ├── getEntity.yml    # Function config for getEntity
-
-│   │       │   └── ...              # One YAML per handler
-
-│   │       ├── services/        # Business logic services
-
-│   │       │   └── EntityService.ts # Service class (e.g., ClerkUserService)
-
-│   │       └── types.ts         # Domain-specific TypeScript types
-
-│   └── wrappers/            # Optional AWS service wrappers
-
-│       ├── dynamodb.ts      # DynamoDB operations wrapper
-
-│       ├── s3.ts           # S3 operations wrapper
-
-│       └── sqs.ts          # SQS operations wrapper
-
-└── tests/
-
-    ├── shared/              # Tests for shared utilities
-
-    └── modules/
-
-        └── [domain]/
-
-            └── handlers/    # Tests for Lambda handlers
-
-```
-
-### Frontend Folder Structure
-
-```
-
-client/
-
-├── package.json             # Dependencies: react, vite, shadcn/ui, clerk
-
-├── tsconfig.json           # TypeScript configuration
-
-├── vite.config.ts          # Vite build configuration
-
-├── index.html              # Main HTML template
-
-├── README.md               # Frontend setup instructions
-
-├── public/
-
-│   ├── favicon.ico
-
-│   └── assets/             # Static assets
-
-├── src/
-
-│   ├── main.tsx            # React app entry point
-
-│   ├── App.tsx             # Main app component with routing
-
-│   ├── index.css           # Global styles
-
-│   ├── components/
-
-│   │   ├── ui/             # shadcn/ui components (auto-generated)
-
-│   │   │   ├── button.tsx
-
-│   │   │   ├── form.tsx
-
-│   │   │   ├── table.tsx
-
-│   │   │   ├── dialog.tsx
-
-│   │   │   └── ...         # Other shadcn components
-
-│   │   ├── layout/
-
-│   │   │   ├── Header.tsx
-
-│   │   │   ├── Sidebar.tsx
-
-│   │   │   ├── Footer.tsx
-
-│   │   │   └── Layout.tsx
-
-│   │   ├── auth/
-
-│   │   │   ├── LoginForm.tsx
-
-│   │   │   ├── SignupForm.tsx
-
-│   │   │   └── ProtectedRoute.tsx
-
-│   │   ├── admin/
-
-│   │   │   ├── AdminDashboard.tsx
-
-│   │   │   ├── UserManagement.tsx
-
-│   │   │   └── Analytics.tsx
-
-│   │   └── [entity]/       # Entity-specific components
-
-│   │       ├── [Entity]List.tsx
-
-│   │       ├── [Entity]Form.tsx
-
-│   │       ├── [Entity]Card.tsx
-
-│   │       └── [Entity]Details.tsx
-
-│   ├── pages/
-
-│   │   ├── HomePage.tsx
-
-│   │   ├── DashboardPage.tsx
-
-│   │   ├── AdminPage.tsx
-
-│   │   └── [entity]/
-
-│   │       ├── [Entity]ListPage.tsx
-
-│   │       ├── [Entity]CreatePage.tsx
-
-│   │       └── [Entity]EditPage.tsx
-
-│   ├── hooks/
-
-│   │   ├── useApi.ts       # API calls with Clerk auth
-
-│   │   ├── useAsync.ts     # Async operation management
-
-│   │   ├── useAsyncCallback.ts # Async callback wrapper
-
-│   │   ├── useLocalStorage.ts  # Persistent state
-
-│   │   ├── useDebounce.ts  # Input debouncing
-
-│   │   └── index.ts        # Hook exports
-
-│   ├── services/
-
-│   │   └── apiClient.ts    # Singleton API client with Clerk auth
-
-│   ├── utils/
-
-│   │   ├── cn.ts           # Utility for className merging
-
-│   │   ├── constants.ts    # App constants
-
-│   │   ├── formatters.ts   # Data formatting utilities
-
-│   │   └── validators.ts   # Form validation
-
-│   ├── types/
-
-│   │   ├── user.ts         # User types (matching backend)
-
-│   │   └── [entity].ts     # Entity types
-
-│   └── assets/
-
-│       ├── images/
-
-│       ├── icons/
-
-│       └── styles/
-
-└── dist/                   # Build output (generated)
-
-```
-
-### Deployment Structure
-
-```
-
-backend/
-
-├── deploy.sh                    # Deployment script with AWS role assumption
-
-├── serverless.yml               # Main Serverless Framework configuration
-
-├── .env                         # Environment variables (not committed)
-
-├── .env.example                 # Example environment variables
-
-├── scripts/
-
-│   └── update-cloudflare-dns.sh # DNS update script (optional)
-
-└── .serverless/                 # Serverless Framework output (generated)
-
-```
-
-**Deployment Commands:**
-
-```bash
-
-# Deploy to specific stage
-
-cd backend
-
-npm install
-
-./deploy.sh dev-heet  # or dev-dhruv, dev-tirth, dev-pooja, test, prod
-
-# Deploy without custom domain
-
-CUSTOM_DOMAIN_ENABLED=false ./deploy.sh dev-heet
-
-# Remove deployment
-
-npx serverless remove --stage dev-heet
-
-```
+**DO NOT proceed without reading `guidelines/project-architecture.md` first.**
 
 ## Pre-built Features Available
 
-Your template already includes these working features (from `guidelines/project-architecture.md`):
+**CRITICAL:** All pre-built features and capabilities are documented in `guidelines/project-architecture.md`.
 
-### Backend (Already Implemented - ✅ Ready to Use)
+**You MUST read the complete architecture document to understand:**
 
-- ✅ **Complete Authentication System:** Clerk JWT validation via API Gateway authorizer
-- ✅ **Full RBAC System:** `withRbac()`, `withRbacOwn()`, `withWebSocketRbac()` wrappers
-- ✅ **Response & Error Handling:** `successResponse()`, `errorResponse()`, `commonErrors.*`, `handleAsyncError()`
-- ✅ **Complete User Management:** Full CRUD for users via Clerk API (12 endpoints)
-  - List users, get user details, invite user, change role, ban/unban, delete
-  - Admin statistics, invitation management
-- ✅ **Demo/Testing Module:** Example handlers showing RBAC patterns
-- ✅ **WebSocket System:** Real-time communication with authentication
-- ✅ **AWS Service Clients:** Pre-configured wrappers for DynamoDB, S3, SES, SQS, Gemini AI
-- ✅ **Infrastructure:** Multi-stage deployment, custom domains, CloudFormation
-- ✅ **Type System:** `AuthenticatedAPIGatewayEvent`, `AuthenticatedWebSocketEvent`
-- ✅ **Logging & Monitoring:** Structured logging for CloudWatch
-
-### Frontend (Already Implemented - ✅ Ready to Use)
-
-- ✅ **Complete Auth UI:** Clerk sign in, sign up, user management
-- ✅ **Custom Hooks:** `useApi`, `useAsync`, `useAsyncCallback`, `useLocalStorage`, `useDebounce`
-- ✅ **UI Component Library:** Full shadcn/ui setup (Button, Card, Table, Dialog, Form, etc.)
-- ✅ **Admin Dashboard:** Complete user management interface with role changes, bans, invitations
-- ✅ **Route Protection:** `ProtectedRoute` component for auth-required pages
-- ✅ **WebSocket Demo:** Real-time messaging example
-- ✅ **API Client:** Singleton with automatic Clerk token injection
-
-### Infrastructure (Already Configured - ✅ Ready to Use)
-
-- ✅ **Serverless Framework:** Multi-stage deployment (dev-\*, test, prod)
-- ✅ **API Gateway v2:** HTTP API with native JWT authorizer + WebSocket API
-- ✅ **Database:** DynamoDB single-table design with 2 GSIs
-- ✅ **Custom Domains:** CloudFlare DNS integration
-- ✅ **Environment Management:** Per-stage configuration
-- ✅ **Code Quality:** TypeScript, ESLint, Jest, Husky hooks
+- Complete authentication system (Clerk JWT validation)
+- Full RBAC system with middleware wrappers
+- Complete user management (12 endpoints)
+- Admin dashboard with user management interface
+- WebSocket system for real-time communication
+- AWS service clients (DynamoDB, S3, SES, SQS, Gemini AI)
+- Infrastructure setup and deployment
+- Frontend components and hooks
 
 **What This Means for New Modules:**
 
 - **Don't Rebuild:** User management, auth, admin dashboard, WebSocket already exist
 - **Do Build:** New business entities, domain-specific workflows, external integrations
 - **Reuse Patterns:** Follow existing modules in `backend/src/modules/` for reference
+
+**DO NOT proceed without reading `guidelines/project-architecture.md` first.**
 
 ## Your Task
 
@@ -585,7 +300,9 @@ export type Role = 'student' | 'teacher' | 'admin';
 - **F01:** [Primary Business Entity] (e.g., Products, Orders, Bookings, Projects) - **Full-Stack**
   - **Avoid**: User management (already exists), Generic admin features (already exists)
 
-- **F02:** [Secondary Business Entity OR Landing/Marketing] (e.g., Categories, Inventory, Landing Page, Public Content) - **Full-Stack OR Frontend-Only**
+- **F02:** **Site Landing Page** (MANDATORY) - **Frontend-Only**
+  - **Required**: Hero section, features showcase, pricing/plans, contact forms, about section
+  - **Perfect for parallel work**: No backend dependencies, immediate demo value
   - **Avoid**: Authentication pages (already exist), Generic dashboards (already exist)
 
 - **F03:** [Core Business Process OR NEW API Services] (e.g., Search, Checkout, Booking Flow, NEW External Integrations) - **Full-Stack OR Backend-Only**
@@ -600,12 +317,13 @@ export type Role = 'student' | 'teacher' | 'admin';
 
 **Landing Page Modules (Frontend-Only):**
 
-- Perfect for F02 when problem needs marketing/public content
-- Include: Hero section, features, pricing, contact forms
-- No backend needed - can be demo-ready immediately
+- **MANDATORY for F02**: Site Landing Page is required as one of the foundation modules
+- Perfect for parallel work - zero backend dependencies, immediate demo value
+- Include: Hero section, features showcase, pricing/plans, contact forms, about section
 - Use shadcn/ui components for consistent styling
 - Implement responsive design with Tailwind CSS
 - Add routing for multiple landing pages if needed
+- Can be demo-ready in 30-45 minutes
 
 **API Service Modules (Backend-Only):**
 
@@ -670,7 +388,7 @@ Create a table with Foundation modules first (derived from problem statement):
 
 | **F01** | **[Primary Entity] Management** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** |
 
-| **F02** | **[Secondary Entity/Landing] System** | **45min-1hr** | **Simple-Medium** | **Full-stack/Frontend-only** | **None** | **Low** |
+| **F02** | **Site Landing Page** | **30-45min** | **Simple** | **Frontend-only** | **None** | **Low** |
 
 | **F03** | **[Core Process/API] Workflow** | **1hr** | **Medium** | **Full-stack/Backend-only** | **None** | **Low** |
 
@@ -784,9 +502,10 @@ For each external service needed:
   - Database: Entity schema design
   - WORKS INDEPENDENTLY
 
-**Dev 2:** F02 ([Secondary Entity/Landing]) - Full-stack OR Frontend-only, demo-ready
-  - If Full-stack: Backend + Frontend + Database
-  - If Frontend-only: Landing pages + marketing content + routing
+**Dev 2:** F02 (Site Landing Page) - Frontend-only, demo-ready
+  - Landing pages: Hero, features, pricing, contact, about
+  - Marketing content and responsive design
+  - No backend dependencies - fastest to demo
   - WORKS INDEPENDENTLY
 
 **Dev 3:** F03 ([Core Process/API Services]) - Full-stack OR Backend-only, demo-ready
@@ -1093,6 +812,8 @@ For EACH module, generate a separate markdown file with this structure:
 
 - [ ] **Error Handling:** Use `handleAsyncError()` and `commonErrors.*` consistently
 
+**CRITICAL - NO TESTS:** Do NOT create any test files (.test.ts, .spec.ts) - Skip unit tests for hackathon speed
+
 ### Frontend Tasks (Skip if Backend-only)
 
 - [ ] **Pages/Components:** [List specific components to build]
@@ -1108,6 +829,8 @@ For EACH module, generate a separate markdown file with this structure:
 - [ ] **Static Content:** [Landing pages, marketing content] (Frontend-only modules)
 
 - [ ] **Responsive Design:** [Mobile-first approach with Tailwind CSS]
+
+**CRITICAL - NO TESTS:** Do NOT create any test files (.test.tsx, .spec.tsx) - Skip unit tests for hackathon speed
 
 ### Database Schema (Single Table) - Skip if Frontend-only
 ```
@@ -1150,41 +873,33 @@ pk: [ENTITY]#[id] | sk: [TYPE] | gsi1pk: [grouping] | gsi1sk: [sorting]
 
 ### Step 0: Study Phase (MANDATORY - Do This First)
 
-**BEFORE writing any code, spend 15-20 minutes studying:**
+**CRITICAL:** You MUST read `guidelines/project-architecture.md` COMPLETELY before writing any code.
 
-1. **Review Guidelines** (in order of importance):
-   ```bash
-   # Read these files in the guidelines/ folder:
-   cat guidelines/QUICK_REFERENCE.md      # Quick patterns
-   cat guidelines/CODING_GUIDELINES.md    # Code standards
-   cat guidelines/API_DESIGN.md           # API patterns
-   cat guidelines/GIT_WORKFLOW.md         # Git conventions
-````
+**MANDATORY Reading (15-20 minutes):**
 
-2. **Study Similar Existing Modules:**
+1. **Read `guidelines/project-architecture.md` COMPLETELY** (REQUIRED):
+   - Complete backend and frontend architecture
+   - Technology stack and existing capabilities
+   - Database design and patterns
+   - Authentication and authorization flow
+   - API endpoint conventions
+   - Clean architecture layers
+   - Existing features (don't rebuild what exists)
 
-   ```bash
-   # Backend patterns (STUDY THESE FIRST):
-   ls -la backend/src/modules/users/handlers/    # Complete CRUD example
-   cat backend/src/modules/users/services/ClerkUserService.ts  # Service layer pattern
-   cat backend/src/modules/demo/handlers/        # RBAC examples
-   cat backend/src/shared/clients/               # AWS service clients
-   cat backend/src/config/permissions.ts         # RBAC configuration
+2. **Read `guidelines/style-guide.md`** (will be added on event day):
+   - Code style and formatting conventions
 
-   # Frontend patterns (STUDY THESE FIRST):
-   ls -la client/src/components/admin/           # Complete admin UI
-   cat client/src/hooks/useUsers.ts              # React Query hooks
-   cat client/src/services/apiClient.ts          # API client setup
-   cat client/src/components/ui/                 # shadcn/ui components
-   ```
+3. **Study Similar Existing Modules:**
+   - Review existing modules in `backend/src/modules/` for patterns
+   - Check `backend/src/shared/clients/` for available AWS service clients
+   - Examine `client/src/components/admin/` for UI patterns
+   - Study `client/src/hooks/` for React Query integration examples
 
-3. **Identify Reusable Patterns:**
-   - **Complete Examples**: Users module (12 endpoints), Admin dashboard, WebSocket system
-   - **Handler Structure**: See `backend/src/modules/users/handlers/listUsers.ts`
-   - **Service Layer**: See `backend/src/modules/users/services/ClerkUserService.ts`
-   - **RBAC Usage**: See any handler with `withRbac` - don't reinvent
-   - **React Patterns**: See `client/src/hooks/useUsers.ts` and `client/src/components/admin/`
-   - **AWS Clients**: See `backend/src/shared/clients/` - reuse existing wrappers
+4. **Identify Reusable Patterns:**
+   - Follow existing module structure and conventions
+   - Use established RBAC and authentication patterns
+   - Leverage existing AWS client wrappers
+   - Reuse frontend components and hooks
 
 **What to Look For:**
 
@@ -1402,8 +1117,8 @@ ac.grant('admin')
 ```
 You are implementing a specific module. Before starting:
 1. Study backend/src/modules/users/ for handler patterns
-2. Review guidelines/CODING_GUIDELINES.md for code standards
-3. Check guidelines/API_DESIGN.md for API conventions
+2. Review guidelines/project-architecture.md for architecture patterns
+3. Check guidelines/style-guide.md for code conventions (will be added on event day)
 4. Follow the exact patterns you see in existing code
 
 IMPORTANT: Generate ONLY code files (.ts, .tsx, .yml).
@@ -1570,20 +1285,15 @@ Create a form component for [entity] using shadcn Form:
 ## Acceptance Criteria
 
 - [ ] [Specific, testable requirement 1]
-
 - [ ] [Specific, testable requirement 2]
-
 - [ ] [Specific, testable requirement 3]
-
 - [ ] **Demo Ready:** Can demonstrate complete feature (frontend + backend) in 30 seconds
-
 - [ ] **Full-Stack Working:** Frontend connects to backend, backend connects to database
-
 - [ ] **Lambda Compatible:** Backend code works in serverless environment
-
 - [ ] **Error Handling:** Graceful failure modes implemented
-
 - [ ] **Mobile Responsive:** Works on mobile devices
+
+**CRITICAL - NO TEST FILES:** Do NOT generate any test files (.test.ts, .spec.ts, .test.tsx, .spec.tsx) - Focus on working features only
 
 ## Testing Checklist
 
@@ -1816,6 +1526,7 @@ console.log(token);
 **Input:** Problem statement from hackathon organizers
 
 **Output:**
+
 1. **FIRST:** `backend/src/config/permissions.ts` (RBAC configuration)
 2. **THEN:** Multiple markdown files (one per module)
    - `module-F01-user-management.md`
@@ -1828,6 +1539,7 @@ console.log(token);
 **Who Uses It:** Team lead, all developers for understanding scope
 
 **Key Point:** The `permissions.ts` file is generated FIRST because:
+
 - It has zero dependencies on module implementations
 - All 4 developers need it before starting parallel work
 - It defines the security model for the entire application
@@ -1843,6 +1555,7 @@ console.log(token);
 **Input:** One module's markdown file (e.g., `module-F01-user-management.md`)
 
 **Output:** ONLY code files - NO markdown files
+
 - `backend/src/modules/users/handlers/listUsers.ts`
 - `backend/src/modules/users/services/UserService.ts`
 - `backend/src/modules/users/functions/listUsers.yml`
@@ -1862,16 +1575,14 @@ console.log(token);
 ### Essential Imports for Backend Handlers
 
 ```typescript
+import { APIGatewayProxyResultV2 } from 'aws-lambda';
 
-import { APIGatewayProxyResultV2 } from "aws-lambda";
+import { AuthenticatedAPIGatewayEvent } from '../../../shared/types';
 
-import { AuthenticatedAPIGatewayEvent } from "../../../shared/types";
+import { withRbac, withRbacOwn } from '../../../shared/auth/rbacMiddleware';
 
-import { withRbac, withRbacOwn } from "../../../shared/auth/rbacMiddleware";
-
-import { successResponse, handleAsyncError, commonErrors } from "../../../shared/response";
-
-````
+import { successResponse, handleAsyncError, commonErrors } from '../../../shared/response';
+```
 
 ### Essential Imports for Frontend Components
 
