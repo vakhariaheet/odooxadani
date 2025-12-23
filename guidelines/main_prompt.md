@@ -434,63 +434,47 @@ npx serverless remove --stage dev-heet
 
 ## Pre-built Features Available
 
-Your template already includes these working features:
+Your template already includes these working features (from `guidelines/project-architecture.md`):
 
-### Backend (Already Implemented)
+### Backend (Already Implemented - ✅ Ready to Use)
 
-- ✅ **Clerk Authentication:** JWT validation via API Gateway authorizer
+- ✅ **Complete Authentication System:** Clerk JWT validation via API Gateway authorizer
+- ✅ **Full RBAC System:** `withRbac()`, `withRbacOwn()`, `withWebSocketRbac()` wrappers
+- ✅ **Response & Error Handling:** `successResponse()`, `errorResponse()`, `commonErrors.*`, `handleAsyncError()`
+- ✅ **Complete User Management:** Full CRUD for users via Clerk API (12 endpoints)
+  - List users, get user details, invite user, change role, ban/unban, delete
+  - Admin statistics, invitation management
+- ✅ **Demo/Testing Module:** Example handlers showing RBAC patterns
+- ✅ **WebSocket System:** Real-time communication with authentication
+- ✅ **AWS Service Clients:** Pre-configured wrappers for DynamoDB, S3, SES, SQS, Gemini AI
+- ✅ **Infrastructure:** Multi-stage deployment, custom domains, CloudFormation
+- ✅ **Type System:** `AuthenticatedAPIGatewayEvent`, `AuthenticatedWebSocketEvent`
+- ✅ **Logging & Monitoring:** Structured logging for CloudWatch
 
-- ✅ **RBAC Middleware:** `withRbac()`, `withRbacOwn()`, `withWebSocketRbac()` wrappers
+### Frontend (Already Implemented - ✅ Ready to Use)
 
-- ✅ **Response Helpers:** `successResponse()`, `errorResponse()`, `commonErrors.*`, `handleAsyncError()`
-
-- ✅ **User Management Module:** Full CRUD for users via Clerk API
-
-- List users, get user details, invite user, change role, ban/unban, delete
-
-- ✅ **Demo Module:** Example handlers showing RBAC patterns
-
-- ✅ **WebSocket Module:** Real-time communication with authentication
-
-- ✅ **Type Definitions:** `AuthenticatedAPIGatewayEvent`, `AuthenticatedWebSocketEvent`
-
-- ✅ **Logger Utility:** Structured logging for CloudWatch
-
-- ✅ **Environment Config:** Validation and type-safe environment variables
-
-### Frontend (Already Implemented)
-
-- ✅ **Clerk Auth Integration:** Sign in, sign up, user management
-
+- ✅ **Complete Auth UI:** Clerk sign in, sign up, user management
 - ✅ **Custom Hooks:** `useApi`, `useAsync`, `useAsyncCallback`, `useLocalStorage`, `useDebounce`
-
-- ✅ **shadcn/ui Components:** Button, Card, Table, Dialog, Form, and more
-
-- ✅ **Admin Dashboard:** User management interface with role changes, bans, invitations
-
-- ✅ **Protected Routes:** `ProtectedRoute` component for auth-required pages
-
+- ✅ **UI Component Library:** Full shadcn/ui setup (Button, Card, Table, Dialog, Form, etc.)
+- ✅ **Admin Dashboard:** Complete user management interface with role changes, bans, invitations
+- ✅ **Route Protection:** `ProtectedRoute` component for auth-required pages
 - ✅ **WebSocket Demo:** Real-time messaging example
+- ✅ **API Client:** Singleton with automatic Clerk token injection
 
-- ✅ **API Client:** Singleton with Clerk token injection
-
-### Infrastructure (Already Configured)
+### Infrastructure (Already Configured - ✅ Ready to Use)
 
 - ✅ **Serverless Framework:** Multi-stage deployment (dev-\*, test, prod)
-
-- ✅ **API Gateway v2:** HTTP API with native JWT authorizer
-
-- ✅ **WebSocket API:** Real-time communication support
-
-- ✅ **Custom Domain:** Optional CloudFlare DNS integration
-
+- ✅ **API Gateway v2:** HTTP API with native JWT authorizer + WebSocket API
+- ✅ **Database:** DynamoDB single-table design with 2 GSIs
+- ✅ **Custom Domains:** CloudFlare DNS integration
 - ✅ **Environment Management:** Per-stage configuration
+- ✅ **Code Quality:** TypeScript, ESLint, Jest, Husky hooks
 
-- ✅ **TypeScript:** Full type safety across backend and frontend
+**What This Means for New Modules:**
 
-- ✅ **Testing Setup:** Jest configured for backend unit tests
-
-**You can use these as reference implementations when building new modules!**
+- **Don't Rebuild:** User management, auth, admin dashboard, WebSocket already exist
+- **Do Build:** New business entities, domain-specific workflows, external integrations
+- **Reuse Patterns:** Follow existing modules in `backend/src/modules/` for reference
 
 ## Your Task
 
@@ -577,43 +561,104 @@ export type Role = 'student' | 'teacher' | 'admin';
 
 ### 3. Foundation Modules (CRITICAL - Must be first 4 modules)
 
-**REQUIREMENT:** The first 4 modules MUST be foundation modules with ZERO dependencies on each other. Each of the 4 team members should be able to start immediately without waiting for others.
+**REQUIREMENT:** The first 4 modules MUST be foundation modules with ZERO dependencies on each other. Each of the 4 team members MUST be able to start immediately and work in parallel without waiting for others.
+
+**CRITICAL PARALLEL WORK RULE:** F01, F02, F03, and F04 must be completely independent and work simultaneously.
 
 **Foundation Module Rules:**
 
-- Each foundation module must be **Full-Stack** (Frontend + Backend + Database)
-
-- Each foundation module must be **Demo-Ready** (can show working feature in 30 seconds)
+- Each foundation module must be **Independently Deployable** and **Demo-Ready** (can show working feature in 30 seconds)
 
 - Foundation modules should be derived from the core entities/workflows in the problem statement
-
-- All backend code must be **Lambda-compatible** (stateless, no file system dependencies)
 
 - **CRITICAL:** Identify all user roles from problem statement and update `config/permissions.ts` accordingly
 
 - **CRITICAL:** Use existing client wrappers (`shared/clients/*`) - NEVER use AWS SDK directly
 
+- **Module Types Allowed:**
+  - **Full-Stack:** Backend + Frontend + Database (preferred for entity management)
+  - **Frontend-Only:** Landing pages, static content, UI-heavy features (no backend needed)
+  - **Backend-Only:** API services, data processing, integrations (no UI needed initially)
+
 **Foundation modules should be based on problem statement analysis:**
 
-- **F01:** [Primary Entity Management] (e.g., User Management, Product Catalog, Inventory)
+- **F01:** [Primary Business Entity] (e.g., Products, Orders, Bookings, Projects) - **Full-Stack**
+  - **Avoid**: User management (already exists), Generic admin features (already exists)
 
-- **F02:** [Secondary Entity Management] (e.g., Order Processing, Booking System, Transactions)
+- **F02:** [Secondary Business Entity OR Landing/Marketing] (e.g., Categories, Inventory, Landing Page, Public Content) - **Full-Stack OR Frontend-Only**
+  - **Avoid**: Authentication pages (already exist), Generic dashboards (already exist)
 
-- **F03:** [Core Workflow/Process] (e.g., Search & Discovery, Reporting, Notifications)
+- **F03:** [Core Business Process OR NEW API Services] (e.g., Search, Checkout, Booking Flow, NEW External Integrations) - **Full-Stack OR Backend-Only**
+  - **Avoid**: WebSocket (already exists), Basic CRUD patterns (use existing as reference)
+  - **Note**: S3, SES, SQS, Gemini AI clients already exist - build NEW integrations only
 
-- **F04:** [Admin/Management Features] (e.g., Admin Dashboard, Analytics, Settings)
+- **F04:** [Independent Business Feature OR Static Content] (e.g., Settings Management, Content Management, Public Pages, Notifications System) - **Full-Stack**
+  - **Avoid**: Analytics (needs other module data), Cross-module admin features (creates dependencies)
+  - **Good Examples**: App settings, content pages, notification preferences, help system
 
-**Each foundation module MUST include:**
+**Special Considerations for Common Module Types:**
+
+**Landing Page Modules (Frontend-Only):**
+
+- Perfect for F02 when problem needs marketing/public content
+- Include: Hero section, features, pricing, contact forms
+- No backend needed - can be demo-ready immediately
+- Use shadcn/ui components for consistent styling
+- Implement responsive design with Tailwind CSS
+- Add routing for multiple landing pages if needed
+
+**API Service Modules (Backend-Only):**
+
+- Perfect for F03 when problem needs NEW external integrations beyond existing ones
+- **Note**: Many backend services already exist (S3, SES, SQS, Gemini AI clients)
+- Include: NEW external API wrappers, custom data processing, NEW webhooks
+- No frontend needed initially - test with Postman/curl
+- Focus on robust error handling and retry logic
+- Implement proper logging for debugging
+- Can be enhanced with admin UI in later phases
+- **Check First**: Review `backend/src/shared/clients/` for existing integrations
+
+**Foundation Module Requirements by Type:**
+
+**Full-Stack Modules:**
 
 - Backend: 2-3 Lambda handlers (list, get, create minimum)
-
 - Frontend: List page + Form component + API integration
-
 - Service: Business logic in service class
-
 - Types: Shared TypeScript types
-
 - RBAC: Permission configuration for the module
+
+**Frontend-Only Modules:**
+
+- Pages: Landing page, marketing content, static pages
+- Components: UI components, layouts, forms (no API calls)
+- Routing: New routes in React Router
+- Styling: shadcn/ui components, responsive design
+- **No Backend Required:** Can be demo-ready immediately
+
+**Backend-Only Modules:**
+
+- Handlers: API endpoints for external integrations
+- Services: Business logic, data processing
+- Types: API request/response types
+- RBAC: Permission configuration
+- **No Frontend Required:** Can be tested with Postman/curl
+
+**CRITICAL Independence Rule:** Foundation modules must NOT depend on each other's:
+
+- Database schemas (each uses separate PK patterns like `PRODUCT#`, `ORDER#`, `BOOKING#`, `SETTING#`)
+- API endpoints (no cross-module API calls during foundation phase)
+- Frontend components (no shared state between foundation modules)
+- Business logic (each module is completely self-contained)
+
+**PARALLEL WORK GUARANTEE:** All 4 developers can start coding immediately after RBAC setup with zero coordination needed.
+
+**AVOID in Foundation Modules:**
+
+- **Analytics/Reporting**: Needs data from other modules (save for M10+ phase)
+- **Cross-module Admin**: Needs multiple entities to manage (save for M11+ phase)
+- **Integration Features**: By definition requires other modules (save for M09+ phase)
+- **Dashboards with Multiple Data Sources**: Creates dependencies (save for later phases)
 
 ### 4. Module List Overview
 
@@ -625,55 +670,78 @@ Create a table with Foundation modules first (derived from problem statement):
 
 | **F01** | **[Primary Entity] Management** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** |
 
-| **F02** | **[Secondary Entity] System** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** |
+| **F02** | **[Secondary Entity/Landing] System** | **45min-1hr** | **Simple-Medium** | **Full-stack/Frontend-only** | **None** | **Low** |
 
-| **F03** | **[Core Process] Workflow** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** |
+| **F03** | **[Core Process/API] Workflow** | **1hr** | **Medium** | **Full-stack/Backend-only** | **None** | **Low** |
 
-| **F04** | **Admin & [Management Feature]** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** |
+| **F04** | **Independent Feature/Content** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** |
 
-| M05 | [Next feature building on F01] | [time] | [complexity] | [type] | F01 | [risk] |
+| M05 | [Enhanced F01 Features] | [time] | [complexity] | [type] | F01 | [risk] |
 
-| M06 | [Next feature building on F02] | [time] | [complexity] | [type] | F02 | [risk] |
+| M06 | [Enhanced F02 Features] | [time] | [complexity] | [type] | F02 | [risk] |
+
+| M07 | [Enhanced F03 Features] | [time] | [complexity] | [type] | F03 | [risk] |
+
+| M08 | [Enhanced F04 Features] | [time] | [complexity] | [type] | F04 | [risk] |
+
+| M09 | [Cross-Entity Integration] | [time] | [complexity] | [type] | F01+F02 | [risk] |
+
+| M10 | [Analytics & Reporting] | [time] | [complexity] | [type] | F01+F02+F03 | [risk] |
+
+| M11 | [Advanced Admin Dashboard] | [time] | [complexity] | [type] | F04+M09 | [risk] |
 
 | ... | ... | ... | ... | ... | ... | ... |
 
+**Module Type Definitions:**
+
+- **Full-stack:** Backend handlers + Frontend components + Database integration
+- **Frontend-only:** React components + Pages + Routing (no backend needed)
+- **Backend-only:** Lambda handlers + Services + Database (no UI needed initially)
+- **Integration:** Connects existing modules together
+
 ### 5. Dependency Graph
 
-**Foundation Phase (No Dependencies - All Full-Stack & Demo-Ready):**
+**Foundation Phase (No Dependencies - All Work in Parallel):**
 
 ```
-
-F01 ([Primary Entity])     ──┐
-
-F02 ([Secondary Entity])   ──┤ PARALLEL START
-
-F03 ([Core Process])       ──┤ (Hours 0-4)
-
-F04 ([Admin Features])     ──┘
-
+F01 ([Primary Entity])        ──┐
+                               │  ALL 4 MODULES
+F02 ([Secondary/Landing])     ──┤  START TOGETHER
+                               │  ZERO COORDINATION
+F03 ([Core Process/API])      ──┤  PARALLEL EXECUTION
+                               │  (Hours 0-4)
+F04 ([Independent Features])      ──┘
 ```
+
+**CRITICAL:** All 4 foundation modules run simultaneously with zero dependencies.
 
 **Core Features Phase (Build on Foundation):**
 
 ```
 
 F01 ──> M05 ([Enhanced Primary Features])
-
 F02 ──> M06 ([Enhanced Secondary Features])
-
 F03 ──> M07 ([Advanced Process Features])
+F04 ──> M08 ([Enhanced Independent Features])
 
-F04 ──> M08 ([Advanced Admin Features])
+F01 + F02 ──> M09 (Cross-Entity Integration)
+F01 + F02 + F03 ──> M10 (Analytics & Reporting - needs data from multiple modules)
+F04 + M09 ──> M11 (Advanced Admin Dashboard - needs integrated data)
 
-M05 + M06 ──> M09 (Complex Integration)
+```
 
-M07 + M08 ──> M10 (Advanced Workflows)
+**Integration Phase (Complex Features):**
+
+```
+
+M05 + M06 + M07 ──> M11 (Multi-Module Integration)
+M08 + M09 + M10 ──> M12 (Advanced Dashboard)
 
 ```
 
 ### 6. Critical Path Timeline
 
-- **Hours 0-4:** Foundation Phase (F01, F02, F03, F04) - **PARALLEL WORK, NO DEPENDENCIES**
+- **Hours 0-4:** Foundation Phase (F01, F02, F03, F04) - **ALL 4 MODULES WORK IN PARALLEL, ZERO DEPENDENCIES**
 
 - **Hours 4-12:** Core Features (M05, M06, M07, M08) - Build on foundation
 
@@ -705,19 +773,42 @@ For each external service needed:
 
 ### 8. Team Assignment Strategy
 
-#### Phase 1: Foundation (Hours 0-4) - PARALLEL EXECUTION
+#### Phase 1: Foundation (Hours 0-4) - ALL 4 MODULES IN PARALLEL
 
 ```
+**CRITICAL:** All 4 developers start simultaneously with zero coordination needed.
 
 **Dev 1:** F01 ([Primary Entity] Management) - Full-stack, demo-ready
+  - Backend: CRUD handlers + service layer
+  - Frontend: List/form components + API integration
+  - Database: Entity schema design
+  - WORKS INDEPENDENTLY
 
-**Dev 2:** F02 ([Secondary Entity] System) - Full-stack, demo-ready
+**Dev 2:** F02 ([Secondary Entity/Landing]) - Full-stack OR Frontend-only, demo-ready
+  - If Full-stack: Backend + Frontend + Database
+  - If Frontend-only: Landing pages + marketing content + routing
+  - WORKS INDEPENDENTLY
 
-**Dev 3:** F03 ([Core Process] Workflow) - Full-stack, demo-ready
+**Dev 3:** F03 ([Core Process/API Services]) - Full-stack OR Backend-only, demo-ready
+  - If Full-stack: Backend + Frontend + Database
+  - If Backend-only: API handlers + external integrations + services
+  - WORKS INDEPENDENTLY
 
-**Dev 4:** F04 (Admin & [Management Feature]) - Full-stack, demo-ready
+**Dev 4:** F04 ([Independent Feature/Content]) - Full-stack, demo-ready
+  - Backend: Independent feature handlers + service layer
+  - Frontend: Feature UI + content management
+  - Database: Independent entity schemas (e.g., SETTING#, CONTENT#, NOTIFICATION#)
+  - WORKS INDEPENDENTLY
 
 ```
+
+**Key Benefits of Parallel Foundation Work:**
+
+- **Zero Coordination:** No developer waits for another
+- **Faster Demo Prep:** Frontend-only modules can be demo-ready in 30-45 minutes
+- **Independent Progress:** Each developer makes visible progress without dependencies
+- **Flexible Skills:** Developers can focus on their strengths initially
+- **Risk Mitigation:** If one module has issues, others continue unaffected
 
 #### Phase 2: Core Features (Hours 4-12)
 
@@ -941,7 +1032,7 @@ For EACH module, generate a separate markdown file with this structure:
 
 **Complexity:** [Simple CRUD/Medium/Complex]
 
-**Type:** [Backend-heavy/Frontend-heavy/Full-stack/Integration]
+**Type:** [Full-stack/Frontend-only/Backend-only/Integration]
 
 **Risk Level:** [Low/Medium/High]
 
@@ -953,7 +1044,9 @@ For EACH module, generate a separate markdown file with this structure:
 
 ## Technical Requirements
 
-### Backend Tasks
+**Module Type:** [Full-stack/Frontend-only/Backend-only/Integration]
+
+### Backend Tasks (Skip if Frontend-only)
 
 - [ ] **Handler File:** Create `handlers/[action]Entity.ts` with typed handler
 
@@ -993,35 +1086,30 @@ For EACH module, generate a separate markdown file with this structure:
   - Just verify the module name matches what you're implementing
 
 - [ ] **AWS Service Integration:** **ALWAYS use shared/clients/\* wrappers**
-  - DynamoDB: `import { dynamodb, DynamoDB } from '../../../shared/clients/dynamodb'`
-
-  - S3: `import { s3Client } from '../../../shared/clients/s3'`
-
-  - SES: `import { sesClient } from '../../../shared/clients/ses'`
-
-  - SQS: `import { sqsClient } from '../../../shared/clients/sqs'`
-
-  - Gemini AI: `import { geminiClient } from '../../../shared/clients/gemini'`
-
-  - Clerk API: Direct import OK: `import { createClerkClient } from '@clerk/backend'`
-
+  - **Already Available**: DynamoDB, S3, SES, SQS, Gemini AI clients in `shared/clients/`
+  - **For NEW services**: Create new client wrapper following existing patterns
+  - **Clerk API**: Direct import OK: `import { createClerkClient } from '@clerk/backend'`
   - **NEVER import @aws-sdk packages directly in handlers or services**
 
 - [ ] **Error Handling:** Use `handleAsyncError()` and `commonErrors.*` consistently
 
-### Frontend Tasks
+### Frontend Tasks (Skip if Backend-only)
 
 - [ ] **Pages/Components:** [List specific components to build]
 
 - [ ] **shadcn Components:** [button, form, table, dialog, etc.]
 
-- [ ] **API Integration:** [Which endpoints to call]
+- [ ] **API Integration:** [Which endpoints to call] (Skip if Frontend-only)
 
 - [ ] **State Management:** [Local state, context, or external store]
 
 - [ ] **Routing:** [New routes to add]
 
-### Database Schema (Single Table)
+- [ ] **Static Content:** [Landing pages, marketing content] (Frontend-only modules)
+
+- [ ] **Responsive Design:** [Mobile-first approach with Tailwind CSS]
+
+### Database Schema (Single Table) - Skip if Frontend-only
 ```
 
 pk: [ENTITY]#[id] | sk: [TYPE] | gsi1pk: [grouping] | gsi1sk: [sorting]
@@ -1029,6 +1117,16 @@ pk: [ENTITY]#[id] | sk: [TYPE] | gsi1pk: [grouping] | gsi1sk: [sorting]
 - entity-specific fields with types and descriptions
 
 ````
+
+### Integration Points (For Integration modules only)
+
+- [ ] **Cross-Module API Calls:** [Which modules to integrate]
+
+- [ ] **Shared State Management:** [How modules share data]
+
+- [ ] **Database Relationships:** [GSI-based relationships between modules]
+
+- [ ] **Type Sharing:** [Shared types and interfaces]`
 
 ## External Services (if any)
 
@@ -1066,23 +1164,27 @@ pk: [ENTITY]#[id] | sk: [TYPE] | gsi1pk: [grouping] | gsi1sk: [sorting]
 2. **Study Similar Existing Modules:**
 
    ```bash
-   # Backend patterns:
-   ls -la backend/src/modules/users/handlers/    # Example CRUD handlers
-   cat backend/src/modules/users/services/ClerkUserService.ts
+   # Backend patterns (STUDY THESE FIRST):
+   ls -la backend/src/modules/users/handlers/    # Complete CRUD example
+   cat backend/src/modules/users/services/ClerkUserService.ts  # Service layer pattern
+   cat backend/src/modules/demo/handlers/        # RBAC examples
+   cat backend/src/shared/clients/               # AWS service clients
    cat backend/src/config/permissions.ts         # RBAC configuration
 
-   # Frontend patterns:
-   ls -la client/src/components/admin/           # Admin UI components
+   # Frontend patterns (STUDY THESE FIRST):
+   ls -la client/src/components/admin/           # Complete admin UI
    cat client/src/hooks/useUsers.ts              # React Query hooks
    cat client/src/services/apiClient.ts          # API client setup
+   cat client/src/components/ui/                 # shadcn/ui components
    ```
 
 3. **Identify Reusable Patterns:**
-   - Lambda handler structure (see `backend/src/modules/users/handlers/listUsers.ts`)
-   - Service layer pattern (see `backend/src/modules/users/services/ClerkUserService.ts`)
-   - RBAC middleware usage (see any handler with `withRbac`)
-   - React Query hooks (see `client/src/hooks/useUsers.ts`)
-   - shadcn/ui components (see `client/src/components/admin/`)
+   - **Complete Examples**: Users module (12 endpoints), Admin dashboard, WebSocket system
+   - **Handler Structure**: See `backend/src/modules/users/handlers/listUsers.ts`
+   - **Service Layer**: See `backend/src/modules/users/services/ClerkUserService.ts`
+   - **RBAC Usage**: See any handler with `withRbac` - don't reinvent
+   - **React Patterns**: See `client/src/hooks/useUsers.ts` and `client/src/components/admin/`
+   - **AWS Clients**: See `backend/src/shared/clients/` - reuse existing wrappers
 
 **What to Look For:**
 
@@ -1727,9 +1829,10 @@ console.log(token);
 
 **Key Point:** The `permissions.ts` file is generated FIRST because:
 - It has zero dependencies on module implementations
-- All 4 developers need it before starting work
+- All 4 developers need it before starting parallel work
 - It defines the security model for the entire application
 - It prevents merge conflicts during parallel development
+- **Enables immediate parallel execution of F01, F02, F03, F04**
 
 ---
 
@@ -1904,21 +2007,60 @@ import {
 
 ### Foundation Module Requirements (CRITICAL)
 
-- **F01-F04 MUST have zero dependencies on each other**
+- **F01-F04 MUST have ZERO dependencies on each other - WORK IN PARALLEL**
 
-- **Each foundation module must be Full-Stack (Frontend + Backend + Database)**
-
-- **Each foundation module must be Demo-Ready (working end-to-end feature)**
+- **Each foundation module must be Independently Deployable and Demo-Ready**
 
 - **Foundation modules derived from problem statement entities/workflows**
 
 - **All backend code must be Lambda-compatible (stateless, serverless-express)**
 
-- **All 4 developers must be able to start simultaneously**
+- **ALL 4 developers MUST be able to start simultaneously with zero coordination**
+
+- **Module Independence Rules:**
+  - **Database Independence:** Each module uses separate PK patterns (e.g., `USER#`, `PRODUCT#`, `ORDER#`)
+  - **API Independence:** No cross-module API calls in foundation phase
+  - **Frontend Independence:** No shared state or components between foundation modules
+  - **Business Logic Independence:** Each module is self-contained and functional alone
+
+### Module Integration Patterns (For Later Phases)
+
+**How Modules Should Integrate (M05+ phases):**
+
+1. **Database Integration:**
+
+   ```typescript
+   // Module A creates: PK: "USER#123", SK: "PROFILE"
+   // Module B references: GSI1PK: "USER#123", GSI1SK: "ORDER#456"
+   // Clean separation with GSI-based relationships
+   ```
+
+2. **API Integration:**
+
+   ```typescript
+   // Module A exposes: GET /api/users/123
+   // Module B calls: await apiClient.get('/api/users/123')
+   // Use existing apiClient for cross-module calls
+   ```
+
+3. **Frontend Integration:**
+
+   ```typescript
+   // Module A exports: useUsers() hook
+   // Module B imports: import { useUsers } from '@/hooks/useUsers'
+   // Share hooks and components via established patterns
+   ```
+
+4. **Type Sharing:**
+   ```typescript
+   // Shared types in: backend/src/shared/types.ts
+   // Module-specific: backend/src/modules/[module]/types.ts
+   // Frontend imports: import { User } from '@/types/user'
+   ```
 
 ### Dependency Management
 
-- **Foundation modules (F01-F04): ZERO dependencies**
+- **Foundation modules (F01-F04): ZERO dependencies - ALL WORK IN PARALLEL**
 
 - **Core modules (M05+): Maximum 2 dependencies per module**
 
@@ -1994,6 +2136,8 @@ import {
 - Each file follows the module template structure
 - Foundation modules have zero dependencies
 - Core modules reference their dependencies
+- **Module Type Specification:** Each module clearly marked as Full-stack/Frontend-only/Backend-only/Integration
+- **Integration Guidelines:** Later-phase modules include specific integration patterns with foundation modules
 
 ### 5. Dependency Graph
 
