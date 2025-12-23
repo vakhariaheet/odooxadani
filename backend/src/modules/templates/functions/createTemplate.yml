@@ -1,0 +1,27 @@
+createTemplate:
+  handler: src/modules/templates/handlers/createTemplate.handler
+  events:
+    - httpApi:
+        path: /api/templates
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Templates
+        summary: POST /api/templates
+        description: Create new template (freelancer only)
+        methodResponses:
+          - statusCode: 201
+            responseBody:
+              description: Template created successfully
+              schema:
+                type: object
+          - statusCode: 400
+            responseBody:
+              description: Bad request - Invalid input data
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
