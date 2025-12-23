@@ -1,0 +1,39 @@
+listProposals:
+  handler: src/modules/proposals/handlers/listProposals.handler
+  events:
+    - httpApi:
+        path: /api/proposals
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Proposals
+        summary: GET /api/proposals
+        description: List proposals with filtering and pagination
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Returns paginated list of proposals
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      proposals:
+                        type: array
+                        items:
+                          type: object
+                      totalCount:
+                        type: number
+                      hasMore:
+                        type: boolean
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions

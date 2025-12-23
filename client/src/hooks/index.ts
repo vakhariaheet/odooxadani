@@ -35,3 +35,15 @@ export {
   useDeleteContract,
   contractKeys,
 } from './useContracts';
+// Proposal API hooks
+export {
+  useProposals,
+  useProposal,
+  useCreateProposal,
+  useUpdateProposal,
+  useDeleteProposal,
+  useSendProposal,
+  useAcceptProposal,
+  useRejectProposal,
+  proposalKeys,
+} from './useProposals';

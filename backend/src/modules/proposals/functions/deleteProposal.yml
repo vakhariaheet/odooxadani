@@ -1,0 +1,28 @@
+deleteProposal:
+  handler: src/modules/proposals/handlers/deleteProposal.handler
+  events:
+    - httpApi:
+        path: /api/proposals/{id}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Proposals
+        summary: DELETE /api/proposals/{id}
+        description: Delete proposal (freelancers only, cannot delete accepted proposals)
+        methodResponses:
+          - statusCode: 204
+            responseBody:
+              description: No Content - Proposal deleted successfully
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Cannot delete accepted proposals
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Access denied or insufficient permissions
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Proposal does not exist

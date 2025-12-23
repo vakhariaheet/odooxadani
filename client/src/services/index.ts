@@ -19,3 +19,14 @@ export type {
   DeleteUserResponse,
   WhoAmIResponse,
 } from './usersApi';
+export { proposalsApi } from './proposalsApi';
+export type {
+  Proposal,
+  CreateProposalRequest,
+  UpdateProposalRequest,
+  ListProposalsQuery,
+  ListProposalsResponse,
+  GetProposalResponse,
+  CreateProposalResponse,
+  UpdateProposalResponse,
+} from './proposalsApi';

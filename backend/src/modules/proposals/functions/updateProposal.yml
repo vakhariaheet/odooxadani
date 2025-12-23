@@ -1,0 +1,42 @@
+updateProposal:
+  handler: src/modules/proposals/handlers/updateProposal.handler
+  events:
+    - httpApi:
+        path: /api/proposals/{id}
+        method: PUT
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Proposals
+        summary: PUT /api/proposals/{id}
+        description: Update proposal (freelancers can update all fields, clients can update status only)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Proposal updated successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      proposal:
+                        type: object
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid request data
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Access denied or insufficient permissions
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Proposal does not exist
+          - statusCode: 422
+            responseBody:
+              description: Validation Error - Invalid proposal data
