@@ -1,20 +1,21 @@
-import { Link } from 'react-router-dom'
+import { HeroSection } from '@/components/landing/HeroSection';
+import { FeaturesSection } from '@/components/landing/FeaturesSection';
+import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
+import { PricingSection } from '@/components/landing/PricingSection';
+import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
+import { FAQSection } from '@/components/landing/FAQSection';
+import { FooterSection } from '@/components/landing/FooterSection';
 
 export function LandingPage() {
   return (
-    <main className="main-content">
-      <div className="landing-section">
-        <h2>Welcome to Our Hackathon Project</h2>
-        <p>Please sign in to access the application.</p>
-        <div className="landing-buttons">
-          <Link to="/sign-in" className="landing-btn primary">
-            Sign In
-          </Link>
-          <Link to="/sign-up" className="landing-btn secondary">
-            Create Account
-          </Link>
-        </div>
-      </div>
-    </main>
-  )
+    <div className="min-h-screen">
+      <HeroSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <PricingSection />
+      <TestimonialsSection />
+      <FAQSection />
+      <FooterSection />
+    </div>
+  );
 }

@@ -6,6 +6,9 @@ import { SignUpPage } from './pages/SignUpPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { AdminPage } from './pages/AdminPage'
 import { LandingPage } from './pages/LandingPage'
+import { PricingPage } from './pages/PricingPage'
+import { FeaturesPage } from './pages/FeaturesPage'
+import { AboutPage } from './pages/AboutPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { WebSocketTestPage } from './pages/WebSocketTestPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -45,7 +48,7 @@ function App() {
       />
       <header className="app-header">
         <Link to="/" className="logo-link">
-          <h1>Hackathon App</h1>
+          <h1>ProposalFlow</h1>
         </Link>
         <div className="auth-section">
           <SignedOut>
@@ -78,6 +81,9 @@ function App() {
             </SignedIn>
           </>
         } />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/sign-in/*" element={
           <AuthPageWrapper>
             <SignInPage />
