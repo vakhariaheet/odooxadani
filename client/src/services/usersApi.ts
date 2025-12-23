@@ -40,10 +40,10 @@ export const usersApi = {
     if (params?.limit) searchParams.set('limit', String(params.limit));
     if (params?.offset) searchParams.set('offset', String(params.offset));
     if (params?.query) searchParams.set('query', params.query);
-    
+
     const queryString = searchParams.toString();
     const endpoint = `/api/admin/users${queryString ? `?${queryString}` : ''}`;
-    
+
     return apiClient.get<UserListResponse>(endpoint);
   },
 
@@ -108,10 +108,10 @@ export const usersApi = {
     if (params?.limit) searchParams.set('limit', String(params.limit));
     if (params?.offset) searchParams.set('offset', String(params.offset));
     if (params?.email) searchParams.set('email', params.email);
-    
+
     const queryString = searchParams.toString();
     const endpoint = `/api/admin/invitations${queryString ? `?${queryString}` : ''}`;
-    
+
     return apiClient.get<ListInvitationsResponse>(endpoint);
   },
 
@@ -126,7 +126,24 @@ export const usersApi = {
    * Resend a pending invitation (admin only)
    */
   async resendInvitation(invitationId: string): Promise<{ message: string; invitationId: string }> {
-    return apiClient.post<{ message: string; invitationId: string }>(`/api/admin/invitations/${invitationId}/resend`);
+    return apiClient.post<{ message: string; invitationId: string }>(
+      `/api/admin/invitations/${invitationId}/resend`
+    );
+  },
+
+  /**
+   * Get system permissions and roles (admin only)
+   */
+  async getPermissions(): Promise<{
+    success: boolean;
+    data: {
+      roles: string[];
+      permissions: Record<string, Record<string, string[]>>;
+      modules: string[];
+      actions: string[];
+    };
+  }> {
+    return apiClient.get('/api/admin/permissions');
   },
 };
 

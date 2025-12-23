@@ -240,6 +240,7 @@ functions:
   - ${file(src/modules/users/functions/unbanUser.yml)}
   - ${file(src/modules/users/functions/deleteUser.yml)}
   - ${file(src/modules/users/functions/getAdminStats.yml)}
+  - ${file(src/modules/users/functions/getPermissions.yml)}
   # Demo module
   - ${file(src/modules/demo/functions/userOnly.yml)}
   - ${file(src/modules/demo/functions/adminOnly.yml)}
