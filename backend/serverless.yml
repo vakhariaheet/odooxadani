@@ -19,6 +19,40 @@ provider:
     CLERK_SECRET_KEY: ${env:CLERK_SECRET_KEY}
     CLERK_PUBLISHABLE_KEY: ${env:CLERK_PUBLISHABLE_KEY}
     NODE_ENV: ${self:provider.stage}
+    SWAGGER_USERNAME: ${env:SWAGGER_USERNAME, 'admin'}
+    SWAGGER_PASSWORD: ${env:SWAGGER_PASSWORD, 'changeme'}
+    MAIN_TABLE_NAME: ${self:service}-${self:provider.stage}-main-table
+    DYNAMODB_TABLE:
+      Ref: MainTable
+    FRONTEND_URL: ${env:FRONTEND_URL, 'http://localhost:5173'}
+
+  # IAM permissions
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+          Resource:
+            - Fn::GetAtt: [MainTable, Arn]
+            - Fn::Join:
+                - '/'
+                - - Fn::GetAtt: [MainTable, Arn]
+                  - 'index/*'
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+            - ses:SendTemplatedEmail
+            - ses:SendBulkTemplatedEmail
+          Resource: '*'
 
   # HTTP API (API Gateway v2) with JWT Authorizer
   httpApi:
@@ -225,5 +259,12 @@ functions:
   - ${file(src/modules/demo/functions/userOnly.yml)}
   - ${file(src/modules/demo/functions/adminOnly.yml)}
   - ${file(src/modules/demo/functions/whoami.yml)}
+  # Contracts module
+  - ${file(src/modules/contracts/functions/listContracts.yml)}
+  - ${file(src/modules/contracts/functions/getContract.yml)}
+  - ${file(src/modules/contracts/functions/createContract.yml)}
+  - ${file(src/modules/contracts/functions/updateContract.yml)}
+  - ${file(src/modules/contracts/functions/sendContract.yml)}
+  - ${file(src/modules/contracts/functions/signContract.yml)}
   # WebSocket module
   - ${file(src/modules/websocket/functions/websocket.yml)}

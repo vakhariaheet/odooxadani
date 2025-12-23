@@ -1,6 +1,6 @@
 /**
  * AWS SES (Simple Email Service) Client Wrapper
- * 
+ *
  * Type-safe wrapper around AWS SES Client
  * with common operations for sending emails.
  */
@@ -27,7 +27,7 @@ const logger = createLogger('SESClient');
 // =============================================================================
 
 const sesClient = new SESClient({
-  region: process.env['AWS_REGION'] || process.env['REGION'] || 'ap-south-1',
+  region: 'us-east-1',
 });
 
 // =============================================================================
@@ -96,7 +96,12 @@ export interface EmailResult {
 
 export interface BulkEmailResult {
   status: Array<{
-    status: 'Success' | 'MessageRejected' | 'AccountSendingPaused' | 'ConfigurationSetDoesNotExist' | 'ConfigurationSetSendingPaused';
+    status:
+      | 'Success'
+      | 'MessageRejected'
+      | 'AccountSendingPaused'
+      | 'ConfigurationSetDoesNotExist'
+      | 'ConfigurationSetSendingPaused';
     error?: string;
     messageId?: string;
   }>;
@@ -152,12 +157,10 @@ export class SES {
   private defaultFrom: string | undefined;
   private defaultConfigurationSet: string | undefined;
 
-  constructor(options?: {
-    defaultFrom?: string;
-    defaultConfigurationSet?: string;
-  }) {
+  constructor(options?: { defaultFrom?: string; defaultConfigurationSet?: string }) {
     this.defaultFrom = options?.defaultFrom || process.env['SES_DEFAULT_FROM'];
-    this.defaultConfigurationSet = options?.defaultConfigurationSet || process.env['SES_CONFIGURATION_SET'];
+    this.defaultConfigurationSet =
+      options?.defaultConfigurationSet || process.env['SES_CONFIGURATION_SET'];
   }
 
   /**
@@ -165,7 +168,7 @@ export class SES {
    */
   async send(options: SendEmailOptions): Promise<EmailResult> {
     const from = formatAddress(options.from || this.defaultFrom || '');
-    
+
     if (!from) {
       throw new Error('From address is required');
     }
@@ -217,7 +220,7 @@ export class SES {
    */
   async sendTemplated(options: SendTemplatedEmailOptions): Promise<EmailResult> {
     const from = formatAddress(options.from || this.defaultFrom || '');
-    
+
     if (!from) {
       throw new Error('From address is required');
     }
@@ -251,7 +254,7 @@ export class SES {
    */
   async sendBulk(options: SendBulkEmailOptions): Promise<BulkEmailResult> {
     const from = formatAddress(options.from || this.defaultFrom || '');
-    
+
     if (!from) {
       throw new Error('From address is required');
     }
@@ -263,10 +266,10 @@ export class SES {
     const params: SendBulkTemplatedEmailCommandInput = {
       Source: from,
       Template: options.templateName,
-      DefaultTemplateData: options.defaultTemplateData 
-        ? JSON.stringify(options.defaultTemplateData) 
+      DefaultTemplateData: options.defaultTemplateData
+        ? JSON.stringify(options.defaultTemplateData)
         : '{}',
-      Destinations: options.destinations.map(dest => ({
+      Destinations: options.destinations.map((dest) => ({
         Destination: {
           ToAddresses: formatAddresses(dest.to),
           CcAddresses: formatAddresses(dest.cc),
@@ -280,16 +283,16 @@ export class SES {
 
     try {
       const result = await sesClient.send(new SendBulkTemplatedEmailCommand(params));
-      
-      const status = (result.Status || []).map(s => ({
+
+      const status = (result.Status || []).map((s) => ({
         status: s.Status as BulkEmailResult['status'][0]['status'],
         error: s.Error,
         messageId: s.MessageId,
       }));
 
-      logger.debug('SES sendBulk completed', { 
+      logger.debug('SES sendBulk completed', {
         total: status.length,
-        successful: status.filter(s => s.status === 'Success').length 
+        successful: status.filter((s) => s.status === 'Success').length,
       });
 
       return { status };
@@ -303,9 +306,8 @@ export class SES {
    * Send a raw email (with attachments)
    */
   async sendRaw(options: SendRawEmailOptions): Promise<EmailResult> {
-    const rawMessage = typeof options.rawMessage === 'string' 
-      ? Buffer.from(options.rawMessage) 
-      : options.rawMessage;
+    const rawMessage =
+      typeof options.rawMessage === 'string' ? Buffer.from(options.rawMessage) : options.rawMessage;
 
     const params: SendRawEmailCommandInput = {
       Source: options.from,
@@ -348,8 +350,8 @@ export class SES {
   async getStatistics(): Promise<SendStatistics> {
     try {
       const result = await sesClient.send(new GetSendStatisticsCommand({}));
-      
-      const dataPoints = (result.SendDataPoints || []).map(dp => ({
+
+      const dataPoints = (result.SendDataPoints || []).map((dp) => ({
         timestamp: dp.Timestamp || new Date(),
         deliveryAttempts: dp.DeliveryAttempts || 0,
         bounces: dp.Bounces || 0,
