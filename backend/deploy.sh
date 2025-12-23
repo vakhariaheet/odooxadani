@@ -12,9 +12,6 @@
 # ============================================
 
 set -e  # Exit on error
-# Ensure pipeline failures are detected when commands are piped to `tee`
-# Note: pipefail may not work in older Git Bash versions on Windows
-set -o pipefail 2>/dev/null || true
 
 # Colors for output
 RED='\033[0;31m'
@@ -91,7 +88,7 @@ echo ""
 
 # Check for required tools
 command -v npx >/dev/null 2>&1 || { echo -e "${RED}❌ npx is required but not installed.${NC}" >&2; exit 1; }
-command -v jq >/dev/null 2>&1 || { echo -e "${RED}❌ jq is required but not installed.${NC}" >&2; echo -e "${YELLOW}Install with: brew install jq (macOS) or download from https://jqlang.github.io/jq/download/${NC}" >&2; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo -e "${RED}❌ jq is required but not installed. Install with: brew install jq${NC}" >&2; exit 1; }
 command -v curl >/dev/null 2>&1 || { echo -e "${RED}❌ curl is required but not installed.${NC}" >&2; exit 1; }
 
 # Navigate to backend directory
@@ -173,64 +170,49 @@ npx tsc --noEmit || {
     echo -e "${YELLOW}⚠️  TypeScript warnings found (continuing anyway)${NC}"
 }
 
-# Check if running in CI environment
-if [[ -n "$CI" || -n "$GITHUB_ACTIONS" ]]; then
-    echo -e "${BLUE}🔍 Running in CI environment${NC}"
-    echo -e "${GREEN}✓ Using credentials from CI environment${NC}"
-    
-    # Verify credentials work
-    echo -e "${BLUE}🔍 Verifying credentials...${NC}"
-    CALLER_IDENTITY=$(aws sts get-caller-identity --output json 2>&1)
-    if [[ $? -ne 0 ]]; then
-        echo -e "${RED}❌ Credential verification failed: $CALLER_IDENTITY${NC}"
-        exit 1
-    fi
-    echo -e "${GREEN}✓ Credentials verified: $(echo "$CALLER_IDENTITY" | jq -r '.Arn')${NC}"
-else
-    # Local development - assume DevRole
-    AWS_PROFILE=${AWS_PROFILE:-heetvakharia}
-    echo -e "${GREEN}✓ Using AWS Profile: $AWS_PROFILE${NC}"
+# Get AWS profile from environment
+AWS_PROFILE=${AWS_PROFILE:-heetvakharia}
+echo -e "${GREEN}✓ Using AWS Profile: $AWS_PROFILE${NC}"
 
-    # Assume DevRole for deployment
-    echo -e "${BLUE}🔐 Assuming DevRole...${NC}"
-    DEV_ROLE_ARN="arn:aws:iam::739689500485:role/DevRole"
+# Assume DevRole for deployment
+echo -e "${BLUE}🔐 Assuming DevRole...${NC}"
+DEV_ROLE_ARN="arn:aws:iam::739689500485:role/DevRole"
 
-    # Get temporary credentials by assuming the role
-    ASSUME_ROLE_OUTPUT=$(aws sts assume-role \
-        --role-arn "$DEV_ROLE_ARN" \
-        --role-session-name "serverless-deploy-$STAGE-$(date +%s)" \
-        --profile "$AWS_PROFILE" \
-        --output json 2>&1)
+# Get temporary credentials by assuming the role
+ASSUME_ROLE_OUTPUT=$(aws sts assume-role \
+    --role-arn "$DEV_ROLE_ARN" \
+    --role-session-name "serverless-deploy-$STAGE-$(date +%s)" \
+    --profile "$AWS_PROFILE" \
+    --output json 2>&1)
 
-    if [[ $? -ne 0 ]]; then
-        echo -e "${RED}❌ Failed to assume DevRole: $ASSUME_ROLE_OUTPUT${NC}"
-        exit 1
-    fi
-
-    # Parse credentials using jq (faster and more reliable)
-    export AWS_ACCESS_KEY_ID=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.AccessKeyId')
-    export AWS_SECRET_ACCESS_KEY=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SecretAccessKey')
-    export AWS_SESSION_TOKEN=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SessionToken')
-
-    # Unset AWS_PROFILE to ensure we use the exported credentials
-    unset AWS_PROFILE
-
-    if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" || -z "$AWS_SESSION_TOKEN" ]]; then
-        echo -e "${RED}❌ Failed to parse assumed role credentials${NC}"
-        exit 1
-    fi
-
-    echo -e "${GREEN}✓ Successfully assumed DevRole${NC}"
-
-    # Verify credentials work
-    echo -e "${BLUE}🔍 Verifying credentials...${NC}"
-    CALLER_IDENTITY=$(aws sts get-caller-identity --output json 2>&1)
-    if [[ $? -ne 0 ]]; then
-        echo -e "${RED}❌ Credential verification failed: $CALLER_IDENTITY${NC}"
-        exit 1
-    fi
-    echo -e "${GREEN}✓ Credentials verified: $(echo "$CALLER_IDENTITY" | jq -r '.Arn')${NC}"
+if [[ $? -ne 0 ]]; then
+    echo -e "${RED}❌ Failed to assume DevRole: $ASSUME_ROLE_OUTPUT${NC}"
+    exit 1
 fi
+
+# Parse credentials using jq (faster and more reliable)
+export AWS_ACCESS_KEY_ID=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.AccessKeyId')
+export AWS_SECRET_ACCESS_KEY=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SecretAccessKey')
+export AWS_SESSION_TOKEN=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SessionToken')
+
+# Unset AWS_PROFILE to ensure we use the exported credentials
+unset AWS_PROFILE
+
+if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" || -z "$AWS_SESSION_TOKEN" ]]; then
+    echo -e "${RED}❌ Failed to parse assumed role credentials${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Successfully assumed DevRole${NC}"
+
+# Verify credentials work
+echo -e "${BLUE}🔍 Verifying credentials...${NC}"
+CALLER_IDENTITY=$(aws sts get-caller-identity --output json 2>&1)
+if [[ $? -ne 0 ]]; then
+    echo -e "${RED}❌ Credential verification failed: $CALLER_IDENTITY${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ Credentials verified: $(echo "$CALLER_IDENTITY" | jq -r '.Arn')${NC}"
 
 # Domain only mode
 if [[ "$DOMAIN_ONLY" == true ]]; then
@@ -250,24 +232,10 @@ echo -e "${BLUE}╚════════════════════�
 echo ""
 
 # Deploy with full output
-# Use TMPDIR if set, otherwise fallback to /tmp (works on Windows Git Bash)
-TMPDIR="${TMPDIR:-/tmp}"
-mkdir -p "$TMPDIR"
 DEPLOY_START=$(date +%s)
-npx serverless deploy --stage "$STAGE" --verbose 2>&1 | tee "$TMPDIR/serverless-deploy-$STAGE.log"
-# Capture the exit code of the serverless command (PIPESTATUS[0]) because of the pipe
-DEPLOY_EXIT=${PIPESTATUS[0]:-0}
+npx serverless deploy --stage "$STAGE" --verbose 2>&1 | tee /tmp/serverless-deploy-$STAGE.log
 DEPLOY_END=$(date +%s)
 DEPLOY_DURATION=$((DEPLOY_END - DEPLOY_START))
-
-if [[ $DEPLOY_EXIT -ne 0 ]]; then
-    echo ""
-    echo -e "${RED}❌ Serverless deployment failed (exit code: ${DEPLOY_EXIT}).${NC}"
-    echo -e "${YELLOW}-- Begin last 200 lines of serverless log --${NC}"
-    tail -n 200 "$TMPDIR/serverless-deploy-$STAGE.log" || true
-    echo -e "${YELLOW}-- End of serverless log --${NC}"
-    exit $DEPLOY_EXIT
-fi
 
 echo ""
 echo -e "${GREEN}✓ Deployment completed in ${DEPLOY_DURATION}s${NC}"
@@ -346,12 +314,8 @@ esac
 echo -e "${BLUE}🔧 Setting up HTTP API custom domain: ${YELLOW}$HTTP_CUSTOM_DOMAIN${NC}"
 
 # Create HTTP API custom domain (will be idempotent if already exists)
-DOMAIN_OUTPUT=$(npx serverless create_domain --stage "$STAGE" 2>&1)
-DOMAIN_EXIT=$?
+DOMAIN_OUTPUT=$(npx serverless create_domain --stage "$STAGE" 2>&1) || true
 echo "$DOMAIN_OUTPUT"
-if [[ $DOMAIN_EXIT -ne 0 ]]; then
-    echo -e "${YELLOW}⚠️  serverless create_domain returned non-zero (${DOMAIN_EXIT}). Review output above.${NC}"
-fi
 
 # Extract the regional domain name from the DEPLOY_INFO (already captured above)
 # The "Target Domain:" appears in the "Serverless Domain Manager:" section
@@ -459,7 +423,7 @@ echo -e "   Delete domain:   ${YELLOW}npx serverless delete_domain --stage $STAG
 echo ""
 
 # Save deployment info to file for CI/CD or other scripts
-DEPLOY_RESULT_FILE="$TMPDIR/deploy-result-$STAGE.json"
+DEPLOY_RESULT_FILE="/tmp/deploy-result-$STAGE.json"
 cat > "$DEPLOY_RESULT_FILE" << EOF
 {
   "stage": "$STAGE",

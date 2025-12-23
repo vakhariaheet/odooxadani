@@ -22,8 +22,9 @@ export interface UserResponse {
 // Enums
 // -----------------------------------------------------------------------------
 export enum UserRole {
+  FREELANCE = 'freelancer',
   ADMIN = 'admin',
-  USER = 'user',
+  CLIENT = 'client',
 }
 
 // -----------------------------------------------------------------------------
@@ -56,7 +57,6 @@ export interface ListUsersQuery {
   limit?: number;
   offset?: number;
   orderBy?: 'created_at' | 'updated_at' | 'last_sign_in_at';
-  query?: string; // Search query for email or name
 }
 
 /** GET /api/admin/users response */
@@ -70,7 +70,7 @@ export interface AdminStatsResponse {
   totalUsers: number;
   activeUsers: number;
   bannedUsers: number;
-  usersByRole: Record<UserRole, number>;
+  usersByRole: Record<string, number>;
 }
 
 // -----------------------------------------------------------------------------

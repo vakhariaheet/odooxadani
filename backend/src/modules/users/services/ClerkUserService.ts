@@ -1,4 +1,5 @@
 import { createClerkClient } from '@clerk/backend';
+import { getAvailableRoles } from '../../../config/permissions';
 import {
   UserResponse,
   UserRole,
@@ -17,15 +18,17 @@ const clerkClient = createClerkClient({
  * Maps Clerk user to our simplified UserResponse
  */
 function mapClerkUserToResponse(user: any): UserResponse {
-  const primaryEmail = user.emailAddresses?.find((e: any) => e.id === user.primaryEmailAddressId);
-
+  const primaryEmail = user.emailAddresses?.find(
+    (e: any) => e.id === user.primaryEmailAddressId
+  );
+  
   return {
     id: user.id,
     email: primaryEmail?.emailAddress || '',
     firstName: user.firstName,
     lastName: user.lastName,
     profileImageUrl: user.imageUrl || '',
-    role: (user.publicMetadata?.['role'] as UserRole) || UserRole.USER,
+    role: user.publicMetadata?.['role'] as UserRole,
     banned: user.banned || false,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -35,25 +38,16 @@ function mapClerkUserToResponse(user: any): UserResponse {
 
 export class ClerkUserService {
   /**
-   * List all users with pagination and search
+   * List all users with pagination
    */
   async listUsers(query: ListUsersQuery): Promise<ListUsersResponse> {
-    const { limit = 20, offset = 0, orderBy = 'created_at', query: searchQuery } = query;
+    const { limit = 20, offset = 0, orderBy = 'created_at' } = query;
 
-    // Build Clerk API parameters
-    const clerkParams: any = {
+    const response = await clerkClient.users.getUserList({
       limit,
       offset,
       orderBy: `-${orderBy}`, // Descending order
-    };
-
-    // Add search query if provided - Clerk supports native search
-    if (searchQuery && searchQuery.trim()) {
-      // Clerk's query parameter searches across email, phone, username, and names
-      clerkParams.query = searchQuery.trim();
-    }
-
-    const response = await clerkClient.users.getUserList(clerkParams);
+    });
 
     return {
       users: response.data.map(mapClerkUserToResponse),
@@ -74,7 +68,7 @@ export class ClerkUserService {
    */
   async inviteUser(
     email: string,
-    role: UserRole = UserRole.USER,
+    role: UserRole,
     redirectUrl?: string
   ): Promise<{ invitationId: string }> {
     const invitation = await clerkClient.invitations.createInvitation({
@@ -91,11 +85,7 @@ export class ClerkUserService {
   /**
    * Change user's role via publicMetadata
    */
-  async changeUserRole(
-    userId: string,
-    newRole: UserRole,
-    adminUserId: string
-  ): Promise<UserResponse> {
+  async changeUserRole(userId: string, newRole: UserRole, adminUserId: string): Promise<UserResponse> {
     // Validate role
     if (!Object.values(UserRole).includes(newRole)) {
       throw new Error('Invalid role');
@@ -157,14 +147,20 @@ export class ClerkUserService {
       limit: 500,
     });
 
+    // Dynamically create usersByRole object with all available roles
+    const availableRoles = getAvailableRoles();
+    const usersByRole: Record<string, number> = {};
+
+    // Initialize all roles with 0 count
+    availableRoles.forEach((role: string) => {
+      usersByRole[role] = 0;
+    });
+
     const stats: AdminStatsResponse = {
       totalUsers: response.totalCount,
       activeUsers: 0,
       bannedUsers: 0,
-      usersByRole: {
-        [UserRole.ADMIN]: 0,
-        [UserRole.USER]: 0,
-      },
+      usersByRole,
     };
 
     for (const user of response.data) {
@@ -176,9 +172,14 @@ export class ClerkUserService {
       }
 
       // Count by role
-      const role = (user.publicMetadata?.['role'] as UserRole) || UserRole.USER;
+      const role = (user.publicMetadata?.['role'] as string) || 'user';
+
+      // Only count if it's a valid role, otherwise count as 'user' (fallback)
       if (stats.usersByRole[role] !== undefined) {
         stats.usersByRole[role]++;
+      } else {
+        // Fallback to 'user' role if role doesn't exist
+        stats.usersByRole['user'] = (stats.usersByRole['user'] || 0) + 1;
       }
     }
 
@@ -203,89 +204,54 @@ export class ClerkUserService {
 
   /**
    * List pending invitations with pagination and search
-   * Note: Clerk doesn't support server-side email search for invitations,
-   * so we need to fetch more data when searching to ensure proper results
    */
-  async listInvitations(query?: {
-    limit?: number;
-    offset?: number;
-    email?: string;
+  async listInvitations(query?: { 
+    limit?: number; 
+    offset?: number; 
+    email?: string; 
   }): Promise<{ invitations: InvitationResponse[]; totalCount: number }> {
     const { limit = 20, offset = 0, email } = query || {};
-
-    // If no search query, use normal pagination
-    if (!email || !email.trim()) {
-      const response = await clerkClient.invitations.getInvitationList({
-        status: 'pending' as const,
-        limit: Math.min(limit, 100), // Clerk max limit is 100
-        offset,
-      });
-
-      const invitations = response.data.map(
-        (invitation: any): InvitationResponse => ({
-          id: invitation.id,
-          emailAddress: invitation.emailAddress,
-          status: invitation.status,
-          publicMetadata: invitation.publicMetadata || {},
-          createdAt: invitation.createdAt,
-          updatedAt: invitation.updatedAt,
-        })
-      );
-
-      return {
-        invitations,
-        totalCount: response.totalCount,
-      };
-    }
-
-    // For search, we need to fetch more data to ensure we have enough results
-    // This is a limitation of Clerk's API not supporting server-side email search
-    const searchLimit = Math.min(500, Math.max(100, limit * 10)); // Fetch more to filter
+    
     const response = await clerkClient.invitations.getInvitationList({
       status: 'pending' as const,
-      limit: searchLimit,
-      offset: 0, // Start from beginning when searching
+      limit: Math.min(limit, 100), // Clerk max limit is 100
+      offset,
     });
-
-    // Filter by email
-    const emailLower = email.trim().toLowerCase();
-    const filteredInvitations = response.data.filter((invitation: any) =>
-      invitation.emailAddress.toLowerCase().includes(emailLower)
-    );
-
-    // Apply pagination to filtered results
-    const startIndex = offset;
-    const endIndex = offset + limit;
-    const paginatedInvitations = filteredInvitations.slice(startIndex, endIndex);
-
-    const invitations = paginatedInvitations.map(
-      (invitation: any): InvitationResponse => ({
-        id: invitation.id,
-        emailAddress: invitation.emailAddress,
-        status: invitation.status,
-        publicMetadata: invitation.publicMetadata || {},
-        createdAt: invitation.createdAt,
-        updatedAt: invitation.updatedAt,
-      })
-    );
-
+    
+    let filteredData = response.data;
+    
+    // Client-side filtering by email if provided (Clerk doesn't support server-side email filtering)
+    if (email) {
+      const emailLower = email.toLowerCase();
+      filteredData = response.data.filter((invitation: any) => 
+        invitation.emailAddress.toLowerCase().includes(emailLower)
+      );
+    }
+    
+    const invitations = filteredData.map((invitation: any): InvitationResponse => ({
+      id: invitation.id,
+      emailAddress: invitation.emailAddress,
+      status: invitation.status,
+      publicMetadata: invitation.publicMetadata || {},
+      createdAt: invitation.createdAt,
+      updatedAt: invitation.updatedAt,
+    }));
+    
     return {
       invitations,
-      totalCount: filteredInvitations.length,
+      totalCount: email ? filteredData.length : response.totalCount
     };
   }
 
   /**
    * Resend a pending invitation
    */
-  async resendInvitation(
-    invitationId: string
-  ): Promise<{ newInvitationId: string; emailAddress: string }> {
+  async resendInvitation(invitationId: string): Promise<{ newInvitationId: string; emailAddress: string }> {
     // Get the existing invitation details
     const invitations = await clerkClient.invitations.getInvitationList({
       status: 'pending' as const,
     });
-
+    
     const invitation = invitations.data.find((inv: any) => inv.id === invitationId);
     if (!invitation) {
       throw new Error('Invitation not found or already accepted');
