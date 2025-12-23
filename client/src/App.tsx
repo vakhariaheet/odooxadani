@@ -12,6 +12,11 @@ import { TemplateListPage } from './pages/templates/TemplateListPage';
 import { TemplateCreatePage } from './pages/templates/TemplateCreatePage';
 import { TemplateEditPage } from './pages/templates/TemplateEditPage';
 import { TemplateLibraryPage } from './pages/templates/TemplateLibraryPage';
+import { ContractListPage } from './pages/contracts/ContractListPage';
+import { ContractViewPage } from './pages/contracts/ContractViewPage';
+import { ContractCreatePage } from './pages/contracts/ContractCreatePage';
+import { ContractEditPage } from './pages/contracts/ContractEditPage';
+import { ContractSignPage } from './pages/contracts/ContractSignPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import './App.css';
 
@@ -119,6 +124,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Template Routes */}
         <Route
           path="/templates"
           element={
@@ -148,6 +154,55 @@ function App() {
           element={
             <ProtectedRoute>
               <TemplateLibraryPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* Contract Routes */}
+        <Route
+          path="/contracts"
+          element={
+            <ProtectedRoute>
+              <ContractListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/create"
+          element={
+            <ProtectedRoute>
+              <ContractCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/create/:proposalId"
+          element={
+            <ProtectedRoute>
+              <ContractCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/:id"
+          element={
+            <ProtectedRoute>
+              <ContractViewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/:id/edit"
+          element={
+            <ProtectedRoute>
+              <ContractEditPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/:id/sign"
+          element={
+            <ProtectedRoute>
+              <ContractSignPage />
             </ProtectedRoute>
           }
         />
