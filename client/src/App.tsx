@@ -17,6 +17,10 @@ import { ContractViewPage } from './pages/contracts/ContractViewPage';
 import { ContractCreatePage } from './pages/contracts/ContractCreatePage';
 import { ContractEditPage } from './pages/contracts/ContractEditPage';
 import { ContractSignPage } from './pages/contracts/ContractSignPage';
+import { ProposalListPage } from './pages/proposals/ProposalListPage';
+import { ProposalCreatePage } from './pages/proposals/ProposalCreatePage';
+import { ProposalViewPage } from './pages/proposals/ProposalViewPage';
+import { ProposalEditPage } from './pages/proposals/ProposalEditPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import './App.css';
 
@@ -203,6 +207,39 @@ function App() {
           element={
             <ProtectedRoute>
               <ContractSignPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* Proposal Routes */}
+        <Route
+          path="/proposals"
+          element={
+            <ProtectedRoute>
+              <ProposalListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/proposals/new"
+          element={
+            <ProtectedRoute requiredRole="freelancer">
+              <ProposalCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/proposals/:id"
+          element={
+            <ProtectedRoute>
+              <ProposalViewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/proposals/:id/edit"
+          element={
+            <ProtectedRoute requiredRole="freelancer">
+              <ProposalEditPage />
             </ProtectedRoute>
           }
         />
