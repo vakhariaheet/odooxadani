@@ -3,7 +3,8 @@
  * Matches the Clerk-based backend responses
  */
 
-export type UserRole = 'admin' | 'user';
+// Dynamic role type - will be populated from backend
+export type UserRole = string;
 
 export interface User {
   id: string;
@@ -38,7 +39,7 @@ export interface AdminStatsResponse {
     totalUsers: number;
     activeUsers: number;
     bannedUsers: number;
-    usersByRole: Record<UserRole, number>;
+    usersByRole: Record<string, number>;
   };
 }
 

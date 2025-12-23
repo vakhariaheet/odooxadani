@@ -8,10 +8,18 @@ import { AdminPage } from './pages/AdminPage';
 import { LandingPage } from './pages/LandingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { WebSocketTestPage } from './pages/WebSocketTestPage';
+<<<<<<< HEAD
 import { TemplateListPage } from './pages/templates/TemplateListPage';
 import { TemplateCreatePage } from './pages/templates/TemplateCreatePage';
 import { TemplateEditPage } from './pages/templates/TemplateEditPage';
 import { TemplateLibraryPage } from './pages/templates/TemplateLibraryPage';
+=======
+import { ContractListPage } from './pages/contracts/ContractListPage';
+import { ContractViewPage } from './pages/contracts/ContractViewPage';
+import { ContractCreatePage } from './pages/contracts/ContractCreatePage';
+import { ContractEditPage } from './pages/contracts/ContractEditPage';
+import { ContractSignPage } from './pages/contracts/ContractSignPage';
+>>>>>>> ed4d2f8 (feat: Added Contract Management)
 import { ProtectedRoute } from './components/ProtectedRoute';
 import './App.css';
 
@@ -120,34 +128,78 @@ function App() {
           }
         />
         <Route
+<<<<<<< HEAD
           path="/templates"
           element={
             <ProtectedRoute>
               <TemplateListPage />
+=======
+          path="/contracts"
+          element={
+            <ProtectedRoute>
+              <ContractListPage />
+>>>>>>> ed4d2f8 (feat: Added Contract Management)
             </ProtectedRoute>
           }
         />
         <Route
+<<<<<<< HEAD
           path="/templates/new"
           element={
             <ProtectedRoute>
               <TemplateCreatePage />
+=======
+          path="/contracts/create"
+          element={
+            <ProtectedRoute>
+              <ContractCreatePage />
+>>>>>>> ed4d2f8 (feat: Added Contract Management)
             </ProtectedRoute>
           }
         />
         <Route
+<<<<<<< HEAD
           path="/templates/:id/edit"
           element={
             <ProtectedRoute>
               <TemplateEditPage />
+=======
+          path="/contracts/create/:proposalId"
+          element={
+            <ProtectedRoute>
+              <ContractCreatePage />
+>>>>>>> ed4d2f8 (feat: Added Contract Management)
             </ProtectedRoute>
           }
         />
         <Route
+<<<<<<< HEAD
           path="/templates/library"
           element={
             <ProtectedRoute>
               <TemplateLibraryPage />
+=======
+          path="/contracts/:id"
+          element={
+            <ProtectedRoute>
+              <ContractViewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/:id/edit"
+          element={
+            <ProtectedRoute>
+              <ContractEditPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/:id/sign"
+          element={
+            <ProtectedRoute>
+              <ContractSignPage />
+>>>>>>> ed4d2f8 (feat: Added Contract Management)
             </ProtectedRoute>
           }
         />
