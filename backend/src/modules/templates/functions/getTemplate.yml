@@ -1,0 +1,27 @@
+getTemplate:
+  handler: src/modules/templates/handlers/getTemplate.handler
+  events:
+    - httpApi:
+        path: /api/templates/{id}
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Templates
+        summary: GET /api/templates/{id}
+        description: Get single template by ID
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success
+              schema:
+                type: object
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Access denied to private template
+          - statusCode: 404
+            responseBody:
+              description: Template not found

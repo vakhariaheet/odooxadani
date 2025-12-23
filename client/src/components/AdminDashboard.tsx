@@ -19,7 +19,7 @@ import {
   useInvitations,
   useRevokeInvitation,
   useResendInvitation,
-  usePermissions,
+  // usePermissions,
 } from '../hooks/useUsers';
 import type { UserRole } from '../types/user';
 
@@ -70,7 +70,7 @@ function AdminDashboardContent() {
 
   // Queries
   const { data: statsData, isLoading: statsLoading, error: statsError } = useAdminStats();
-  const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
+  // const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
   const {
     data: usersData,
     isLoading: usersLoading,
