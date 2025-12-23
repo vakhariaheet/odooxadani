@@ -1,3 +1,4 @@
+# Get User Details function - Admin only
 getUserDetails:
   handler: src/modules/users/handlers/getUserDetails.handler
   events:
@@ -6,23 +7,3 @@ getUserDetails:
         method: GET
         authorizer:
           name: clerkJwtAuthorizer
-        swaggerTags:
-          - Users
-        summary: GET /api/admin/users/{userId}
-        description: getUserDetails endpoint
-        methodResponses:
-          - statusCode: 200
-            responseBody:
-              description: Success
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Success message
-          - statusCode: 401
-            responseBody:
-              description: Unauthorized - Invalid or missing token
-          - statusCode: 403
-            responseBody:
-              description: Forbidden - Insufficient permissions

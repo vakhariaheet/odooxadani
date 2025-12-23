@@ -17,14 +17,3 @@ build
 coverage
 .nyc_output
 *.lcov
-
-# Generated swagger files (keep base template and README)
-swagger/swagger.js
-swagger/swagger.json
-swagger/*.py
-swagger/*.d.ts
-swagger/functions.js
-swagger/oauth2-redirect-html.js
-swagger/swagger-html.js
-swagger/swagger-json.js
-swagger/__init__.py

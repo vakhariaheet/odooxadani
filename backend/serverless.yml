@@ -9,41 +9,16 @@ provider:
   stage: ${opt:stage, 'dev-heet'}
   memorySize: ${self:custom.stageConfig.memorySize}
   timeout: ${self:custom.stageConfig.timeout}
-
+  
   # Log configuration
   logRetentionInDays: ${self:custom.stageConfig.logRetentionInDays}
-
+  
   environment:
     STAGE: ${self:provider.stage}
     REGION: ${self:provider.region}
     CLERK_SECRET_KEY: ${env:CLERK_SECRET_KEY}
     CLERK_PUBLISHABLE_KEY: ${env:CLERK_PUBLISHABLE_KEY}
     NODE_ENV: ${self:provider.stage}
-    SWAGGER_USERNAME: ${env:SWAGGER_USERNAME, 'admin'}
-    SWAGGER_PASSWORD: ${env:SWAGGER_PASSWORD, 'changeme'}
-    MAIN_TABLE_NAME: ${self:service}-${self:provider.stage}-main-table
-    DYNAMODB_TABLE: ${self:service}-${self:provider.stage}-main-table
-
-  # IAM permissions
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-            - dynamodb:BatchGetItem
-            - dynamodb:BatchWriteItem
-          Resource:
-            - Fn::GetAtt: [MainTable, Arn]
-            - Fn::Join:
-                - '/'
-                - - Fn::GetAtt: [MainTable, Arn]
-                  - 'index/*'
 
   # HTTP API (API Gateway v2) with JWT Authorizer
   httpApi:
@@ -60,14 +35,14 @@ provider:
         # 2. Create a new template OR use "Convex" template as base
         # 3. Copy the "Issuer" URL and paste below
         # 4. The issuer URL format: https://<your-clerk-frontend-api>.clerk.accounts.dev
-        #
+        # 
         # IMPORTANT: In your JWT Template, add custom claims:
         # {
         #   "role": "{{user.public_metadata.role}}",
         #   "email": "{{user.primary_email_address}}",
         #   "userid": "{{user.id}}"
         # }
-        #
+        # 
         # Set default role in Clerk Dashboard → Users → User → Public Metadata:
         # { "role": "user" }  OR  { "role": "admin" }
         # =============================================================
@@ -87,7 +62,6 @@ plugins:
   - serverless-esbuild
   - serverless-domain-manager
   - serverless-offline
-  - serverless-auto-swagger
 
 custom:
   # =============================================================
@@ -95,7 +69,7 @@ custom:
   # =============================================================
   # Set to true to enable custom domain (requires ACM certificate)
   customDomainEnabled: ${env:CUSTOM_DOMAIN_ENABLED, 'false'}
-
+  
   # Domain settings per stage
   baseDomain: ${env:BASE_DOMAIN, 'yourdomain.com'}
   domains:
@@ -113,7 +87,7 @@ custom:
     dev-heet: ws-dev-heet.${self:custom.baseDomain}
     test: ws-test.${self:custom.baseDomain}
     prod: ws.${self:custom.baseDomain}
-
+  
   # serverless-domain-manager plugin configuration
   # Only active when CUSTOM_DOMAIN_ENABLED=true
   customDomain:
@@ -182,29 +156,56 @@ custom:
       'require.resolve': undefined
     platform: node
     concurrency: 10
-
+    
   serverless-offline:
     httpPort: 3000
     babelOptions:
-      presets: ['env']
+      presets: ["env"]
 
-  # Auto-generated Swagger documentation
-  autoswagger:
-    title: 'Odoo Xadani API'
-    generateSwaggerOnDeploy: true
-    typefiles: ['./src/shared/types.ts', './src/modules/*/types.ts']
-    # Custom path for swagger documentation (instead of 'swagger')
-    swaggerPath: ''
-    apiKeyHeaders: ['Authorization']
-    basePath: '/'
-    host: ${self:custom.domains.${self:provider.stage}, ''}
-    schemes: ['https']
-    excludeStages: []
-    apiType: 'httpApi'
-    # No authorizer for swagger endpoints - they should be public
-    lambdaAuthorizer: null
-
-resources: ${file(resources.yml)}
+resources:
+  Outputs:
+    # HTTP API Outputs (existing)
+    HttpApiId:
+      Description: HTTP API ID
+      Value:
+        Ref: HttpApi
+      Export:
+        Name: ${self:service}-${self:provider.stage}-http-api-id
+    
+    HttpApiUrl:
+      Description: HTTP API URL
+      Value:
+        Fn::Join:
+          - ''
+          - - 'https://'
+            - Ref: HttpApi
+            - '.execute-api.'
+            - ${self:provider.region}
+            - '.amazonaws.com'
+      Export:
+        Name: ${self:service}-${self:provider.stage}-http-api-url
+    
+    # WebSocket API Outputs
+    WebSocketApiId:
+      Description: WebSocket API ID
+      Value:
+        Ref: WebsocketsApi
+      Export:
+        Name: ${self:service}-${self:provider.stage}-websocket-api-id
+    
+    WebSocketApiUrl:
+      Description: WebSocket API URL
+      Value:
+        Fn::Join:
+          - ''
+          - - 'wss://'
+            - Ref: WebsocketsApi
+            - '.execute-api.'
+            - ${self:provider.region}
+            - '.amazonaws.com/'
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-websocket-url
 
 # Functions - imported from modules (one file per handler)
 functions:
@@ -220,7 +221,6 @@ functions:
   - ${file(src/modules/users/functions/unbanUser.yml)}
   - ${file(src/modules/users/functions/deleteUser.yml)}
   - ${file(src/modules/users/functions/getAdminStats.yml)}
-  - ${file(src/modules/users/functions/getPermissions.yml)}
   # Demo module
   - ${file(src/modules/demo/functions/userOnly.yml)}
   - ${file(src/modules/demo/functions/adminOnly.yml)}

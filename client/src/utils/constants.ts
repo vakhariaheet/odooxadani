@@ -3,7 +3,7 @@ export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_URL || '/api',
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
-} as const;
+} as const
 
 // Local Storage Keys
 export const STORAGE_KEYS = {
@@ -12,7 +12,7 @@ export const STORAGE_KEYS = {
   LANGUAGE: 'language',
   RECENT_SEARCHES: 'recent_searches',
   DRAFT_DATA: 'draft_data',
-} as const;
+} as const
 
 // Route Paths
 export const ROUTES = {
@@ -23,14 +23,14 @@ export const ROUTES = {
   PROFILE: '/profile',
   SETTINGS: '/settings',
   ADMIN: '/admin',
-} as const;
+} as const
 
 // User Roles
 export const USER_ROLES = {
   ADMIN: 'admin',
   USER: 'user',
   MODERATOR: 'moderator',
-} as const;
+} as const
 
 // File Upload Configuration
 export const FILE_UPLOAD = {
@@ -40,14 +40,14 @@ export const FILE_UPLOAD = {
     DOCUMENTS: ['application/pdf', 'text/plain', 'application/msword'],
     ALL: ['image/*', 'application/pdf', 'text/*'],
   },
-} as const;
+} as const
 
 // Pagination
 export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,
   MAX_PAGE_SIZE: 100,
   PAGE_SIZE_OPTIONS: [10, 20, 50, 100],
-} as const;
+} as const
 
 // Validation Rules
 export const VALIDATION = {
@@ -55,9 +55,9 @@ export const VALIDATION = {
   USERNAME_MIN_LENGTH: 3,
   USERNAME_MAX_LENGTH: 30,
   EMAIL_MAX_LENGTH: 254,
-  PHONE_REGEX: /^\+?[\d\s\-()]{10,}$/,
+  PHONE_REGEX: /^\+?[\d\s\-\(\)]{10,}$/,
   EMAIL_REGEX: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-} as const;
+} as const
 
 // Theme Configuration
 export const THEME = {
@@ -76,7 +76,7 @@ export const THEME = {
     XL: '1280px',
     '2XL': '1536px',
   },
-} as const;
+} as const
 
 // Error Messages
 export const ERROR_MESSAGES = {
@@ -88,7 +88,7 @@ export const ERROR_MESSAGES = {
   VALIDATION_ERROR: 'Please check your input and try again.',
   FILE_TOO_LARGE: 'File size exceeds the maximum allowed limit.',
   INVALID_FILE_TYPE: 'Invalid file type.',
-} as const;
+} as const
 
 // Success Messages
 export const SUCCESS_MESSAGES = {
@@ -98,4 +98,4 @@ export const SUCCESS_MESSAGES = {
   DELETED: 'Deleted successfully!',
   UPLOADED: 'File uploaded successfully!',
   EMAIL_SENT: 'Email sent successfully!',
-} as const;
+} as const
