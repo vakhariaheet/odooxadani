@@ -6,6 +6,10 @@
 // Dynamic role type - will be populated from backend
 export type UserRole = string;
 
+// Static roles for backwards compatibility (can be removed later)
+export const STATIC_ROLES = ['admin', 'user'] as const;
+export type StaticUserRole = (typeof STATIC_ROLES)[number];
+
 export interface User {
   id: string;
   email: string;
@@ -39,7 +43,7 @@ export interface AdminStatsResponse {
     totalUsers: number;
     activeUsers: number;
     bannedUsers: number;
-    usersByRole: Record<string, number>;
+    usersByRole: Record<UserRole, number>;
   };
 }
 

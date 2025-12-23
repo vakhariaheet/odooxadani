@@ -1,4 +1,3 @@
-# Delete User function - Admin only
 deleteUser:
   handler: src/modules/users/handlers/deleteUser.handler
   events:
@@ -7,3 +6,23 @@ deleteUser:
         method: DELETE
         authorizer:
           name: clerkJwtAuthorizer
+        swaggerTags:
+          - Users
+        summary: DELETE /api/admin/users/{userId}
+        description: deleteUser endpoint
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions

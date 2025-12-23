@@ -2,30 +2,25 @@ import { AccessControl } from 'accesscontrol';
 
 /**
  * RBAC Configuration using accesscontrol library
- * 
- * Multiple roles with different access levels:
- * - freelancer: Can manage own proposals, contracts, invoices
- * - client: Can view proposals/contracts sent to them, make payments
- * - admin: Full access to all modules and resources
- * 
+ *
+ * Two roles:
+ * - user: Can only access own resources in users module, read-only access to demo
+ * - admin: Full access to all modules and all resources
+ *
  * Actions follow accesscontrol naming convention:
  * - *Own: Can only perform action on own resources
  * - *Any: Can perform action on any resource
  */
 
 // Define module access permissions for each role
-export const ROLE_MODULE_ACCESS: Record<
-  string,
-  Record<string, { any: string[]; own: string[] }>
-> = {
+const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
   freelancer: {
     users: { any: [], own: ['read', 'update'] },
     proposals: { any: [], own: ['create', 'read', 'update', 'delete'] },
-    contracts: { any: [], own: ['create', 'read', 'update'] }, // Can create and update contracts
+    contracts: { any: [], own: ['read', 'update'] }, // Can update for signatures
     invoices: { any: [], own: ['create', 'read', 'update'] },
     payments: { any: [], own: ['read'] }, // Read-only payment status
     templates: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
-    demo: { any: ['read'], own: [] }, // Keep demo access for testing
     websocket: { any: ['read', 'update'], own: [] },
   },
   client: {
@@ -34,13 +29,6 @@ export const ROLE_MODULE_ACCESS: Record<
     contracts: { any: [], own: ['read', 'update'] }, // Can sign contracts
     invoices: { any: [], own: ['read'] }, // Can view invoices
     payments: { any: [], own: ['create', 'read'] }, // Can make payments
-    demo: { any: ['read'], own: [] }, // Keep demo access for testing
-    websocket: { any: ['read', 'update'], own: [] },
-  },
-  // Keep 'user' role for backward compatibility
-  user: {
-    users: { any: [], own: ['read', 'update'] },
-    demo: { any: ['read'], own: [] },
     websocket: { any: ['read', 'update'], own: [] },
   },
   admin: {
@@ -53,25 +41,25 @@ export const ROLE_MODULE_ACCESS: Record<
     analytics: { any: ['read'], own: [] },
     demo: { any: ['create', 'read', 'update', 'delete'], own: [] },
     websocket: { any: ['create', 'read', 'update', 'delete'], own: [] },
-    admin: { any: ['create', 'read', 'update', 'delete'], own: [] },
   },
 };
 
 // All available modules in the system
 const ALL_MODULES = [
-  'users', 'proposals', 'contracts', 'invoices', 'payments', 
-  'templates', 'analytics', 'demo', 'websocket', 'admin'
+  'users',
+  'proposals',
+  'contracts',
+  'invoices',
+  'payments',
+  'templates',
+  'analytics',
+  'demo',
+  'admin',
+  'websocket',
 ];
 
 // All CRUD actions
 const ALL_ACTIONS = ['create', 'read', 'update', 'delete'] as const;
-
-/**
- * Get available roles from the configuration
- */
-export const getAvailableRoles = (): string[] => {
-  return Object.keys(ROLE_MODULE_ACCESS);
-};
 
 /**
  * Create and configure the AccessControl instance
@@ -79,21 +67,16 @@ export const getAvailableRoles = (): string[] => {
 const createAccessControl = (): AccessControl => {
   const ac = new AccessControl();
 
-  // =============================================================
-  // ROLE GRANTS - Programmatically generate from config
-  // =============================================================
-  Object.entries(ROLE_MODULE_ACCESS).forEach(([roleName, moduleAccess]) => {
-    Object.entries(moduleAccess).forEach(([moduleName, permissions]) => {
-      // Grant 'Any' permissions (can access any resource)
+  Object.entries(ROLE_MODULE_ACCESS).forEach(([role, modules]) => {
+    Object.entries(modules).forEach(([moduleName, permissions]) => {
       permissions.any.forEach((action) => {
         const grantMethod = `${action}Any` as 'createAny' | 'readAny' | 'updateAny' | 'deleteAny';
-        ac.grant(roleName)[grantMethod](moduleName);
+        ac.grant(role)[grantMethod](moduleName);
       });
 
-      // Grant 'Own' permissions (can only access own resources)
       permissions.own.forEach((action) => {
         const grantMethod = `${action}Own` as 'createOwn' | 'readOwn' | 'updateOwn' | 'deleteOwn';
-        ac.grant(roleName)[grantMethod](moduleName);
+        ac.grant(role)[grantMethod](moduleName);
       });
     });
   });
@@ -105,9 +88,30 @@ const createAccessControl = (): AccessControl => {
 export const ac = createAccessControl();
 
 // Export helper types
-export type Role = keyof typeof ROLE_MODULE_ACCESS;
-export type Action = typeof ALL_ACTIONS[number];
-export type ModuleName = string;
+export type Role = 'freelancer' | 'client' | 'admin';
+export type Action = (typeof ALL_ACTIONS)[number];
+export type ModuleName = (typeof ALL_MODULES)[number];
+
+/**
+ * Get all available roles in the system
+ */
+export const getAvailableRoles = (): string[] => {
+  return Object.keys(ROLE_MODULE_ACCESS);
+};
+
+/**
+ * Get all available modules in the system
+ */
+export const getAvailableModules = (): string[] => {
+  return [...ALL_MODULES];
+};
+
+/**
+ * Get all available actions in the system
+ */
+export const getAvailableActions = (): string[] => {
+  return [...ALL_ACTIONS];
+};
 
 /**
  * Check if a role has permission to perform an action on a module
@@ -122,7 +126,7 @@ export const hasPermission = (
   const permission = isOwner
     ? ac.can(role)[`${action}Own`](moduleName)
     : ac.can(role)[`${action}Any`](moduleName);
-  
+
   return permission.granted;
 };
 
@@ -132,10 +136,10 @@ export const hasPermission = (
  */
 export const getRolePermissions = (role: string): Record<string, string[]> => {
   const permissions: Record<string, string[]> = {};
-  
+
   ALL_MODULES.forEach((moduleName) => {
     const modulePerms: string[] = [];
-    
+
     ALL_ACTIONS.forEach((action) => {
       if (ac.can(role)[`${action}Any`](moduleName).granted) {
         modulePerms.push(`${action}Any`);
@@ -144,11 +148,11 @@ export const getRolePermissions = (role: string): Record<string, string[]> => {
         modulePerms.push(`${action}Own`);
       }
     });
-    
+
     if (modulePerms.length > 0) {
       permissions[moduleName] = modulePerms;
     }
   });
-  
+
   return permissions;
 };
