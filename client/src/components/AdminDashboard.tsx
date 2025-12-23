@@ -19,7 +19,6 @@ import {
   useInvitations,
   useRevokeInvitation,
   useResendInvitation,
-  // usePermissions,
 } from '../hooks/useUsers';
 import type { UserRole } from '../types/user';
 
@@ -70,7 +69,6 @@ function AdminDashboardContent() {
 
   // Queries
   const { data: statsData, isLoading: statsLoading, error: statsError } = useAdminStats();
-  // const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
   const {
     data: usersData,
     isLoading: usersLoading,
@@ -107,12 +105,6 @@ function AdminDashboardContent() {
   const resendInvitationMutation = useResendInvitation();
 
   const handleChangeRole = (userId: string, role: UserRole) => {
-    // Validate role before making the request
-    if (!['admin', 'user'].includes(role)) {
-      toast.error(`Invalid role: ${role}. Must be 'admin' or 'user'.`);
-      return;
-    }
-
     setUserLoadingStates((prev) => ({
       ...prev,
       [userId]: { ...prev[userId], changeRole: true },

@@ -5,6 +5,7 @@ export function DashboardPage() {
   const { user } = useUser();
   const location = useLocation();
   const isAdmin = (user?.publicMetadata?.role as string) === 'admin';
+  const userRole = user?.publicMetadata?.role as string;
 
   return (
     <>
@@ -26,6 +27,18 @@ export function DashboardPage() {
           className={`nav-btn ${location.pathname === '/templates/library' ? 'active' : ''}`}
         >
           Template Library
+        </Link>
+        <Link
+          to="/contracts"
+          className={`nav-btn ${location.pathname.startsWith('/contracts') ? 'active' : ''}`}
+        >
+          Contracts
+        </Link>
+        <Link
+          to="/proposals"
+          className={`nav-btn ${location.pathname.startsWith('/proposals') ? 'active' : ''}`}
+        >
+          Proposals
         </Link>
         <Link
           to="/websocket-test"
@@ -56,8 +69,22 @@ export function DashboardPage() {
               <strong>User ID:</strong> {user?.id}
             </p>
             <p>
-              <strong>Role:</strong> {(user?.publicMetadata?.role as string) || 'user'}
+              <strong>Role:</strong> {userRole || 'user'}
             </p>
+          </div>
+
+          <div className="quick-actions" style={{ marginTop: '2rem' }}>
+            <h3>Quick Actions</h3>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <Link to="/proposals" className="auth-btn">
+                View Proposals
+              </Link>
+              {userRole === 'freelancer' && (
+                <Link to="/proposals/new" className="auth-btn signup-btn">
+                  Create New Proposal
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </main>

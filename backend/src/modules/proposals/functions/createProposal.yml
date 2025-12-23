@@ -1,0 +1,39 @@
+createProposal:
+  handler: src/modules/proposals/handlers/createProposal.handler
+  events:
+    - httpApi:
+        path: /api/proposals
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Proposals
+        summary: POST /api/proposals
+        description: Create a new proposal (freelancers only)
+        methodResponses:
+          - statusCode: 201
+            responseBody:
+              description: Created - Proposal created successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      proposal:
+                        type: object
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid request data
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
+          - statusCode: 422
+            responseBody:
+              description: Validation Error - Invalid proposal data

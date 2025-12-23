@@ -1,0 +1,35 @@
+createContract:
+  handler: src/modules/contracts/handlers/createContract.handler
+  events:
+    - httpApi:
+        path: /api/contracts
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Contracts
+        summary: POST /api/contracts
+        description: Create a new contract
+        methodResponses:
+          - statusCode: 201
+            responseBody:
+              description: Contract created successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      contract:
+                        type: object
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid input
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions

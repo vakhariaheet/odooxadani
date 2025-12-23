@@ -1,0 +1,36 @@
+getProposal:
+  handler: src/modules/proposals/handlers/getProposal.handler
+  events:
+    - httpApi:
+        path: /api/proposals/{id}
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Proposals
+        summary: GET /api/proposals/{id}
+        description: Get single proposal by ID with role-based access
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Returns proposal details
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      proposal:
+                        type: object
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Access denied to this proposal
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Proposal does not exist

@@ -1,8 +1,9 @@
 // Export all services
-export { apiClient } from './apiClient'
-export type { ApiClient } from './apiClient'
-export { StorageService, SessionStorageService } from './storage'
-export { usersApi, authApi } from './usersApi'
+export { apiClient } from './apiClient';
+export type { ApiClient } from './apiClient';
+export { StorageService, SessionStorageService } from './storage';
+export { usersApi, authApi } from './usersApi';
+export { contractsApi } from './contractsApi';
 export type {
   User,
   UserRole,
@@ -17,4 +18,15 @@ export type {
   BanUserResponse,
   DeleteUserResponse,
   WhoAmIResponse,
-} from './usersApi'
+} from './usersApi';
+export { proposalsApi } from './proposalsApi';
+export type {
+  Proposal,
+  CreateProposalRequest,
+  UpdateProposalRequest,
+  ListProposalsQuery,
+  ListProposalsResponse,
+  GetProposalResponse,
+  CreateProposalResponse,
+  UpdateProposalResponse,
+} from './proposalsApi';

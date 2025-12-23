@@ -1,0 +1,38 @@
+sendContract:
+  handler: src/modules/contracts/handlers/sendContract.handler
+  events:
+    - httpApi:
+        path: /api/contracts/{id}/send
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Contracts
+        summary: POST /api/contracts/{id}/send
+        description: Send contract to client (change status from draft to sent)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Contract sent successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      contract:
+                        type: object
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Contract not in draft status
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
+          - statusCode: 404
+            responseBody:
+              description: Contract not found
