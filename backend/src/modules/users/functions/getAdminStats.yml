@@ -1,3 +1,4 @@
+# Admin Stats function - Admin only
 getAdminStats:
   handler: src/modules/users/handlers/getAdminStats.handler
   events:
@@ -6,23 +7,3 @@ getAdminStats:
         method: GET
         authorizer:
           name: clerkJwtAuthorizer
-        swaggerTags:
-          - Users
-        summary: GET /api/admin/stats
-        description: getAdminStats endpoint
-        methodResponses:
-          - statusCode: 200
-            responseBody:
-              description: Success
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Success message
-          - statusCode: 401
-            responseBody:
-              description: Unauthorized - Invalid or missing token
-          - statusCode: 403
-            responseBody:
-              description: Forbidden - Insufficient permissions

@@ -1,7 +1,6 @@
 # Module [ID]: [Module Name]
 
 ## Overview
-
 **Estimated Time:** [30min/45min/1hr/1.5hr]
 **Complexity:** [Simple CRUD/Medium/Complex]
 **Type:** [Backend-heavy/Frontend-heavy/Full-stack/Integration]
@@ -11,23 +10,20 @@
 **Status:** [Not Started/In Progress/Testing/Complete]
 
 ## Problem Context
-
 [2-3 sentences explaining what this module solves from the original problem statement]
 
 ## Technical Requirements
 
 ### Backend Tasks
-
 - [ ] **Route:** `[METHOD] /api/[endpoint]` - [Description]
-- [ ] **DynamoDB Pattern:**
+- [ ] **DynamoDB Pattern:** 
   - PK: `[pattern]` (e.g., `USER#${userId}`)
   - SK: `[pattern]` (e.g., `PROFILE` or `BOOK#${bookId}`)
   - GSI: `[if needed]`
 - [ ] **Middleware:** [Auth/validation requirements]
-- [ ] **External Integration:** [If any - S3, APIs]
+- [ ] **External Integration:** [If any - S3, OpenSearch, APIs]
 
 ### Frontend Tasks
-
 - [ ] **Pages/Components:** [List specific components to build]
 - [ ] **shadcn Components:** [button, form, table, dialog, etc.]
 - [ ] **API Integration:** [Which endpoints to call]
@@ -35,11 +31,10 @@
 - [ ] **Routing:** [New routes to add]
 
 ### Database Schema (Single Table)
-
 ```json
 {
   "pk": "[pattern]",
-  "sk": "[pattern]",
+  "sk": "[pattern]", 
   "gsi1pk": "[if needed]",
   "gsi1sk": "[if needed]",
   "[field1]": "[type/description]",
@@ -48,9 +43,7 @@
 ```
 
 ## External Services (if any)
-
 ### [Service Name]
-
 - **Purpose:** [Why needed]
 - **Setup Steps:**
   1. [Step 1]
@@ -69,117 +62,48 @@
 ## Implementation Guide
 
 ### Step 1: Backend Implementation
-
-#### Create Handler File: `handlers/[action]Entity.ts`
-
-```typescript
-import { APIGatewayProxyResultV2 } from 'aws-lambda';
-import { AuthenticatedAPIGatewayEvent } from '../../../shared/types';
-import { withRbac } from '../../../shared/auth/rbacMiddleware';
-import { successResponse, handleAsyncError, commonErrors } from '../../../shared/response';
-import { EntityService } from '../services/EntityService';
-
-const entityService = new EntityService();
-
-const baseHandler = async (
-  event: AuthenticatedAPIGatewayEvent
-): Promise<APIGatewayProxyResultV2> => {
+```javascript
+// Express route example
+app.get('/api/[endpoint]', requireAuth, async (req, res) => {
   try {
-    // Parse query parameters or body
-    const params = event.queryStringParameters || {};
-
-    // Call service layer
-    const result = await entityService.list(params);
-
-    return successResponse(result);
+    // Implementation hint
+    const result = await dbClient.query({
+      TableName: process.env.TABLE_NAME,
+      KeyConditionExpression: 'pk = :pk',
+      ExpressionAttributeValues: {
+        ':pk': `[PK_PATTERN]`
+      }
+    });
+    
+    res.json({ success: true, data: result.Items });
   } catch (error) {
-    return handleAsyncError(error);
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-};
-
-// Wrap with RBAC middleware
-export const handler = withRbac(baseHandler, 'moduleName', 'read');
-```
-
-#### Create Function Config: `functions/[action]Entity.yml`
-
-```yaml
-[action]Entity:
-  handler: src/modules/[domain]/handlers/[action]Entity.handler
-  events:
-    - httpApi:
-        path: /api/[domain]/[entity]
-        method: GET
-        authorizer:
-          name: clerkJwtAuthorizer
-```
-
-#### Add to serverless.yml
-
-```yaml
-functions:
-  - ${file(src/modules/[domain]/functions/[action]Entity.yml)}
+});
 ```
 
 ### Step 2: Frontend Implementation
-
-#### Using useApi Hook
-
-```tsx
-import { useState } from 'react';
+```jsx
+// React component structure
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useApi } from '@/hooks/useApi';
-
-export function ComponentName() {
-  const { data, loading, error, get } = useApi();
-
-  const handleFetch = async () => {
-    try {
-      await get('/api/domain/entity');
-    } catch (err) {
-      console.error('Failed to fetch:', err);
-    }
-  };
-
-  return (
-    <div>
-      <Button onClick={handleFetch} disabled={loading}>
-        {loading ? 'Loading...' : 'Fetch Data'}
-      </Button>
-      {error && <p className="text-red-500">{error}</p>}
-      {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
-    </div>
-  );
-}
-```
-
-#### Using apiClient Directly
-
-```tsx
-import { useEffect, useState } from 'react';
-import { apiClient } from '@/services/apiClient';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/nextjs';
 
 export function ComponentName() {
   const { getToken } = useAuth();
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    // Set auth provider once
-    apiClient.setAuthProvider(getToken);
-  }, [getToken]);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  
   // Implementation hint
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = await getToken('');
+      const token = await getToken("");
       const response = await fetch('/api/[endpoint]', {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          'Authorization': `Bearer ${token}`
+        }
       });
       const result = await response.json();
       setData(result.data);
@@ -189,13 +113,16 @@ export function ComponentName() {
       setLoading(false);
     }
   };
-
-  return <div>{/* Component JSX */}</div>;
+  
+  return (
+    <div>
+      {/* Component JSX */}
+    </div>
+  );
 }
 ```
 
 ### Step 3: Integration
-
 - [ ] Test API endpoint with Postman/curl
 - [ ] Connect frontend to backend
 - [ ] Verify data flow end-to-end
@@ -203,18 +130,15 @@ export function ComponentName() {
 ## LLM Prompts for Implementation
 
 ### Backend Prompts
-
 1. **Route Creation:**
-
    ```
-   Create an Express.js route for [specific functionality] using DynamoDB single table design.
-   Use PK pattern: [pattern], SK pattern: [pattern].
+   Create an Express.js route for [specific functionality] using DynamoDB single table design. 
+   Use PK pattern: [pattern], SK pattern: [pattern]. 
    Include proper error handling, input validation with Joi/Zod, and Clerk auth middleware.
    Return JSON responses with consistent structure.
    ```
 
 2. **Database Operations:**
-
    ```
    Write DynamoDB DocumentClient operations for [specific use case] using single table design.
    Handle pagination, filtering, and sorting. Include proper error handling and logging.
@@ -228,9 +152,7 @@ export function ComponentName() {
    ```
 
 ### Frontend Prompts
-
 1. **Component Creation:**
-
    ```
    Create a React component using shadcn/ui for [specific functionality].
    Include form validation with react-hook-form and zod, loading states, error handling.
@@ -238,7 +160,6 @@ export function ComponentName() {
    ```
 
 2. **API Integration:**
-
    ```
    Create custom React hooks for [specific endpoints] using fetch/axios.
    Include loading states, error handling, caching with React Query if needed.
@@ -252,7 +173,6 @@ export function ComponentName() {
    ```
 
 ## Acceptance Criteria
-
 - [ ] [Specific, testable requirement 1]
 - [ ] [Specific, testable requirement 2]
 - [ ] [Specific, testable requirement 3]
@@ -265,7 +185,6 @@ export function ComponentName() {
 ## Testing Checklist
 
 ### Backend Testing
-
 - [ ] **Happy Path:** API returns expected responses for valid inputs
 - [ ] **Validation:** Proper error responses for invalid inputs
 - [ ] **Authentication:** Protected routes require valid tokens
@@ -273,7 +192,6 @@ export function ComponentName() {
 - [ ] **Edge Cases:** Handles empty results, large datasets
 
 ### Frontend Testing
-
 - [ ] **Rendering:** Component renders without errors
 - [ ] **User Interactions:** All buttons, forms, and inputs work
 - [ ] **API Integration:** Successful and error states handled
@@ -281,14 +199,12 @@ export function ComponentName() {
 - [ ] **Responsive Design:** Works on mobile and desktop
 
 ### Integration Testing
-
 - [ ] **End-to-End Flow:** Complete user journey works
 - [ ] **Data Consistency:** Frontend displays backend data correctly
 - [ ] **Error Propagation:** Backend errors shown appropriately in UI
 - [ ] **Performance:** Acceptable load times under normal conditions
 
 ## Merge Preparation
-
 - [ ] **Code Review:** Self-review completed, code follows team conventions
 - [ ] **Conflicts:** Checked for potential merge conflicts with main branch
 - [ ] **Documentation:** Updated shared types, interfaces, API documentation
@@ -299,7 +215,6 @@ export function ComponentName() {
 ## Troubleshooting Guide
 
 ### Common Backend Issues
-
 1. **DynamoDB Access Denied**
    - **Symptom:** 403 errors when accessing DynamoDB
    - **Solution:** Check IAM permissions in CDK stack, verify table name environment variable
@@ -313,7 +228,6 @@ export function ComponentName() {
    - **Solution:** Check Clerk webhook configuration, verify JWT validation
 
 ### Common Frontend Issues
-
 1. **Component Not Rendering**
    - **Symptom:** Blank screen or component doesn't appear
    - **Solution:** Check console for errors, verify imports and exports
@@ -327,7 +241,6 @@ export function ComponentName() {
    - **Solution:** Check state management, verify useEffect dependencies
 
 ### Debug Commands
-
 ```bash
 # Backend debugging
 npm run dev
@@ -344,7 +257,6 @@ aws dynamodb scan --table-name [table-name] --region us-east-1
 ```
 
 ## Performance Considerations
-
 - [ ] **Database Queries:** Optimized for single-table design patterns
 - [ ] **API Responses:** Paginated for large datasets
 - [ ] **Frontend Rendering:** Minimized re-renders and unnecessary API calls
@@ -352,7 +264,6 @@ aws dynamodb scan --table-name [table-name] --region us-east-1
 - [ ] **Caching:** Appropriate caching strategies implemented
 
 ## Security Checklist
-
 - [ ] **Input Validation:** All user inputs validated and sanitized
 - [ ] **Authentication:** Protected routes require valid authentication
 - [ ] **Authorization:** Users can only access their own data
@@ -360,14 +271,12 @@ aws dynamodb scan --table-name [table-name] --region us-east-1
 - [ ] **XSS Prevention:** User content properly escaped in UI
 
 ## Related Modules
-
 - **Depends On:** [List modules this depends on with brief explanation]
 - **Enables:** [List modules that depend on this with brief explanation]
 - **Conflicts With:** [Any modules that might have conflicting changes]
 - **Shared Resources:** [Database tables, API routes, components used by multiple modules]
 
 ## Notes & Decisions
-
 - **Technical Decisions:** [Record any important technical choices made]
 - **Assumptions:** [List any assumptions made during implementation]
 - **Future Improvements:** [Ideas for post-hackathon enhancements]
@@ -376,7 +285,6 @@ aws dynamodb scan --table-name [table-name] --region us-east-1
 ---
 
 ## Progress Tracking
-
 **Started:** [Timestamp]
 **Completed:** [Timestamp]
 **Time Taken:** [Actual time vs estimate]
@@ -385,5 +293,5 @@ aws dynamodb scan --table-name [table-name] --region us-east-1
 
 ---
 
-_Module Template v1.0 | Generated for Hackathon Module System_
-_Last Updated: [Date] | Developer: [Name]_
+*Module Template v1.0 | Generated for Hackathon Module System*
+*Last Updated: [Date] | Developer: [Name]*
