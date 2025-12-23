@@ -22,9 +22,8 @@ export interface UserResponse {
 // Enums
 // -----------------------------------------------------------------------------
 export enum UserRole {
-  FREELANCE = 'freelancer',
   ADMIN = 'admin',
-  CLIENT = 'client',
+  USER = 'user'
 }
 
 // -----------------------------------------------------------------------------
@@ -70,7 +69,7 @@ export interface AdminStatsResponse {
   totalUsers: number;
   activeUsers: number;
   bannedUsers: number;
-  usersByRole: Record<string, number>;
+  usersByRole: Record<UserRole, number>;
 }
 
 // -----------------------------------------------------------------------------

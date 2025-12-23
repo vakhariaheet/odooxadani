@@ -67,12 +67,7 @@ function AdminDashboardContent() {
 
   // Queries
   const { data: statsData, isLoading: statsLoading, error: statsError } = useAdminStats();
-  // const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
-  const {
-    data: usersData,
-    isLoading: usersLoading,
-    error: usersError,
-  } = useUsers({
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useUsers({
     query: searchQuery || undefined,
     limit: itemsPerPage,
     offset: (usersPage - 1) * itemsPerPage,
@@ -100,7 +95,13 @@ function AdminDashboardContent() {
   const resendInvitationMutation = useResendInvitation();
 
   const handleChangeRole = (userId: string, role: UserRole) => {
-    setUserLoadingStates((prev) => ({
+    // Validate role before making the request
+    if (!['admin', 'user'].includes(role)) {
+      toast.error(`Invalid role: ${role}. Must be 'admin' or 'user'.`);
+      return;
+    }
+
+    setUserLoadingStates(prev => ({
       ...prev,
       [userId]: { ...prev[userId], changeRole: true }
     }));

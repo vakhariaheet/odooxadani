@@ -1,13 +1,5 @@
 import { createClerkClient } from '@clerk/backend';
-import { getAvailableRoles } from '../../../config/permissions';
-import {
-  UserResponse,
-  UserRole,
-  ListUsersQuery,
-  ListUsersResponse,
-  AdminStatsResponse,
-  InvitationResponse,
-} from '../types';
+import { UserResponse, UserRole, ListUsersQuery, ListUsersResponse, AdminStatsResponse, InvitationResponse } from '../types';
 
 // Initialize Clerk client
 const clerkClient = createClerkClient({
@@ -28,7 +20,7 @@ function mapClerkUserToResponse(user: any): UserResponse {
     firstName: user.firstName,
     lastName: user.lastName,
     profileImageUrl: user.imageUrl || '',
-    role: user.publicMetadata?.['role'] as UserRole,
+    role: (user.publicMetadata?.['role'] as UserRole) || UserRole.USER,
     banned: user.banned || false,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -66,11 +58,7 @@ export class ClerkUserService {
   /**
    * Invite a new user via Clerk invitation
    */
-  async inviteUser(
-    email: string,
-    role: UserRole,
-    redirectUrl?: string
-  ): Promise<{ invitationId: string }> {
+  async inviteUser(email: string, role: UserRole = UserRole.USER, redirectUrl?: string): Promise<{ invitationId: string }> {
     const invitation = await clerkClient.invitations.createInvitation({
       emailAddress: email,
       redirectUrl: redirectUrl || process.env['CLERK_REDIRECT_URL'],
@@ -147,20 +135,14 @@ export class ClerkUserService {
       limit: 500,
     });
 
-    // Dynamically create usersByRole object with all available roles
-    const availableRoles = getAvailableRoles();
-    const usersByRole: Record<string, number> = {};
-
-    // Initialize all roles with 0 count
-    availableRoles.forEach((role: string) => {
-      usersByRole[role] = 0;
-    });
-
     const stats: AdminStatsResponse = {
       totalUsers: response.totalCount,
       activeUsers: 0,
       bannedUsers: 0,
-      usersByRole,
+      usersByRole: {
+        [UserRole.ADMIN]: 0,
+        [UserRole.USER]: 0,
+      },
     };
 
     for (const user of response.data) {
@@ -172,14 +154,9 @@ export class ClerkUserService {
       }
 
       // Count by role
-      const role = (user.publicMetadata?.['role'] as string) || 'user';
-
-      // Only count if it's a valid role, otherwise count as 'user' (fallback)
+      const role = (user.publicMetadata?.['role'] as UserRole) || UserRole.USER;
       if (stats.usersByRole[role] !== undefined) {
         stats.usersByRole[role]++;
-      } else {
-        // Fallback to 'user' role if role doesn't exist
-        stats.usersByRole['user'] = (stats.usersByRole['user'] || 0) + 1;
       }
     }
 

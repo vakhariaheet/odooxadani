@@ -1,47 +1,48 @@
-import { Routes, Route, Link, Navigate } from 'react-router-dom';
-import { SignedIn, SignedOut, UserButton, useUser, useAuth } from '@clerk/clerk-react';
-import { Toaster } from 'sonner';
-import { SignInPage } from './pages/SignInPage';
-import { SignUpPage } from './pages/SignUpPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { AdminPage } from './pages/AdminPage';
-import { LandingPage } from './pages/LandingPage';
-import { NotFoundPage } from './pages/NotFoundPage';
-import { WebSocketTestPage } from './pages/WebSocketTestPage';
-import { ContractListPage } from './pages/contracts/ContractListPage';
-import { ContractViewPage } from './pages/contracts/ContractViewPage';
-import { ContractCreatePage } from './pages/contracts/ContractCreatePage';
-import { ContractEditPage } from './pages/contracts/ContractEditPage';
-import { ContractSignPage } from './pages/contracts/ContractSignPage';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import './App.css';
+import { Routes, Route, Link, Navigate } from 'react-router-dom'
+import { SignedIn, SignedOut, UserButton, useUser, useAuth } from '@clerk/clerk-react'
+import { Toaster } from 'sonner'
+import { SignInPage } from './pages/SignInPage'
+import { SignUpPage } from './pages/SignUpPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { AdminPage } from './pages/AdminPage'
+import { LandingPage } from './pages/LandingPage'
+import { NotFoundPage } from './pages/NotFoundPage'
+import { WebSocketTestPage } from './pages/WebSocketTestPage'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import './App.css'
 
 // Component to redirect authenticated users away from auth pages
 function AuthPageWrapper({ children }: { children: React.ReactNode }) {
-  const { isSignedIn, isLoaded } = useAuth();
-
+  const { isSignedIn, isLoaded } = useAuth()
+  
   if (!isLoaded) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
         <p>Loading...</p>
       </div>
-    );
+    )
   }
-
+  
   if (isSignedIn) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />
   }
-
-  return <>{children}</>;
+  
+  return <>{children}</>
 }
 
 function App() {
-  const { user } = useUser();
+  const { user } = useUser()
 
   return (
     <div className="app">
-      <Toaster position="top-right" richColors closeButton expand={true} duration={4000} />
+      <Toaster 
+        position="top-right" 
+        richColors 
+        closeButton 
+        expand={true}
+        duration={4000}
+      />
       <header className="app-header">
         <Link to="/" className="logo-link">
           <h1>Hackathon App</h1>
@@ -67,111 +68,45 @@ function App() {
       </header>
 
       <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              <SignedOut>
-                <LandingPage />
-              </SignedOut>
-              <SignedIn>
-                <Navigate to="/dashboard" replace />
-              </SignedIn>
-            </>
-          }
-        />
-        <Route
-          path="/sign-in/*"
-          element={
-            <AuthPageWrapper>
-              <SignInPage />
-            </AuthPageWrapper>
-          }
-        />
-        <Route
-          path="/sign-up/*"
-          element={
-            <AuthPageWrapper>
-              <SignUpPage />
-            </AuthPageWrapper>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/websocket-test"
-          element={
-            <ProtectedRoute>
-              <WebSocketTestPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/contracts"
-          element={
-            <ProtectedRoute>
-              <ContractListPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/contracts/create"
-          element={
-            <ProtectedRoute>
-              <ContractCreatePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/contracts/create/:proposalId"
-          element={
-            <ProtectedRoute>
-              <ContractCreatePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/contracts/:id"
-          element={
-            <ProtectedRoute>
-              <ContractViewPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/contracts/:id/edit"
-          element={
-            <ProtectedRoute>
-              <ContractEditPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/contracts/:id/sign"
-          element={
-            <ProtectedRoute>
-              <ContractSignPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={
+          <>
+            <SignedOut>
+              <LandingPage />
+            </SignedOut>
+            <SignedIn>
+              <Navigate to="/dashboard" replace />
+            </SignedIn>
+          </>
+        } />
+        <Route path="/sign-in/*" element={
+          <AuthPageWrapper>
+            <SignInPage />
+          </AuthPageWrapper>
+        } />
+        <Route path="/sign-up/*" element={
+          <AuthPageWrapper>
+            <SignUpPage />
+          </AuthPageWrapper>
+        } />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/websocket-test" element={
+          <ProtectedRoute>
+            <WebSocketTestPage />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
