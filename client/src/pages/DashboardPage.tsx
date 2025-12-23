@@ -28,12 +28,6 @@ export function DashboardPage() {
           Template Library
         </Link>
         <Link
-          to="/contracts"
-          className={`nav-btn ${location.pathname.startsWith('/contracts') ? 'active' : ''}`}
-        >
-          Contracts
-        </Link>
-        <Link
           to="/websocket-test"
           className={`nav-btn ${location.pathname === '/websocket-test' ? 'active' : ''}`}
         >

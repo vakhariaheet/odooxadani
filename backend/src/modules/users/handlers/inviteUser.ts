@@ -1,9 +1,9 @@
-import { APIGatewayProxyResultV2 } from 'aws-lambda';
-import { ClerkUserService } from '../services/ClerkUserService';
-import { InviteUserRequest, UserRole } from '../types';
-import { successResponse, handleAsyncError, commonErrors } from '../../../shared/response';
-import { AuthenticatedAPIGatewayEvent } from '../../../shared/types';
-import { withRbac } from '../../../shared/auth/rbacMiddleware';
+import { APIGatewayProxyResultV2 } from "aws-lambda";
+import { ClerkUserService } from "../services/ClerkUserService";
+import { InviteUserRequest, UserRole } from "../types";
+import { successResponse, handleAsyncError, commonErrors } from "../../../shared/response";
+import { AuthenticatedAPIGatewayEvent } from "../../../shared/types";
+import { withRbac } from "../../../shared/auth/rbacMiddleware";
 
 const userService = new ClerkUserService();
 
@@ -15,39 +15,36 @@ const baseHandler = async (
 ): Promise<APIGatewayProxyResultV2> => {
   try {
     if (!event.body) {
-      return commonErrors.badRequest('Request body is required');
+      return commonErrors.badRequest("Request body is required");
     }
 
     let inviteData: InviteUserRequest;
     try {
       inviteData = JSON.parse(event.body);
     } catch {
-      return commonErrors.badRequest('Invalid JSON in request body');
+      return commonErrors.badRequest("Invalid JSON in request body");
     }
 
     if (!inviteData.email) {
-      return commonErrors.badRequest('Email is required');
+      return commonErrors.badRequest("Email is required");
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(inviteData.email)) {
-      return commonErrors.badRequest('Invalid email format');
+      return commonErrors.badRequest("Invalid email format");
     }
 
     const result = await userService.inviteUser(
       inviteData.email,
-      inviteData.role || UserRole.FREELANCE, // Default to freelancer role
+      inviteData.role || UserRole.USER,
       inviteData.redirectUrl
     );
 
-    return successResponse(
-      {
-        message: 'Invitation sent successfully',
-        ...result,
-      },
-      201
-    );
+    return successResponse({ 
+      message: "Invitation sent successfully",
+      ...result 
+    }, 201);
   } catch (error) {
     return handleAsyncError(error);
   }
@@ -56,7 +53,7 @@ const baseHandler = async (
 /**
  * Invite user handler - Admin only
  * Sends an invitation email via Clerk
- *
+ * 
  * @route POST /api/admin/users/invite
  */
 export const handler = withRbac(baseHandler, 'users', 'create');
