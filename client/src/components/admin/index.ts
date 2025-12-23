@@ -8,15 +8,8 @@ export { CustomSelect } from './CustomSelect';
 export { InviteModal } from './InviteModal';
 export { InvitationRow } from './InvitationRow';
 export { InvitationsTable } from './InvitationsTable';
-export {
-  ButtonWithLoading,
-  IconButtonWithLoading,
-  LoadingSpinner,
-  StatsCardSkeleton,
-  TableRowSkeleton,
-} from './LoadingComponents';
+export { ButtonWithLoading, IconButtonWithLoading, LoadingSpinner, StatsCardSkeleton, TableRowSkeleton } from './LoadingComponents';
 export { Pagination } from './Pagination';
-export { PermissionsDisplay } from './PermissionsDisplay';
 export { SearchInput } from './SearchInput';
 export { StatsCard } from './StatsCard';
 export { TabNavigation } from './TabNavigation';

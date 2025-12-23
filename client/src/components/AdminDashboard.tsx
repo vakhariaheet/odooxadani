@@ -19,7 +19,6 @@ import {
   useInvitations,
   useRevokeInvitation,
   useResendInvitation,
-  usePermissions,
 } from '../hooks/useUsers';
 import type { UserRole } from '../types/user';
 
@@ -32,7 +31,6 @@ import {
   InvitationsTable,
   InviteModal,
   ConfirmDialog,
-  PermissionsDisplay,
 } from './admin';
 
 function AdminDashboardContent() {
@@ -41,16 +39,15 @@ function AdminDashboardContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [invitationSearchQuery, setInvitationSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'users' | 'invitations'>('users');
-  const [showPermissions, setShowPermissions] = useState(false);
-
+  
   // Confirmation dialog
   const { dialogState, hideConfirm, confirmDelete, confirmBan, confirmRevoke } = useConfirmDialog();
-
+  
   // Pagination states
   const [usersPage, setUsersPage] = useState(1);
   const [invitationsPage, setInvitationsPage] = useState(1);
   const itemsPerPage = 10;
-
+  
   // Individual loading states for actions
   const [userLoadingStates, setUserLoadingStates] = useState<{
     [userId: string]: {
@@ -60,7 +57,7 @@ function AdminDashboardContent() {
       delete?: boolean;
     };
   }>({});
-
+  
   const [invitationLoadingStates, setInvitationLoadingStates] = useState<{
     [invitationId: string]: {
       resend?: boolean;
@@ -70,27 +67,18 @@ function AdminDashboardContent() {
 
   // Queries
   const { data: statsData, isLoading: statsLoading, error: statsError } = useAdminStats();
-  const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
-  const {
-    data: usersData,
-    isLoading: usersLoading,
-    error: usersError,
-  } = useUsers({
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useUsers({
     query: searchQuery || undefined,
     limit: itemsPerPage,
     offset: (usersPage - 1) * itemsPerPage,
     enabled: activeTab === 'users', // Only load when users tab is active
   });
-
+  
   // Only load invitations when the invitations tab is active or has been visited
   const [hasVisitedInvitations, setHasVisitedInvitations] = useState(false);
   const shouldLoadInvitations = activeTab === 'invitations' || hasVisitedInvitations;
-
-  const {
-    data: invitationsData,
-    isLoading: invitationsLoading,
-    error: invitationsError,
-  } = useInvitations({
+  
+  const { data: invitationsData, isLoading: invitationsLoading, error: invitationsError } = useInvitations({
     email: invitationSearchQuery || undefined,
     limit: itemsPerPage,
     offset: (invitationsPage - 1) * itemsPerPage,
@@ -113,78 +101,72 @@ function AdminDashboardContent() {
       return;
     }
 
-    setUserLoadingStates((prev) => ({
+    setUserLoadingStates(prev => ({
       ...prev,
-      [userId]: { ...prev[userId], changeRole: true },
+      [userId]: { ...prev[userId], changeRole: true }
     }));
 
     // Safety timeout to clear loading state after 10 seconds
     const timeoutId = setTimeout(() => {
-      setUserLoadingStates((prev) => ({
+      setUserLoadingStates(prev => ({
         ...prev,
-        [userId]: { ...prev[userId], changeRole: false },
+        [userId]: { ...prev[userId], changeRole: false }
       }));
     }, 10000);
 
     // Show loading toast immediately
     const loadingToastId = toast.loading(`Changing user role to ${role}...`);
-
-    changeRoleMutation.mutate(
-      { userId, role },
-      {
-        onSuccess: () => {
-          clearTimeout(timeoutId);
-          // Show success message immediately
-          toast.success(`User role changed to ${role} successfully!`, { id: loadingToastId });
-
-          // The useChangeRole hook will handle the optimistic updates
-        },
-        onError: (error: any) => {
-          clearTimeout(timeoutId);
-          toast.error(`Failed to change user role: ${error.message}`, { id: loadingToastId });
-        },
-        onSettled: () => {
-          clearTimeout(timeoutId);
-          // Always clear loading state
-          setUserLoadingStates((prev) => ({
-            ...prev,
-            [userId]: { ...prev[userId], changeRole: false },
-          }));
-        },
+    
+    changeRoleMutation.mutate({ userId, role }, {
+      onSuccess: () => {
+        clearTimeout(timeoutId);
+        // Show success message immediately
+        toast.success(`User role changed to ${role} successfully!`, { id: loadingToastId });
+        
+        // The useChangeRole hook will handle the optimistic updates
+      },
+      onError: (error: any) => {
+        clearTimeout(timeoutId);
+        toast.error(`Failed to change user role: ${error.message}`, { id: loadingToastId });
+      },
+      onSettled: () => {
+        clearTimeout(timeoutId);
+        // Always clear loading state
+        setUserLoadingStates(prev => ({
+          ...prev,
+          [userId]: { ...prev[userId], changeRole: false }
+        }));
       }
-    );
+    });
   };
 
   const handleBan = async (userId: string) => {
-    const user = users.find((u) => u.id === userId);
+    const user = users.find(u => u.id === userId);
     const userName = user?.fullName || user?.email || 'this user';
-
+    
     const confirmed = await confirmBan(userName);
     if (!confirmed) return;
 
-    setUserLoadingStates((prev) => ({
+    setUserLoadingStates(prev => ({
       ...prev,
-      [userId]: { ...prev[userId], ban: true },
+      [userId]: { ...prev[userId], ban: true }
     }));
-
+    
     const promise = new Promise((resolve, reject) => {
-      banUserMutation.mutate(
-        { userId },
-        {
-          onSuccess: (data) => {
-            resolve(data);
-          },
-          onError: (error) => {
-            reject(error);
-          },
-          onSettled: () => {
-            setUserLoadingStates((prev) => ({
-              ...prev,
-              [userId]: { ...prev[userId], ban: false },
-            }));
-          },
+      banUserMutation.mutate({ userId }, {
+        onSuccess: (data) => {
+          resolve(data);
+        },
+        onError: (error) => {
+          reject(error);
+        },
+        onSettled: () => {
+          setUserLoadingStates(prev => ({
+            ...prev,
+            [userId]: { ...prev[userId], ban: false }
+          }));
         }
-      );
+      });
     });
 
     toast.promise(promise, {
@@ -195,11 +177,11 @@ function AdminDashboardContent() {
   };
 
   const handleUnban = (userId: string) => {
-    setUserLoadingStates((prev) => ({
+    setUserLoadingStates(prev => ({
       ...prev,
-      [userId]: { ...prev[userId], unban: true },
+      [userId]: { ...prev[userId], unban: true }
     }));
-
+    
     const promise = new Promise((resolve, reject) => {
       unbanUserMutation.mutate(userId, {
         onSuccess: (data) => {
@@ -209,11 +191,11 @@ function AdminDashboardContent() {
           reject(error);
         },
         onSettled: () => {
-          setUserLoadingStates((prev) => ({
+          setUserLoadingStates(prev => ({
             ...prev,
-            [userId]: { ...prev[userId], unban: false },
+            [userId]: { ...prev[userId], unban: false }
           }));
-        },
+        }
       });
     });
 
@@ -225,17 +207,17 @@ function AdminDashboardContent() {
   };
 
   const handleDelete = async (userId: string) => {
-    const user = users.find((u) => u.id === userId);
+    const user = users.find(u => u.id === userId);
     const userName = user?.fullName || user?.email || 'this user';
-
+    
     const confirmed = await confirmDelete(userName);
     if (!confirmed) return;
 
-    setUserLoadingStates((prev) => ({
+    setUserLoadingStates(prev => ({
       ...prev,
-      [userId]: { ...prev[userId], delete: true },
+      [userId]: { ...prev[userId], delete: true }
     }));
-
+    
     const promise = new Promise((resolve, reject) => {
       deleteUserMutation.mutate(userId, {
         onSuccess: (data) => {
@@ -245,11 +227,11 @@ function AdminDashboardContent() {
           reject(error);
         },
         onSettled: () => {
-          setUserLoadingStates((prev) => ({
+          setUserLoadingStates(prev => ({
             ...prev,
-            [userId]: { ...prev[userId], delete: false },
+            [userId]: { ...prev[userId], delete: false }
           }));
-        },
+        }
       });
     });
 
@@ -263,7 +245,7 @@ function AdminDashboardContent() {
   const handleInvite = (email: string, role: UserRole) => {
     // Show loading toast immediately
     const loadingToastId = toast.loading(`Sending invitation to ${email}...`);
-
+    
     inviteUserMutation.mutate(
       { email, role },
       {
@@ -271,7 +253,7 @@ function AdminDashboardContent() {
           setShowInviteModal(false);
           // Show success message immediately
           toast.success(`Invitation sent to ${email} successfully!`, { id: loadingToastId });
-
+          
           // The useInviteUser hook will handle the query invalidation and optimistic updates
         },
         onError: (error) => {
@@ -282,68 +264,68 @@ function AdminDashboardContent() {
   };
 
   const handleRevokeInvitation = async (invitationId: string) => {
-    const invitation = invitations.find((inv) => inv.id === invitationId);
-
+    const invitation = invitations.find(inv => inv.id === invitationId);
+    
     // Safety check: don't allow revoking non-pending invitations
     if (invitation && invitation.status !== 'pending') {
       toast.error(`Cannot revoke ${invitation.status} invitation`);
       return;
     }
-
+    
     const invitationEmail = invitation?.emailAddress || 'this invitation';
-
+    
     const confirmed = await confirmRevoke(`the invitation for ${invitationEmail}`);
     if (!confirmed) return;
 
-    setInvitationLoadingStates((prev) => ({
+    setInvitationLoadingStates(prev => ({
       ...prev,
-      [invitationId]: { ...prev[invitationId], revoke: true },
+      [invitationId]: { ...prev[invitationId], revoke: true }
     }));
 
     // Show loading toast immediately
     const loadingToastId = toast.loading('Revoking invitation...');
-
+    
     revokeInvitationMutation.mutate(invitationId, {
       onSuccess: () => {
         // Show success message immediately
         toast.success('Invitation revoked successfully!', { id: loadingToastId });
-
+        
         // The useRevokeInvitation hook will handle the optimistic update and query invalidation
       },
       onError: (error) => {
         toast.error(`Failed to revoke invitation: ${error.message}`, { id: loadingToastId });
       },
       onSettled: () => {
-        setInvitationLoadingStates((prev) => ({
+        setInvitationLoadingStates(prev => ({
           ...prev,
-          [invitationId]: { ...prev[invitationId], revoke: false },
+          [invitationId]: { ...prev[invitationId], revoke: false }
         }));
-      },
+      }
     });
   };
 
   const handleResendInvitation = (invitationId: string) => {
-    const invitation = invitations.find((inv) => inv.id === invitationId);
-
+    const invitation = invitations.find(inv => inv.id === invitationId);
+    
     // Safety check: only allow resending pending invitations
     if (invitation && invitation.status !== 'pending') {
       toast.error(`Cannot resend ${invitation.status} invitation`);
       return;
     }
 
-    setInvitationLoadingStates((prev) => ({
+    setInvitationLoadingStates(prev => ({
       ...prev,
-      [invitationId]: { ...prev[invitationId], resend: true },
+      [invitationId]: { ...prev[invitationId], resend: true }
     }));
 
     // Show loading toast immediately
     const loadingToastId = toast.loading('Resending invitation...');
-
+    
     resendInvitationMutation.mutate(invitationId, {
       onSuccess: () => {
         // Show success message immediately
         toast.success('Invitation resent successfully!', { id: loadingToastId });
-
+        
         // Then refresh the invitations data
         // The useResendInvitation hook will handle the query invalidation
       },
@@ -351,11 +333,11 @@ function AdminDashboardContent() {
         toast.error(`Failed to resend invitation: ${error.message}`, { id: loadingToastId });
       },
       onSettled: () => {
-        setInvitationLoadingStates((prev) => ({
+        setInvitationLoadingStates(prev => ({
           ...prev,
-          [invitationId]: { ...prev[invitationId], resend: false },
+          [invitationId]: { ...prev[invitationId], resend: false }
         }));
-      },
+      }
     });
   };
 
@@ -364,47 +346,39 @@ function AdminDashboardContent() {
   const invitations = invitationsData?.data?.invitations || [];
 
   return (
-    <div
-      style={{
-        padding: '2rem',
-        maxWidth: '1400px',
-        margin: '0 auto',
-        minWidth: '800px', // Prevent width from shrinking too much
-        width: '100%',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '2rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
+    <div style={{ 
+      padding: '2rem', 
+      maxWidth: '1400px', 
+      margin: '0 auto',
+      minWidth: '800px', // Prevent width from shrinking too much
+      width: '100%'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '2rem',
+        flexWrap: 'wrap',
+        gap: '1rem'
+      }}>
         <div>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '2rem',
-              fontWeight: 700,
-              color: '#111827',
-              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
+          <h2 style={{ 
+            margin: 0, 
+            fontSize: '2rem', 
+            fontWeight: 700, 
+            color: '#111827',
+            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
             Admin Dashboard
           </h2>
-          <p
-            style={{
-              margin: '0.5rem 0 0',
-              color: '#6b7280',
-              fontSize: '1.1rem',
-            }}
-          >
+          <p style={{ 
+            margin: '0.5rem 0 0', 
+            color: '#6b7280',
+            fontSize: '1.1rem'
+          }}>
             Welcome back, {currentUser?.firstName}!
           </p>
         </div>
@@ -436,30 +410,14 @@ function AdminDashboardContent() {
       </div>
 
       {/* Stats Cards */}
-      <AdminStats stats={stats} isLoading={statsLoading} error={statsError} />
-
-      {/* Permissions Debug Section (Optional) */}
-      <div style={{ marginBottom: '1rem' }}>
-        <button
-          onClick={() => setShowPermissions(!showPermissions)}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '0.375rem',
-            border: '1px solid #d1d5db',
-            backgroundColor: showPermissions ? '#f3f4f6' : 'white',
-            color: '#374151',
-            fontSize: '0.875rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          {showPermissions ? 'Hide' : 'Show'} Permissions Configuration
-        </button>
-        {showPermissions && <PermissionsDisplay />}
-      </div>
+      <AdminStats 
+        stats={stats}
+        isLoading={statsLoading}
+        error={statsError}
+      />
 
       {/* Tab Navigation */}
-      <TabNavigation
+      <TabNavigation 
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onInvitationsTabClick={() => setHasVisitedInvitations(true)}
@@ -477,11 +435,7 @@ function AdminDashboardContent() {
             setInvitationsPage(1);
           }
         }}
-        placeholder={
-          activeTab === 'users'
-            ? 'Search users by email or name...'
-            : 'Search invitations by email...'
-        }
+        placeholder={activeTab === 'users' ? "Search users by email or name..." : "Search invitations by email..."}
       />
 
       {/* Content based on active tab */}
@@ -510,9 +464,7 @@ function AdminDashboardContent() {
           onRevoke={handleRevokeInvitation}
           onResend={handleResendInvitation}
           currentPage={invitationsPage}
-          totalPages={
-            invitationsData?.data ? Math.ceil(invitationsData.data.totalCount / itemsPerPage) : 0
-          }
+          totalPages={invitationsData?.data ? Math.ceil(invitationsData.data.totalCount / itemsPerPage) : 0}
           totalItems={invitationsData?.data?.totalCount || 0}
           itemsPerPage={itemsPerPage}
           onPageChange={setInvitationsPage}
@@ -549,16 +501,14 @@ export function AdminDashboard() {
     <ProtectedRoute
       requiredRole="admin"
       fallback={
-        <div
-          style={{
-            padding: '2rem',
-            textAlign: 'center',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '0.5rem',
-            color: '#dc2626',
-          }}
-        >
+        <div style={{
+          padding: '2rem',
+          textAlign: 'center',
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: '0.5rem',
+          color: '#dc2626',
+        }}>
           <h3>Admin Access Required</h3>
           <p>You need admin privileges to access this dashboard.</p>
           <p>Current role: {(user?.publicMetadata?.role as string) || 'user'}</p>

@@ -5,7 +5,6 @@
 
 import { CustomSelect } from './CustomSelect';
 import { LoadingSpinner } from './LoadingComponents';
-import { usePermissions } from '../../hooks/useUsers';
 import type { UserRole } from '../../types/user';
 
 interface RoleSelectProps {
@@ -15,23 +14,13 @@ interface RoleSelectProps {
   isLoading?: boolean;
 }
 
-export function RoleSelect({
-  value,
-  onChange,
-  disabled = false,
-  isLoading = false,
-}: RoleSelectProps) {
-  const { data: permissionsData, isLoading: isLoadingPermissions } = usePermissions();
+const roleOptions = [
+  { value: 'user' as UserRole, label: 'User' },
+  { value: 'admin' as UserRole, label: 'Admin' },
+];
 
-  // Get roles from backend, fallback to static roles
-  const availableRoles = permissionsData?.data?.roles || ['user', 'admin'];
-
-  const roleOptions = availableRoles.map((role) => ({
-    value: role as UserRole,
-    label: role.charAt(0).toUpperCase() + role.slice(1), // Capitalize first letter
-  }));
-
-  if (isLoading || isLoadingPermissions) {
+export function RoleSelect({ value, onChange, disabled = false, isLoading = false }: RoleSelectProps) {
+  if (isLoading) {
     return (
       <div
         style={{
