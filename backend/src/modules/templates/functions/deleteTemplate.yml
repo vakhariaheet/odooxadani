@@ -1,0 +1,30 @@
+deleteTemplate:
+  handler: src/modules/templates/handlers/deleteTemplate.handler
+  events:
+    - httpApi:
+        path: /api/templates/{id}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Templates
+        summary: DELETE /api/templates/{id}
+        description: Delete template (owner only)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Template deleted successfully
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Not template owner
+          - statusCode: 404
+            responseBody:
+              description: Template not found
