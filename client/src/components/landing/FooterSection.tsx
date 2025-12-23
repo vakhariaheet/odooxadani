@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Link } from 'react-router-dom';
+import { useNewsletter } from '@/hooks/useNewsletter';
 import { 
   Twitter, 
   Linkedin, 
@@ -13,7 +14,20 @@ import {
   BarChart3
 } from 'lucide-react';
 
+// Smooth scroll utility function
+const scrollToSection = (sectionId: string) => {
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+};
+
 export const FooterSection = () => {
+  const { email, setEmail, isLoading, subscribe } = useNewsletter();
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-4 py-16">
@@ -59,14 +73,20 @@ export const FooterSection = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => scrollToSection('templates')} 
+                  className="text-gray-400 hover:text-white transition-colors text-left"
+                >
                   Templates
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => scrollToSection('integrations')} 
+                  className="text-gray-400 hover:text-white transition-colors text-left"
+                >
                   Integrations
-                </a>
+                </button>
               </li>
               <li>
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -86,24 +106,36 @@ export const FooterSection = () => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => scrollToSection('blog')} 
+                  className="text-gray-400 hover:text-white transition-colors text-left"
+                >
                   Blog
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => scrollToSection('careers')} 
+                  className="text-gray-400 hover:text-white transition-colors text-left"
+                >
                   Careers
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => scrollToSection('contact')} 
+                  className="text-gray-400 hover:text-white transition-colors text-left"
+                >
                   Contact
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <button 
+                  onClick={() => scrollToSection('press')} 
+                  className="text-gray-400 hover:text-white transition-colors text-left"
+                >
                   Press Kit
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -114,16 +146,23 @@ export const FooterSection = () => {
             <p className="text-gray-400 text-sm">
               Get the latest tips and updates delivered to your inbox.
             </p>
-            <div className="space-y-2">
+            <form onSubmit={subscribe} className="space-y-2">
               <Input 
                 type="email" 
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                disabled={isLoading}
               />
-              <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                Subscribe
+              <Button 
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Subscribing...' : 'Subscribe'}
               </Button>
-            </div>
+            </form>
           </div>
         </div>
 
@@ -136,15 +175,15 @@ export const FooterSection = () => {
               © 2024 ProposalFlow. All rights reserved.
             </p>
             <div className="flex space-x-4 text-sm">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">
                 Privacy Policy
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              </Link>
+              <Link to="/terms-of-service" className="text-gray-400 hover:text-white transition-colors">
                 Terms of Service
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              </Link>
+              <Link to="/cookie-policy" className="text-gray-400 hover:text-white transition-colors">
                 Cookie Policy
-              </a>
+              </Link>
             </div>
           </div>
           

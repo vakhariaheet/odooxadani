@@ -9,6 +9,10 @@ import { LandingPage } from './pages/LandingPage'
 import { PricingPage } from './pages/PricingPage'
 import { FeaturesPage } from './pages/FeaturesPage'
 import { AboutPage } from './pages/AboutPage'
+import { DemoPage } from './pages/DemoPage'
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage'
+import { TermsOfServicePage } from './pages/TermsOfServicePage'
+import { CookiePolicyPage } from './pages/CookiePolicyPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { WebSocketTestPage } from './pages/WebSocketTestPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -84,6 +88,10 @@ function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/demo" element={<DemoPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/cookie-policy" element={<CookiePolicyPage />} />
         <Route path="/sign-in/*" element={
           <AuthPageWrapper>
             <SignInPage />

@@ -24,8 +24,9 @@ export const HeroSection = () => {
             size="lg" 
             variant="outline" 
             className="border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-3"
+            asChild
           >
-            Watch Demo
+            <Link to="/demo">Watch Demo</Link>
           </Button>
         </div>
         <div className="mt-12 max-w-4xl mx-auto">
