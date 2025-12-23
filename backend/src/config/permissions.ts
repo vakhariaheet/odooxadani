@@ -78,6 +78,27 @@ export type Action = (typeof ALL_ACTIONS)[number];
 export type ModuleName = (typeof ALL_MODULES)[number];
 
 /**
+ * Get all available roles in the system
+ */
+export const getAvailableRoles = (): string[] => {
+  return Object.keys(ROLE_MODULE_ACCESS);
+};
+
+/**
+ * Get all available modules in the system
+ */
+export const getAvailableModules = (): string[] => {
+  return [...ALL_MODULES];
+};
+
+/**
+ * Get all available actions in the system
+ */
+export const getAvailableActions = (): string[] => {
+  return [...ALL_ACTIONS];
+};
+
+/**
  * Check if a role has permission to perform an action on a module
  * This is a convenience wrapper around ac.can()
  */
