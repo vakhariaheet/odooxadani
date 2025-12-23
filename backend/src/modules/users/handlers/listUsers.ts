@@ -1,9 +1,9 @@
-import { APIGatewayProxyResultV2 } from "aws-lambda";
-import { ClerkUserService } from "../services/ClerkUserService";
-import { ListUsersQuery } from "../types";
-import { successResponse, handleAsyncError } from "../../../shared/response";
-import { AuthenticatedAPIGatewayEvent } from "../../../shared/types";
-import { withRbac } from "../../../shared/auth/rbacMiddleware";
+import { APIGatewayProxyResultV2 } from 'aws-lambda';
+import { ClerkUserService } from '../services/ClerkUserService';
+import { ListUsersQuery } from '../types';
+import { successResponse, handleAsyncError } from '../../../shared/response';
+import { AuthenticatedAPIGatewayEvent } from '../../../shared/types';
+import { withRbac } from '../../../shared/auth/rbacMiddleware';
 
 const userService = new ClerkUserService();
 
@@ -16,17 +16,17 @@ const baseHandler = async (
   try {
     // Parse query parameters
     const query: ListUsersQuery = {};
-    
+
     if (event.queryStringParameters) {
-      const { limit, offset, orderBy } = event.queryStringParameters;
-      
+      const { limit, offset, orderBy, query: searchQuery } = event.queryStringParameters;
+
       if (limit) {
         const parsedLimit = parseInt(limit, 10);
         if (!isNaN(parsedLimit) && parsedLimit > 0 && parsedLimit <= 100) {
           query.limit = parsedLimit;
         }
       }
-      
+
       if (offset) {
         const parsedOffset = parseInt(offset, 10);
         if (!isNaN(parsedOffset) && parsedOffset >= 0) {
@@ -36,6 +36,10 @@ const baseHandler = async (
 
       if (orderBy && ['created_at', 'updated_at', 'last_sign_in_at'].includes(orderBy)) {
         query.orderBy = orderBy as ListUsersQuery['orderBy'];
+      }
+
+      if (searchQuery && searchQuery.trim()) {
+        query.query = searchQuery.trim();
       }
     }
 
@@ -49,7 +53,7 @@ const baseHandler = async (
 /**
  * List users handler - Admin only
  * Returns paginated list of all users from Clerk
- * 
+ *
  * @route GET /api/admin/users
  */
 export const handler = withRbac(baseHandler, 'users', 'read');

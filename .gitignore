@@ -54,3 +54,21 @@ coverage/
 *.tmp
 *.temp
 .cache/
+
+# Client-specific
+client/node_modules/
+client/dist/
+client/build/
+client/.vite/
+client/.env.local
+client/.env.*.local
+client/.cache/
+client/coverage/
+
+# Backend-specific
+backend/node_modules/
+backend/.serverless/
+backend/.env
+backend/.env.*
+backend/coverage/
+backend/.cache/
