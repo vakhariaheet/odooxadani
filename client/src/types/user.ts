@@ -3,7 +3,12 @@
  * Matches the Clerk-based backend responses
  */
 
-export type UserRole = 'admin' | 'user';
+// Dynamic role type - will be populated from backend
+export type UserRole = string;
+
+// Static roles for backwards compatibility (can be removed later)
+export const STATIC_ROLES = ['admin', 'user'] as const;
+export type StaticUserRole = (typeof STATIC_ROLES)[number];
 
 export interface User {
   id: string;

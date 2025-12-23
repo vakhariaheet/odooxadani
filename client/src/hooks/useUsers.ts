@@ -20,6 +20,7 @@ export const userKeys = {
   detail: (id: string) => [...userKeys.details(), id] as const,
   stats: () => [...userKeys.all, 'stats'] as const,
   invitations: () => [...userKeys.all, 'invitations'] as const,
+  permissions: () => [...userKeys.all, 'permissions'] as const,
 };
 
 export const authKeys = {
@@ -100,6 +101,18 @@ export function useInvitations(params?: {
     queryFn: () => usersApi.listInvitations(queryParams),
     enabled,
     staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Hook to fetch system permissions and roles (admin only)
+ */
+export function usePermissions(enabled = true) {
+  return useQuery({
+    queryKey: userKeys.permissions(),
+    queryFn: () => usersApi.getPermissions(),
+    enabled,
+    staleTime: 5 * 60 * 1000, // 5 minutes - permissions don't change often
   });
 }
 
