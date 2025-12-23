@@ -12,39 +12,54 @@ import { AccessControl } from 'accesscontrol';
  * - *Any: Can perform action on any resource
  */
 
-// Define module access permissions for the 'user' role
-// This makes it easy to see at a glance what each role can do per module
-const USER_MODULE_ACCESS: Record<string, { any: string[]; own: string[] }> = {
-  users: {
-    any: [], // Cannot list all users or access other profiles
-    own: ['read', 'update'], // Can read and update own profile only
+// Define module access permissions for each role
+const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
+  freelancer: {
+    users: { any: [], own: ['read', 'update'] },
+    proposals: { any: [], own: ['create', 'read', 'update', 'delete'] },
+    contracts: { any: [], own: ['read', 'update'] }, // Can update for signatures
+    invoices: { any: [], own: ['create', 'read', 'update'] },
+    payments: { any: [], own: ['read'] }, // Read-only payment status
+    templates: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
+    websocket: { any: ['read', 'update'], own: [] },
   },
-  demo: {
-    any: ['read'], // Can access demo endpoints (for testing)
-    own: [],
+  client: {
+    users: { any: [], own: ['read', 'update'] },
+    proposals: { any: [], own: ['read'] }, // Can view proposals sent to them
+    contracts: { any: [], own: ['read', 'update'] }, // Can sign contracts
+    invoices: { any: [], own: ['read'] }, // Can view invoices
+    payments: { any: [], own: ['create', 'read'] }, // Can make payments
+    websocket: { any: ['read', 'update'], own: [] },
   },
-  websocket: {
-    any: ['read', 'update'], // Can connect and send messages via WebSocket
-    own: [],
+  admin: {
+    users: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    proposals: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    contracts: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    invoices: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    payments: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    templates: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    analytics: { any: ['read'], own: [] },
+    demo: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    websocket: { any: ['create', 'read', 'update', 'delete'], own: [] },
   },
 };
 
-// All available modules in the system (used for admin grants)
-const ALL_MODULES = ['users', 'demo', 'admin', 'websocket'];
+// All available modules in the system
+const ALL_MODULES = [
+  'users',
+  'proposals',
+  'contracts',
+  'invoices',
+  'payments',
+  'templates',
+  'analytics',
+  'demo',
+  'admin',
+  'websocket',
+];
 
 // All CRUD actions
 const ALL_ACTIONS = ['create', 'read', 'update', 'delete'] as const;
-
-const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
-  user: USER_MODULE_ACCESS,
-  admin: ALL_MODULES.reduce(
-    (modules, moduleName) => {
-      modules[moduleName] = { any: [...ALL_ACTIONS], own: [] };
-      return modules;
-    },
-    {} as Record<string, { any: string[]; own: string[] }>
-  ),
-};
 
 /**
  * Create and configure the AccessControl instance
@@ -73,7 +88,7 @@ const createAccessControl = (): AccessControl => {
 export const ac = createAccessControl();
 
 // Export helper types
-export type Role = keyof typeof ROLE_MODULE_ACCESS;
+export type Role = 'freelancer' | 'client' | 'admin';
 export type Action = (typeof ALL_ACTIONS)[number];
 export type ModuleName = (typeof ALL_MODULES)[number];
 
