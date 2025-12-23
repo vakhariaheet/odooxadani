@@ -21,6 +21,28 @@ provider:
     NODE_ENV: ${self:provider.stage}
     SWAGGER_USERNAME: ${env:SWAGGER_USERNAME, 'admin'}
     SWAGGER_PASSWORD: ${env:SWAGGER_PASSWORD, 'changeme'}
+    MAIN_TABLE_NAME: ${self:service}-${self:provider.stage}-main-table
+
+  # IAM permissions
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+          Resource:
+            - Fn::GetAtt: [MainTable, Arn]
+            - Fn::Join:
+                - '/'
+                - - Fn::GetAtt: [MainTable, Arn]
+                  - 'index/*'
 
   # HTTP API (API Gateway v2) with JWT Authorizer
   httpApi:
@@ -181,50 +203,7 @@ custom:
     # No authorizer for swagger endpoints - they should be public
     lambdaAuthorizer: null
 
-resources:
-  Outputs:
-    # HTTP API Outputs (existing)
-    HttpApiId:
-      Description: HTTP API ID
-      Value:
-        Ref: HttpApi
-      Export:
-        Name: ${self:service}-${self:provider.stage}-http-api-id
-
-    HttpApiUrl:
-      Description: HTTP API URL
-      Value:
-        Fn::Join:
-          - ''
-          - - 'https://'
-            - Ref: HttpApi
-            - '.execute-api.'
-            - ${self:provider.region}
-            - '.amazonaws.com'
-      Export:
-        Name: ${self:service}-${self:provider.stage}-http-api-url
-
-    # WebSocket API Outputs
-    WebSocketApiId:
-      Description: WebSocket API ID
-      Value:
-        Ref: WebsocketsApi
-      Export:
-        Name: ${self:service}-${self:provider.stage}-websocket-api-id
-
-    WebSocketApiUrl:
-      Description: WebSocket API URL
-      Value:
-        Fn::Join:
-          - ''
-          - - 'wss://'
-            - Ref: WebsocketsApi
-            - '.execute-api.'
-            - ${self:provider.region}
-            - '.amazonaws.com/'
-            - ${self:provider.stage}
-      Export:
-        Name: ${self:service}-${self:provider.stage}-websocket-url
+resources: ${file(resources.yml)}
 
 # Functions - imported from modules (one file per handler)
 functions:
