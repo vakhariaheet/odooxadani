@@ -1,0 +1,33 @@
+listTemplates:
+  handler: src/modules/templates/handlers/listTemplates.handler
+  events:
+    - httpApi:
+        path: /api/templates
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Templates
+        summary: GET /api/templates
+        description: List templates (public + user's own)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      type: object
+                  totalCount:
+                    type: number
+                  hasMore:
+                    type: boolean
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
