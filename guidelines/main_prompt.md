@@ -301,8 +301,11 @@ export type Role = 'student' | 'teacher' | 'admin';
   - **Avoid**: User management (already exists), Generic admin features (already exists)
 
 - **F02:** **Site Landing Page** (MANDATORY) - **Frontend-Only**
-  - **Required**: Hero section, features showcase, pricing/plans, contact forms, about section
+  - **Required Sections**: Hero, Features, How It Works, Pricing, Testimonials, FAQ, Footer
+  - **Conversion Focus**: Drive visitors to sign up/register for the platform
+  - **Technical Stack**: React + TypeScript + Tailwind + shadcn/ui components
   - **Perfect for parallel work**: No backend dependencies, immediate demo value
+  - **Demo Timeline**: Can be demo-ready in 30-45 minutes
   - **Avoid**: Authentication pages (already exist), Generic dashboards (already exist)
 
 - **F03:** [Core Business Process OR NEW API Services] (e.g., Search, Checkout, Booking Flow, NEW External Integrations) - **Full-Stack OR Backend-Only**
@@ -318,6 +321,25 @@ export type Role = 'student' | 'teacher' | 'admin';
 **Landing Page Modules (Frontend-Only):**
 
 - **MANDATORY for F02**: Site Landing Page is required as one of the foundation modules
+- **Primary Goal**: Convert visitors to sign up/register for the platform
+- **Required Sections** (in order):
+  - **Hero Section**: Compelling headline, value proposition, primary CTA, hero visual
+  - **Features Section**: 3-6 key features with icons and benefits-focused descriptions
+  - **How It Works**: 3-4 step process showing user journey
+  - **Pricing Section**: Pricing tiers with feature comparison (if applicable)
+  - **Testimonials**: Social proof with customer testimonials and company logos
+  - **FAQ Section**: 6-8 common questions in accordion format
+  - **Footer**: Company info, product links, social media, newsletter signup
+- **Design Principles**:
+  - Mobile-first responsive design with Tailwind CSS
+  - Clear visual hierarchy and conversion optimization
+  - Multiple strategic CTA placements throughout
+  - Fast loading with optimized assets (< 2.5s LCP)
+- **Technical Implementation**:
+  - Component structure: HeroSection, FeaturesSection, HowItWorksSection, etc.
+  - Use shadcn/ui components: Button, Card, Badge, Accordion, Input, Separator
+  - SEO optimization with proper meta tags and structured data
+  - Analytics integration for conversion tracking
 - Perfect for parallel work - zero backend dependencies, immediate demo value
 - Include: Hero section, features showcase, pricing/plans, contact forms, about section
 - Use shadcn/ui components for consistent styling
@@ -503,8 +525,12 @@ For each external service needed:
   - WORKS INDEPENDENTLY
 
 **Dev 2:** F02 (Site Landing Page) - Frontend-only, demo-ready
-  - Landing pages: Hero, features, pricing, contact, about
-  - Marketing content and responsive design
+  - **Primary Goal**: Convert visitors to platform signups/registrations
+  - **Required Sections**: Hero, Features, How It Works, Pricing, Testimonials, FAQ, Footer
+  - **Technical Focus**: React + TypeScript + Tailwind + shadcn/ui components
+  - **Conversion Elements**: Multiple CTAs, social proof, clear value proposition
+  - **Performance**: Mobile-first responsive design, fast loading (< 2.5s LCP)
+  - **SEO Ready**: Meta tags, structured data, accessibility compliance
   - No backend dependencies - fastest to demo
   - WORKS INDEPENDENTLY
 
@@ -827,6 +853,15 @@ For EACH module, generate a separate markdown file with this structure:
 - [ ] **Routing:** [New routes to add]
 
 - [ ] **Static Content:** [Landing pages, marketing content] (Frontend-only modules)
+  - **For F02 Landing Page**: Hero section with compelling headline and CTA
+  - **Features Section**: 3-6 key features with icons and benefit descriptions
+  - **How It Works**: Step-by-step user journey (3-4 steps)
+  - **Pricing Section**: Pricing tiers with feature comparison
+  - **Social Proof**: Testimonials, customer logos, usage statistics
+  - **FAQ Section**: Accordion with 6-8 common questions
+  - **Footer**: Company info, links, newsletter signup, social media
+  - **Conversion Focus**: Multiple strategic CTA placements
+  - **Performance**: Optimized images, fast loading, mobile-responsive
 
 - [ ] **Responsive Design:** [Mobile-first approach with Tailwind CSS]
 
