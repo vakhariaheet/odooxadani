@@ -2,9 +2,10 @@
  * Invite user modal component
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ButtonWithLoading } from './LoadingComponents';
 import { RoleSelect } from './RoleSelect';
+import { usePermissions } from '../../hooks/useUsers';
 import type { UserRole } from '../../types/user';
 
 interface InviteModalProps {
@@ -17,6 +18,16 @@ interface InviteModalProps {
 export function InviteModal({ isOpen, onClose, onInvite, isLoading }: InviteModalProps) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole>('user');
+  const { data: permissionsData } = usePermissions();
+
+  // Set default role dynamically based on available roles
+  useEffect(() => {
+    if (permissionsData?.data?.roles) {
+      const availableRoles = permissionsData.data.roles;
+      const defaultRole = availableRoles.includes('user') ? 'user' : availableRoles[0];
+      setRole(defaultRole);
+    }
+  }, [permissionsData]);
 
   if (!isOpen) return null;
 
@@ -24,7 +35,10 @@ export function InviteModal({ isOpen, onClose, onInvite, isLoading }: InviteModa
     e.preventDefault();
     onInvite(email, role);
     setEmail('');
-    setRole('user');
+    // Reset to default role
+    const availableRoles = permissionsData?.data?.roles || ['user'];
+    const defaultRole = availableRoles.includes('user') ? 'user' : availableRoles[0];
+    setRole(defaultRole);
   };
 
   return (

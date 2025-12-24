@@ -6,7 +6,9 @@ import {
   ListUsersResponse,
   AdminStatsResponse,
   InvitationResponse,
+  getAvailableRoles,
 } from '../types';
+import { Role } from '../../../config/permissions';
 
 // Initialize Clerk client
 const clerkClient = createClerkClient({
@@ -18,6 +20,12 @@ const clerkClient = createClerkClient({
  */
 function mapClerkUserToResponse(user: any): UserResponse {
   const primaryEmail = user.emailAddresses?.find((e: any) => e.id === user.primaryEmailAddressId);
+  const availableRoles = getAvailableRoles();
+  const defaultRole = availableRoles.includes('user') ? 'user' : availableRoles[0];
+  const userRole = (user.publicMetadata?.['role'] as Role) || defaultRole;
+
+  // Ensure userRole is never undefined by providing a fallback
+  const finalRole = userRole || 'user';
 
   return {
     id: user.id,
@@ -25,7 +33,7 @@ function mapClerkUserToResponse(user: any): UserResponse {
     firstName: user.firstName,
     lastName: user.lastName,
     profileImageUrl: user.imageUrl || '',
-    role: (user.publicMetadata?.['role'] as UserRole) || UserRole.USER,
+    role: finalRole,
     banned: user.banned || false,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -74,14 +82,19 @@ export class ClerkUserService {
    */
   async inviteUser(
     email: string,
-    role: UserRole = UserRole.USER,
+    role?: UserRole,
     redirectUrl?: string
   ): Promise<{ invitationId: string }> {
+    // Set default role if not provided
+    const availableRoles = getAvailableRoles();
+    const defaultRole = availableRoles.includes('user') ? 'user' : availableRoles[0];
+    const finalRole = role || defaultRole;
+
     const invitation = await clerkClient.invitations.createInvitation({
       emailAddress: email,
       redirectUrl: redirectUrl || process.env['CLERK_REDIRECT_URL'],
       publicMetadata: {
-        role: role,
+        role: finalRole,
       },
     });
 
@@ -96,9 +109,10 @@ export class ClerkUserService {
     newRole: UserRole,
     adminUserId: string
   ): Promise<UserResponse> {
-    // Validate role
-    if (!Object.values(UserRole).includes(newRole)) {
-      throw new Error('Invalid role');
+    // Validate role against available roles
+    const availableRoles = getAvailableRoles();
+    if (!availableRoles.includes(newRole)) {
+      throw new Error(`Invalid role. Available roles: ${availableRoles.join(', ')}`);
     }
 
     // Prevent admin from changing their own role
@@ -157,14 +171,18 @@ export class ClerkUserService {
       limit: 500,
     });
 
+    // Initialize stats with dynamic roles
+    const availableRoles = getAvailableRoles();
+    const usersByRole: Record<string, number> = {};
+    availableRoles.forEach((role: string) => {
+      usersByRole[role] = 0;
+    });
+
     const stats: AdminStatsResponse = {
       totalUsers: response.totalCount,
       activeUsers: 0,
       bannedUsers: 0,
-      usersByRole: {
-        [UserRole.ADMIN]: 0,
-        [UserRole.USER]: 0,
-      },
+      usersByRole,
     };
 
     for (const user of response.data) {
@@ -176,9 +194,15 @@ export class ClerkUserService {
       }
 
       // Count by role
-      const role = (user.publicMetadata?.['role'] as UserRole) || UserRole.USER;
-      if (stats.usersByRole[role] !== undefined) {
+      const role =
+        (user.publicMetadata?.['role'] as Role) ||
+        (availableRoles.includes('user') ? 'user' : availableRoles[0]);
+
+      if (role && stats.usersByRole[role] !== undefined) {
         stats.usersByRole[role]++;
+      } else if (role) {
+        // Handle unknown roles by adding them to the stats
+        stats.usersByRole[role] = 1;
       }
     }
 
