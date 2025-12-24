@@ -10,6 +10,9 @@ import { FeaturesPage } from './pages/FeaturesPage';
 import { PricingPage } from './pages/PricingPage';
 import { ContactPage } from './pages/ContactPage';
 import { AboutPage } from './pages/AboutPage';
+import { DemoPage } from './pages/DemoPage';
+import { SuccessPage } from './pages/SuccessPage';
+import { NewsletterConfirmPage } from './pages/NewsletterConfirmPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { WebSocketTestPage } from './pages/WebSocketTestPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -97,6 +100,9 @@ function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/demo" element={<DemoPage />} />
+        <Route path="/success" element={<SuccessPage />} />
+        <Route path="/newsletter-confirm" element={<NewsletterConfirmPage />} />
         <Route
           path="/sign-in/*"
           element={
