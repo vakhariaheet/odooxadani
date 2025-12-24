@@ -36,3 +36,18 @@ export {
   useBookingStats,
   bookingKeys,
 } from './useBookings';
+
+// Event API hooks
+export {
+  useEvents,
+  useEvent,
+  useMyEvents,
+  usePublishedEvents,
+  useCreateEvent,
+  useUpdateEvent,
+  useDeleteEvent,
+  usePublishEvent,
+  useCancelEvent,
+  useCompleteEvent,
+  eventKeys,
+} from './useEvents';

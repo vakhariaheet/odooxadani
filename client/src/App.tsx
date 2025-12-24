@@ -19,6 +19,11 @@ import { BookingsPage } from './pages/bookings/BookingsPage';
 import { CreateBookingPage } from './pages/bookings/CreateBookingPage';
 import { BookingDetailsPage } from './pages/bookings/BookingDetailsPage';
 import { EditBookingPage } from './pages/bookings/EditBookingPage';
+import { EventsPage } from './pages/events/EventsPage';
+import { EventDetailsPage } from './pages/events/EventDetailsPage';
+import { MyEventsPage } from './pages/events/MyEventsPage';
+import { CreateEventPage } from './pages/events/CreateEventPage';
+import { EditEventPage } from './pages/events/EditEventPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import './App.css';
 
@@ -147,6 +152,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Booking Routes */}
         <Route
           path="/bookings"
           element={
@@ -176,6 +182,33 @@ function App() {
           element={
             <ProtectedRoute>
               <EditBookingPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* Event Routes */}
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/:id" element={<EventDetailsPage />} />
+        <Route
+          path="/dashboard/events"
+          element={
+            <ProtectedRoute>
+              <MyEventsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/events/create"
+          element={
+            <ProtectedRoute>
+              <CreateEventPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/events/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditEventPage />
             </ProtectedRoute>
           }
         />

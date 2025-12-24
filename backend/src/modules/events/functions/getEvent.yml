@@ -1,0 +1,26 @@
+getEvent:
+  handler: src/modules/events/handlers/getEvent.handler
+  events:
+    - httpApi:
+        path: /api/events/{id}
+        method: GET
+        # No authorizer - public access for published events
+        swaggerTags:
+          - Events
+        summary: GET /api/events/{id}
+        description: Get event details by ID (public access)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Event retrieved successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    description: Event object
+          - statusCode: 404
+            responseBody:
+              description: Event not found or not accessible

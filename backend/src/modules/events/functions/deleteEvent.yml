@@ -1,0 +1,25 @@
+deleteEvent:
+  handler: src/modules/events/handlers/deleteEvent.handler
+  events:
+    - httpApi:
+        path: /api/events/{id}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Events
+        summary: DELETE /api/events/{id}
+        description: Delete event by ID (own events only)
+        methodResponses:
+          - statusCode: 204
+            responseBody:
+              description: Event deleted successfully
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Can only delete own events
+          - statusCode: 404
+            responseBody:
+              description: Event not found

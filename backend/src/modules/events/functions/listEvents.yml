@@ -1,0 +1,38 @@
+listEvents:
+  handler: src/modules/events/handlers/listEvents.handler
+  events:
+    - httpApi:
+        path: /api/events
+        method: GET
+        # No authorizer - public access for published events
+        swaggerTags:
+          - Events
+        summary: GET /api/events
+        description: List events with filtering and pagination (public access)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Events retrieved successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: array
+                        description: Array of event objects
+                      totalCount:
+                        type: number
+                        description: Total number of events
+                      hasMore:
+                        type: boolean
+                        description: Whether more events are available
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Required for filtering by organizer
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Can only filter by your own events
