@@ -1,6 +1,6 @@
 /**
  * DynamoDB Client Wrapper
- * 
+ *
  * Type-safe wrapper around AWS DynamoDB Document Client
  * with common operations and error handling.
  */
@@ -83,7 +83,14 @@ export class DynamoDB {
   private tableName: string;
 
   constructor(tableName?: string) {
-    this.tableName = tableName || process.env['DYNAMODB_TABLE'] || '';
+    this.tableName =
+      tableName || process.env['MAIN_TABLE_NAME'] || process.env['DYNAMODB_TABLE'] || '';
+    logger.info('DynamoDB client initialized', {
+      tableName: this.tableName,
+      region: process.env['AWS_REGION'] || process.env['REGION'] || 'ap-south-1',
+      mainTableName: process.env['MAIN_TABLE_NAME'],
+      dynamodbTable: process.env['DYNAMODB_TABLE'],
+    });
     if (!this.tableName) {
       logger.warn('DynamoDB table name not configured');
     }
@@ -143,7 +150,7 @@ export class DynamoDB {
   ): Promise<T> {
     // Build update expression dynamically
     const updateFields = Object.keys(updates).filter(
-      (k) => k !== 'PK' && k !== 'SK' && updates[k as keyof T] !== undefined
+      (k) => k !== 'PK' && k !== 'SK' && k !== 'updatedAt' && updates[k as keyof T] !== undefined
     );
 
     if (updateFields.length === 0) {
@@ -250,11 +257,11 @@ export class DynamoDB {
     let lastKey: Record<string, unknown> | undefined;
 
     do {
-      const result = await this.query<T>(
-        keyConditionExpression,
-        expressionAttributeValues,
-        { ...options, startKey: lastKey, limit: 100 }
-      );
+      const result = await this.query<T>(keyConditionExpression, expressionAttributeValues, {
+        ...options,
+        startKey: lastKey,
+        limit: 100,
+      });
       allItems.push(...result.items);
       lastKey = result.lastEvaluatedKey;
     } while (lastKey);
@@ -324,10 +331,7 @@ export class DynamoDB {
    * Batch write (put or delete) multiple items
    */
   async batchWrite(
-    operations: Array<
-      | { put: Record<string, unknown> }
-      | { delete: DynamoDBKey }
-    >
+    operations: Array<{ put: Record<string, unknown> } | { delete: DynamoDBKey }>
   ): Promise<void> {
     if (operations.length === 0) return;
     if (operations.length > 25) {

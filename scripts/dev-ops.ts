@@ -79,7 +79,7 @@ class DevOpsScript {
     return {
       epicBranch: process.env.EPIC_BRANCH || 'main',
       stage: process.env.SERVERLESS_STAGE || 'dev',
-      awsProfile: process.env.AWS_PROFILE || 'default',
+      awsProfile: process.env.PROFILE || 'default',
       gitRoot,
       backendPath: join(gitRoot, 'backend'),
       modulesPath: join(gitRoot, 'backend', 'src', 'modules'),
@@ -495,6 +495,14 @@ class DevOpsScript {
     // Get current branch
     const currentBranch = await this.execCommand('git branch --show-current');
 
+    // Fetch and pull latest changes from epic branch
+    log.step(`Fetching latest changes from origin...`);
+    await this.execCommand('git fetch origin');
+
+    log.step(`Pulling latest changes from ${this.config.epicBranch}...`);
+    await this.execCommand(`git pull origin ${this.config.epicBranch}:${this.config.epicBranch}`);
+    log.success(`Successfully updated local ${this.config.epicBranch} branch`);
+
     // Rebase from epic branch
     log.step(`Rebasing from ${this.config.epicBranch}...`);
     try {
@@ -684,10 +692,10 @@ class DevOpsScript {
     log.step(`Using AWS Profile: ${this.config.awsProfile}`);
 
     try {
-      // Set AWS_PROFILE environment variable for the deployment
+      // Set PROFILE environment variable for the deployment
       const deployEnv = {
         ...process.env,
-        AWS_PROFILE: this.config.awsProfile,
+        PROFILE: this.config.awsProfile,
       };
 
       // Use spawn for real-time output with AWS profile

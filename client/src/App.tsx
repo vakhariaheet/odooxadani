@@ -15,6 +15,10 @@ import { SuccessPage } from './pages/SuccessPage';
 import { NewsletterConfirmPage } from './pages/NewsletterConfirmPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { WebSocketTestPage } from './pages/WebSocketTestPage';
+import { BookingsPage } from './pages/bookings/BookingsPage';
+import { CreateBookingPage } from './pages/bookings/CreateBookingPage';
+import { BookingDetailsPage } from './pages/bookings/BookingDetailsPage';
+import { EditBookingPage } from './pages/bookings/EditBookingPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import './App.css';
 
@@ -140,6 +144,38 @@ function App() {
           element={
             <ProtectedRoute>
               <WebSocketTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute>
+              <BookingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings/create"
+          element={
+            <ProtectedRoute>
+              <CreateBookingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings/:id"
+          element={
+            <ProtectedRoute>
+              <BookingDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EditBookingPage />
             </ProtectedRoute>
           }
         />
