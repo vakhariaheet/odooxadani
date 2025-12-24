@@ -10,6 +10,16 @@ import {
   ListProposalsQuery,
   ListProposalsResponse,
   ProposalDynamoItem,
+  ProposalAnalytics,
+  ViewEvent,
+  ProposalComment,
+  ProposalVersion,
+  TrackViewRequest,
+  AddCommentRequest,
+  ProposalAnalyticsDynamoItem,
+  ViewEventDynamoItem,
+  ProposalCommentDynamoItem,
+  ProposalVersionDynamoItem,
 } from '../types';
 
 const logger = createLogger('ProposalService');
@@ -487,6 +497,480 @@ export class ProposalService {
       });
     } catch (error) {
       logger.error('Failed to send status change notification', error, { proposalId: proposal.id });
+    }
+  }
+
+  // =============================================================================
+  // ENHANCED FEATURES (M05) - ANALYTICS & ENGAGEMENT
+  // =============================================================================
+
+  /**
+   * Get proposal analytics data
+   */
+  async getProposalAnalytics(
+    proposalId: string,
+    userId: string,
+    userRole: string
+  ): Promise<ProposalAnalytics> {
+    // Verify access to proposal first
+    await this.getProposal(proposalId, userId, userRole);
+
+    const analyticsKey = {
+      PK: `PROPOSAL#${proposalId}`,
+      SK: 'ANALYTICS',
+    };
+
+    try {
+      const analyticsItem = await dynamodb.get<ProposalAnalyticsDynamoItem>(analyticsKey);
+
+      if (!analyticsItem) {
+        // Initialize analytics if not exists
+        return await this.initializeAnalytics(proposalId);
+      }
+
+      // Get view timeline
+      const viewTimeline = await this.getViewTimeline(proposalId);
+
+      return {
+        proposalId,
+        totalViews: analyticsItem.totalViews,
+        uniqueViews: analyticsItem.uniqueViews,
+        timeSpentViewing: analyticsItem.timeSpentViewing,
+        lastViewedAt: analyticsItem.lastViewedAt,
+        viewsBySection: analyticsItem.viewsBySection,
+        engagementScore: analyticsItem.engagementScore,
+        responseTime: analyticsItem.responseTime,
+        viewTimeline,
+      };
+    } catch (error) {
+      logger.error('Failed to get proposal analytics', error, { proposalId, userId });
+      throw new Error('Failed to get proposal analytics');
+    }
+  }
+
+  /**
+   * Track a view event for analytics
+   */
+  async trackProposalView(
+    proposalId: string,
+    userId: string,
+    userRole: string,
+    data: TrackViewRequest
+  ): Promise<void> {
+    // Verify access to proposal first
+    const proposal = await this.getProposal(proposalId, userId, userRole);
+
+    const timestamp = new Date().toISOString();
+    const viewEventId = `${timestamp}-${userId}`;
+
+    const viewEvent: ViewEventDynamoItem = {
+      PK: `PROPOSAL#${proposalId}`,
+      SK: `VIEW#${viewEventId}`,
+      GSI1PK: `CLIENT#${userId}`,
+      GSI1SK: `VIEW#${timestamp}`,
+      proposalId,
+      timestamp,
+      clientId: userRole === 'client' ? userId : undefined,
+      clientEmail: proposal.clientEmail,
+      section: data.section,
+      timeSpent: data.timeSpent,
+      userAgent: data.userAgent,
+    };
+
+    try {
+      // Store view event
+      await dynamodb.put(viewEvent as unknown as Record<string, unknown>);
+
+      // Update analytics
+      await this.updateAnalyticsFromView(proposalId, userId, data);
+
+      logger.info('View tracked', {
+        proposalId,
+        userId,
+        section: data.section,
+        timeSpent: data.timeSpent,
+      });
+    } catch (error) {
+      logger.error('Failed to track view', error, { proposalId, userId });
+      // Don't throw - view tracking failure shouldn't break the main flow
+    }
+  }
+
+  /**
+   * Add a comment to a proposal
+   */
+  async addProposalComment(
+    proposalId: string,
+    userId: string,
+    userRole: string,
+    userName: string,
+    data: AddCommentRequest
+  ): Promise<ProposalComment> {
+    // Verify access to proposal first
+    await this.getProposal(proposalId, userId, userRole);
+
+    const commentId = uuidv4();
+    const now = new Date().toISOString();
+
+    const comment: ProposalCommentDynamoItem = {
+      PK: `PROPOSAL#${proposalId}`,
+      SK: `COMMENT#${commentId}`,
+      GSI1PK: `COMMENT#${userId}`,
+      GSI1SK: now,
+      id: commentId,
+      proposalId,
+      userId,
+      userRole: userRole as 'freelancer' | 'client',
+      userName,
+      content: data.content.trim(),
+      createdAt: now,
+      isInternal: data.isInternal || false,
+    };
+
+    try {
+      await dynamodb.put(comment as unknown as Record<string, unknown>);
+
+      // Send notification to other party
+      await this.sendCommentNotification(proposalId, comment, userRole);
+
+      logger.info('Comment added', { proposalId, userId, commentId });
+
+      return {
+        id: commentId,
+        proposalId,
+        userId,
+        userRole: userRole as 'freelancer' | 'client',
+        userName,
+        content: data.content.trim(),
+        createdAt: now,
+        isInternal: data.isInternal || false,
+      };
+    } catch (error) {
+      logger.error('Failed to add comment', error, { proposalId, userId });
+      throw new Error('Failed to add comment');
+    }
+  }
+
+  /**
+   * Get comments for a proposal
+   */
+  async getProposalComments(
+    proposalId: string,
+    userId: string,
+    userRole: string
+  ): Promise<ProposalComment[]> {
+    // Verify access to proposal first
+    await this.getProposal(proposalId, userId, userRole);
+
+    try {
+      const result = await dynamodb.query<ProposalCommentDynamoItem>(
+        'PK = :pk AND begins_with(SK, :sk)',
+        {
+          ':pk': `PROPOSAL#${proposalId}`,
+          ':sk': 'COMMENT#',
+        },
+        {
+          scanIndexForward: true, // Oldest first
+        }
+      );
+
+      return result.items
+        .filter((item) => {
+          // Filter out internal comments if user is client
+          if (userRole === 'client' && item.isInternal) {
+            return false;
+          }
+          return true;
+        })
+        .map((item) => ({
+          id: item.id,
+          proposalId: item.proposalId,
+          userId: item.userId,
+          userRole: item.userRole,
+          userName: item.userName,
+          content: item.content,
+          createdAt: item.createdAt,
+          isInternal: item.isInternal,
+        }));
+    } catch (error) {
+      logger.error('Failed to get comments', error, { proposalId, userId });
+      throw new Error('Failed to get comments');
+    }
+  }
+
+  /**
+   * Duplicate a proposal
+   */
+  async duplicateProposal(proposalId: string, userId: string, userRole: string): Promise<Proposal> {
+    // Get original proposal
+    const original = await this.getProposal(proposalId, userId, userRole);
+
+    // Only freelancer can duplicate their own proposals
+    if (userRole !== 'freelancer' || original.freelancerId !== userId) {
+      throw new Error('Access denied: can only duplicate your own proposals');
+    }
+
+    // Create new proposal based on original
+    const duplicateData: CreateProposalRequest = {
+      title: `${original.title} (Copy)`,
+      description: original.description,
+      clientEmail: original.clientEmail,
+      amount: original.amount,
+      currency: original.currency,
+      deliverables: [...original.deliverables],
+      timeline: original.timeline,
+      terms: original.terms,
+    };
+
+    try {
+      const newProposal = await this.createProposal(userId, duplicateData);
+
+      // Create version entry for the duplicate
+      await this.createProposalVersion(
+        newProposal.id,
+        userId,
+        ['Duplicated from proposal ' + proposalId],
+        newProposal
+      );
+
+      logger.info('Proposal duplicated', { originalId: proposalId, newId: newProposal.id, userId });
+      return newProposal;
+    } catch (error) {
+      logger.error('Failed to duplicate proposal', error, { proposalId, userId });
+      throw new Error('Failed to duplicate proposal');
+    }
+  }
+
+  /**
+   * Get proposal version history
+   */
+  async getProposalVersions(
+    proposalId: string,
+    userId: string,
+    userRole: string
+  ): Promise<ProposalVersion[]> {
+    // Verify access to proposal first
+    await this.getProposal(proposalId, userId, userRole);
+
+    try {
+      const result = await dynamodb.query<ProposalVersionDynamoItem>(
+        'PK = :pk AND begins_with(SK, :sk)',
+        {
+          ':pk': `PROPOSAL#${proposalId}`,
+          ':sk': 'VERSION#',
+        },
+        {
+          scanIndexForward: false, // Newest first
+        }
+      );
+
+      return result.items.map((item) => ({
+        versionNumber: item.versionNumber,
+        proposalId: item.proposalId,
+        changes: item.changes,
+        createdBy: item.createdBy,
+        createdAt: item.createdAt,
+        previousVersion: item.previousVersion,
+        snapshot: JSON.parse(item.snapshot),
+      }));
+    } catch (error) {
+      logger.error('Failed to get proposal versions', error, { proposalId, userId });
+      throw new Error('Failed to get proposal versions');
+    }
+  }
+
+  // =============================================================================
+  // PRIVATE HELPER METHODS FOR ENHANCED FEATURES
+  // =============================================================================
+
+  private async initializeAnalytics(proposalId: string): Promise<ProposalAnalytics> {
+    const now = new Date().toISOString();
+    const analytics: ProposalAnalyticsDynamoItem = {
+      PK: `PROPOSAL#${proposalId}`,
+      SK: 'ANALYTICS',
+      GSI1PK: 'ANALYTICS#PROPOSAL',
+      GSI1SK: now,
+      proposalId,
+      totalViews: 0,
+      uniqueViews: 0,
+      timeSpentViewing: 0,
+      viewsBySection: {},
+      engagementScore: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await dynamodb.put(analytics as unknown as Record<string, unknown>);
+
+    return {
+      proposalId,
+      totalViews: 0,
+      uniqueViews: 0,
+      timeSpentViewing: 0,
+      viewsBySection: {},
+      engagementScore: 0,
+      viewTimeline: [],
+    };
+  }
+
+  private async updateAnalyticsFromView(
+    proposalId: string,
+    userId: string,
+    viewData: TrackViewRequest
+  ): Promise<void> {
+    const analyticsKey = {
+      PK: `PROPOSAL#${proposalId}`,
+      SK: 'ANALYTICS',
+    };
+
+    try {
+      const existing = await dynamodb.get<ProposalAnalyticsDynamoItem>(analyticsKey);
+      if (!existing) return;
+
+      const updates: Partial<ProposalAnalyticsDynamoItem> = {
+        totalViews: existing.totalViews + 1,
+        timeSpentViewing: existing.timeSpentViewing + viewData.timeSpent,
+        lastViewedAt: new Date().toISOString(),
+      };
+
+      // Update section views
+      if (viewData.section) {
+        const viewsBySection = { ...existing.viewsBySection };
+        viewsBySection[viewData.section] = (viewsBySection[viewData.section] || 0) + 1;
+        updates.viewsBySection = viewsBySection;
+      }
+
+      // Calculate engagement score (simplified)
+      const totalViews = updates.totalViews!;
+      const timeSpentViewing = updates.timeSpentViewing!;
+      const engagementScore = Math.min(
+        100,
+        Math.round(
+          totalViews * 2 + (timeSpentViewing / 60) * 5 // 5 points per minute
+        )
+      );
+      updates.engagementScore = engagementScore;
+
+      await dynamodb.update(analyticsKey, updates);
+    } catch (error) {
+      logger.error('Failed to update analytics', error, { proposalId, userId });
+    }
+  }
+
+  private async getViewTimeline(proposalId: string): Promise<ViewEvent[]> {
+    try {
+      const result = await dynamodb.query<ViewEventDynamoItem>(
+        'PK = :pk AND begins_with(SK, :sk)',
+        {
+          ':pk': `PROPOSAL#${proposalId}`,
+          ':sk': 'VIEW#',
+        },
+        {
+          scanIndexForward: false, // Newest first
+          limit: 50, // Limit to recent views
+        }
+      );
+
+      return result.items.map((item) => ({
+        timestamp: item.timestamp,
+        clientId: item.clientId,
+        clientEmail: item.clientEmail,
+        section: item.section,
+        timeSpent: item.timeSpent,
+        userAgent: item.userAgent,
+      }));
+    } catch (error) {
+      logger.error('Failed to get view timeline', error, { proposalId });
+      return [];
+    }
+  }
+
+  private async createProposalVersion(
+    proposalId: string,
+    userId: string,
+    changes: string[],
+    snapshot: Partial<Proposal>
+  ): Promise<void> {
+    try {
+      // Get current version number
+      const existingVersions = await dynamodb.query<ProposalVersionDynamoItem>(
+        'PK = :pk AND begins_with(SK, :sk)',
+        {
+          ':pk': `PROPOSAL#${proposalId}`,
+          ':sk': 'VERSION#',
+        },
+        {
+          scanIndexForward: false,
+          limit: 1,
+        }
+      );
+
+      const versionNumber =
+        existingVersions.items.length > 0 ? existingVersions.items[0]!.versionNumber + 1 : 1;
+
+      const now = new Date().toISOString();
+      const version: ProposalVersionDynamoItem = {
+        PK: `PROPOSAL#${proposalId}`,
+        SK: `VERSION#${versionNumber.toString().padStart(3, '0')}`,
+        GSI1PK: 'VERSION#PROPOSAL',
+        GSI1SK: now,
+        versionNumber,
+        proposalId,
+        changes,
+        createdBy: userId,
+        createdAt: now,
+        previousVersion: versionNumber > 1 ? versionNumber - 1 : undefined,
+        snapshot: JSON.stringify(snapshot),
+      };
+
+      await dynamodb.put(version as unknown as Record<string, unknown>);
+    } catch (error) {
+      logger.error('Failed to create version', error, { proposalId, userId });
+    }
+  }
+
+  private async sendCommentNotification(
+    proposalId: string,
+    comment: ProposalCommentDynamoItem,
+    senderRole: string
+  ): Promise<void> {
+    try {
+      // Get proposal to find recipient
+      const proposal = await dynamodb.get<ProposalDynamoItem>({
+        PK: `PROPOSAL#${proposalId}`,
+        SK: 'METADATA',
+      });
+
+      if (!proposal) return;
+
+      // Don't send notifications for internal comments
+      if (comment.isInternal) return;
+
+      const subject = `New comment on proposal: ${proposal.title}`;
+      const html = `
+        <h2>New Comment</h2>
+        <p><strong>From:</strong> ${comment.userName} (${comment.userRole})</p>
+        <p><strong>Proposal:</strong> ${proposal.title}</p>
+        <p><strong>Comment:</strong></p>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px;">
+          ${comment.content}
+        </div>
+        <p><a href="${process.env['CLIENT_URL']}/proposals/${proposalId}">View Proposal</a></p>
+      `;
+
+      // Send to the other party
+      const recipientEmail =
+        senderRole === 'freelancer' ? proposal.clientEmail : 'freelancer@example.com'; // Would need freelancer email
+
+      if (recipientEmail && recipientEmail !== 'freelancer@example.com') {
+        await ses.sendHtml(recipientEmail, subject, html);
+        logger.info('Comment notification sent', { proposalId, commentId: comment.id });
+      }
+    } catch (error) {
+      logger.error('Failed to send comment notification', error, {
+        proposalId,
+        commentId: comment.id,
+      });
     }
   }
 }

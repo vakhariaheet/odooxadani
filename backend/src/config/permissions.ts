@@ -2,12 +2,12 @@ import { AccessControl } from 'accesscontrol';
 
 /**
  * RBAC Configuration using accesscontrol library
- * 
+ *
  * Multiple roles with different access levels:
  * - freelancer: Can manage own proposals, contracts, invoices
  * - client: Can view proposals/contracts sent to them, make payments
  * - admin: Full access to all modules and resources
- * 
+ *
  * Actions follow accesscontrol naming convention:
  * - *Own: Can only perform action on own resources
  * - *Any: Can perform action on any resource
@@ -59,8 +59,16 @@ export const ROLE_MODULE_ACCESS: Record<
 
 // All available modules in the system
 const ALL_MODULES = [
-  'users', 'proposals', 'contracts', 'invoices', 'payments', 
-  'templates', 'analytics', 'demo', 'websocket', 'admin'
+  'users',
+  'proposals',
+  'contracts',
+  'invoices',
+  'payments',
+  'templates',
+  'analytics',
+  'demo',
+  'websocket',
+  'admin',
 ];
 
 // All CRUD actions
@@ -106,7 +114,7 @@ export const ac = createAccessControl();
 
 // Export helper types
 export type Role = keyof typeof ROLE_MODULE_ACCESS;
-export type Action = typeof ALL_ACTIONS[number];
+export type Action = (typeof ALL_ACTIONS)[number];
 export type ModuleName = string;
 
 /**

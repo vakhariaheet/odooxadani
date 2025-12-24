@@ -1,0 +1,12 @@
+duplicateProposal:
+  handler: src/modules/proposals/handlers/duplicateProposal.handler
+  memorySize: ${self:custom.stageConfig.memorySize}
+  timeout: ${self:custom.stageConfig.timeout}
+  events:
+    - httpApi:
+        path: /api/proposals/{id}/duplicate
+        method: post
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}

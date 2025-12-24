@@ -1,0 +1,12 @@
+getProposalVersions:
+  handler: src/modules/proposals/handlers/getProposalVersions.handler
+  memorySize: ${self:custom.stageConfig.memorySize}
+  timeout: ${self:custom.stageConfig.timeout}
+  events:
+    - httpApi:
+        path: /api/proposals/{id}/versions
+        method: get
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
