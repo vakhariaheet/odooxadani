@@ -70,7 +70,7 @@ function AdminDashboardContent() {
 
   // Queries
   const { data: statsData, isLoading: statsLoading, error: statsError } = useAdminStats();
-  const { data: permissionsData, isLoading: permissionsLoading } = usePermissions();
+  const { data: permissionsData } = usePermissions();
   const {
     data: usersData,
     isLoading: usersLoading,
