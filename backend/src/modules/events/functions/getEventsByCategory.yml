@@ -1,0 +1,37 @@
+getEventsByCategory:
+  handler: src/modules/events/handlers/getEventsByCategory.handler
+  events:
+    - httpApi:
+        path: /api/events/category/{category}
+        method: GET
+        swaggerTags:
+          - Events
+        summary: GET /api/events/category/{category}
+        description: Get events by category with popularity sorting
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Events in the specified category
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: array
+                        items:
+                          type: object
+                          description: Event object
+                      category:
+                        type: string
+                      totalCount:
+                        type: number
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid category
+          - statusCode: 500
+            responseBody:
+              description: Internal Server Error

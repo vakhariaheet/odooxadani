@@ -76,6 +76,85 @@ export interface UpdateEventRequest {
 // Query & Response Types
 // -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// M05: Enhanced Discovery Types
+// -----------------------------------------------------------------------------
+
+export interface EventSearchQuery {
+  query?: string; // Full-text search query
+  category?: EventCategory;
+  city?: string;
+  location?: {
+    lat: number;
+    lng: number;
+    radius?: number; // in kilometers
+  };
+  priceRange?: {
+    min?: number;
+    max?: number;
+  };
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+  };
+  tags?: string[];
+  sortBy?: 'relevance' | 'date' | 'popularity' | 'price';
+  sortOrder?: 'asc' | 'desc';
+  limit?: number;
+  offset?: number;
+}
+
+export interface EventFilters {
+  categories?: EventCategory[];
+  cities?: string[];
+  priceRange?: {
+    min?: number;
+    max?: number;
+  };
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+  };
+  location?: {
+    lat: number;
+    lng: number;
+    radius: number;
+  };
+}
+
+export interface RecommendationRequest {
+  userId: string;
+  limit?: number;
+  categories?: EventCategory[];
+  location?: {
+    lat: number;
+    lng: number;
+    radius?: number;
+  };
+}
+
+export interface PopularEventsResponse {
+  events: Event[];
+  timeframe: 'week' | 'month';
+  totalCount: number;
+}
+
+export interface CategoryEventsResponse {
+  events: Event[];
+  category: EventCategory;
+  totalCount: number;
+}
+
+// Enhanced Event interface for M05
+export interface EnhancedEvent extends Event {
+  tags?: string[];
+  viewCount?: number;
+  bookingCount?: number;
+  popularityScore?: number;
+  searchableText?: string;
+  distance?: number; // For location-based searches
+}
+
 export interface EventListQuery {
   limit?: number;
   offset?: number;

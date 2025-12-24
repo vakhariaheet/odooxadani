@@ -11,6 +11,7 @@ import {
   DEFAULT_CURRENCY,
   MAX_EVENTS_PER_PAGE,
   DEFAULT_EVENTS_PER_PAGE,
+  EventSearchQuery,
 } from '../types';
 
 export class EventService {
@@ -375,5 +376,214 @@ export class EventService {
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     };
+  }
+
+  // =============================================================================
+  // M05: ENHANCED DISCOVERY METHODS
+  // =============================================================================
+
+  /**
+   * Advanced search with multiple filters
+   */
+  async searchEvents(query: EventSearchQuery): Promise<EventListResponse> {
+    const limit = Math.min(query.limit || DEFAULT_EVENTS_PER_PAGE, MAX_EVENTS_PER_PAGE);
+    const offset = query.offset || 0;
+
+    // Get all published events first
+    let events = await this.getAllPublishedEvents({});
+
+    // Apply search query (full-text search simulation)
+    if (query.query) {
+      const searchTerm = query.query.toLowerCase();
+      events = events.filter((event) => {
+        const searchableText =
+          `${event.title} ${event.description} ${event.location.city} ${event.location.address}`.toLowerCase();
+        return searchableText.includes(searchTerm);
+      });
+    }
+
+    // Apply category filter
+    if (query.category) {
+      events = events.filter((event) => event.category === query.category);
+    }
+
+    // Apply city filter
+    if (query.city) {
+      const cityLower = query.city.toLowerCase();
+      events = events.filter((event) => event.location.city.toLowerCase().includes(cityLower));
+    }
+
+    // Apply price range filter
+    if (query.priceRange) {
+      events = events.filter((event) => {
+        if (query.priceRange!.min !== undefined && event.price < query.priceRange!.min)
+          return false;
+        if (query.priceRange!.max !== undefined && event.price > query.priceRange!.max)
+          return false;
+        return true;
+      });
+    }
+
+    // Apply date range filter
+    if (query.dateRange) {
+      events = events.filter((event) => {
+        const eventStart = new Date(event.startDate);
+        if (query.dateRange!.startDate && eventStart < new Date(query.dateRange!.startDate))
+          return false;
+        if (query.dateRange!.endDate && eventStart > new Date(query.dateRange!.endDate))
+          return false;
+        return true;
+      });
+    }
+
+    // Apply location-based filtering (simple distance calculation)
+    if (query.location) {
+      const { lat, lng, radius = 50 } = query.location;
+      events = events.filter((event) => {
+        if (!event.location.coordinates) return false;
+        const distance = this.calculateDistance(
+          lat,
+          lng,
+          event.location.coordinates[0],
+          event.location.coordinates[1]
+        );
+        return distance <= radius;
+      });
+    }
+
+    // Apply sorting
+    events = this.sortEvents(events, query.sortBy || 'date', query.sortOrder || 'asc');
+
+    // Apply pagination
+    const totalCount = events.length;
+    const paginatedEvents = events.slice(offset, offset + limit);
+    const hasMore = offset + limit < totalCount;
+
+    return {
+      events: paginatedEvents,
+      totalCount,
+      hasMore,
+    };
+  }
+
+  /**
+   * Get events by category with enhanced sorting
+   */
+  async getEventsByCategoryEnhanced(category: string, limit: number = 20): Promise<Event[]> {
+    const events = await this.getEventsByCategory(category, {});
+
+    // Sort by popularity (using currentAttendees as proxy for now)
+    events.sort((a, b) => b.currentAttendees - a.currentAttendees);
+
+    return events.slice(0, limit);
+  }
+
+  /**
+   * Get recommended events for a user
+   */
+  async getRecommendedEvents(userId: string): Promise<Event[]> {
+    // Simple recommendation algorithm:
+    // 1. Get user's past events to understand preferences
+    // 2. Find events in similar categories
+    // 3. Find popular events in user's location (if available)
+
+    const userEvents = await this.getUserEvents(userId, {});
+    const allEvents = await this.getAllPublishedEvents({});
+
+    // Get user's preferred categories
+    const userCategories = [...new Set(userEvents.map((event) => event.category))];
+
+    // Filter events by user's preferred categories
+    let recommendedEvents = allEvents.filter(
+      (event) => userCategories.includes(event.category) && event.organizerId !== userId // Don't recommend user's own events
+    );
+
+    // If no category preferences, get popular events
+    if (recommendedEvents.length === 0) {
+      recommendedEvents = allEvents
+        .filter((event) => event.organizerId !== userId)
+        .sort((a, b) => b.currentAttendees - a.currentAttendees);
+    }
+
+    // Sort by popularity and return top 10
+    recommendedEvents.sort((a, b) => b.currentAttendees - a.currentAttendees);
+    return recommendedEvents.slice(0, 10);
+  }
+
+  /**
+   * Get popular/trending events
+   */
+  async getPopularEvents(timeframe: 'week' | 'month' = 'week'): Promise<Event[]> {
+    const now = new Date();
+    const cutoffDate = new Date();
+
+    if (timeframe === 'week') {
+      cutoffDate.setDate(now.getDate() - 7);
+    } else {
+      cutoffDate.setMonth(now.getMonth() - 1);
+    }
+
+    const events = await this.getAllPublishedEvents({});
+
+    // Filter events created within timeframe and sort by popularity
+    const popularEvents = events
+      .filter((event) => new Date(event.createdAt) >= cutoffDate)
+      .sort((a, b) => {
+        // Calculate popularity score based on attendees and recency
+        const aScore = a.currentAttendees + new Date(a.createdAt).getTime() / 1000000;
+        const bScore = b.currentAttendees + new Date(b.createdAt).getTime() / 1000000;
+        return bScore - aScore;
+      });
+
+    return popularEvents.slice(0, 20);
+  }
+
+  /**
+   * Calculate distance between two coordinates (Haversine formula)
+   */
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = this.toRadians(lat2 - lat1);
+    const dLon = this.toRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRadians(lat1)) *
+        Math.cos(this.toRadians(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  /**
+   * Convert degrees to radians
+   */
+  private toRadians(degrees: number): number {
+    return degrees * (Math.PI / 180);
+  }
+
+  /**
+   * Sort events by different criteria
+   */
+  private sortEvents(events: Event[], sortBy: string, sortOrder: 'asc' | 'desc'): Event[] {
+    const sorted = [...events];
+
+    switch (sortBy) {
+      case 'date':
+        sorted.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+        break;
+      case 'price':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'popularity':
+        sorted.sort((a, b) => b.currentAttendees - a.currentAttendees);
+        break;
+      case 'relevance':
+      default:
+        // For relevance, keep current order (search results are already sorted by relevance)
+        break;
+    }
+
+    return sortOrder === 'desc' ? sorted.reverse() : sorted;
   }
 }

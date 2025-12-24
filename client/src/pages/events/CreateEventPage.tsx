@@ -16,7 +16,7 @@ export function CreateEventPage() {
   const createEvent = useCreateEvent();
 
   const handleBack = () => {
-    navigate('/dashboard/events');
+    navigate('/dashboard');
   };
 
   const handleSubmit = async (data: CreateEventRequest | UpdateEventRequest) => {
@@ -38,7 +38,7 @@ export function CreateEventPage() {
       <div className="mb-6">
         <Button onClick={handleBack} variant="outline" size="sm">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to My Events
+          Back to Dashboard
         </Button>
       </div>
 

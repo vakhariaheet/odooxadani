@@ -5,11 +5,17 @@
 
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '../../components/ui/button';
 import { EventList } from '../../components/events/EventList';
 
 export function MyEventsPage() {
   const navigate = useNavigate();
   const { user } = useUser();
+
+  const handleBackToDashboard = () => {
+    navigate('/dashboard');
+  };
 
   const handleCreateEvent = () => {
     navigate('/dashboard/events/create');
@@ -25,6 +31,14 @@ export function MyEventsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Back to Dashboard Button */}
+      <div className="mb-6">
+        <Button onClick={handleBackToDashboard} variant="outline" size="sm">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
+      </div>
+
       <EventList
         title="My Events"
         showFilters={true}
