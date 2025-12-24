@@ -1,0 +1,37 @@
+confirmBooking:
+  handler: src/modules/bookings/handlers/confirmBooking.handler
+  events:
+    - httpApi:
+        path: /api/bookings/{id}/confirm
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Bookings
+        summary: Confirm booking
+        description: Confirms a pending booking (venue owner action)
+        pathParameters:
+          id:
+            type: string
+            description: Booking ID
+            required: true
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Booking confirmed successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Booking'
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized
+          - statusCode: 404
+            responseBody:
+              description: Booking not found
+          - statusCode: 400
+            responseBody:
+              description: Bad request - booking cannot be confirmed

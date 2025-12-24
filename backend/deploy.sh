@@ -188,8 +188,8 @@ if [[ -n "$CI" || -n "$GITHUB_ACTIONS" ]]; then
     echo -e "${GREEN}✓ Credentials verified: $(echo "$CALLER_IDENTITY" | jq -r '.Arn')${NC}"
 else
     # Local development - assume DevRole
-    AWS_PROFILE=${AWS_PROFILE:-heetvakharia}
-    echo -e "${GREEN}✓ Using AWS Profile: $AWS_PROFILE${NC}"
+    PROFILE=${PROFILE:-heetvakharia}
+    echo -e "${GREEN}✓ Using AWS Profile: $PROFILE${NC}"
 
     # Assume DevRole for deployment
     echo -e "${BLUE}🔐 Assuming DevRole...${NC}"
@@ -199,7 +199,7 @@ else
     ASSUME_ROLE_OUTPUT=$(aws sts assume-role \
         --role-arn "$DEV_ROLE_ARN" \
         --role-session-name "serverless-deploy-$STAGE-$(date +%s)" \
-        --profile "$AWS_PROFILE" \
+        --profile "$PROFILE" \
         --output json 2>&1)
 
     if [[ $? -ne 0 ]]; then
@@ -212,8 +212,8 @@ else
     export AWS_SECRET_ACCESS_KEY=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SecretAccessKey')
     export AWS_SESSION_TOKEN=$(echo "$ASSUME_ROLE_OUTPUT" | jq -r '.Credentials.SessionToken')
 
-    # Unset AWS_PROFILE to ensure we use the exported credentials
-    unset AWS_PROFILE
+    # Unset PROFILE to ensure we use the exported credentials
+    unset PROFILE
 
     if [[ -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" || -z "$AWS_SESSION_TOKEN" ]]; then
         echo -e "${RED}❌ Failed to parse assumed role credentials${NC}"

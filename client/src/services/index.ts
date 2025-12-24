@@ -1,8 +1,9 @@
 // Export all services
-export { apiClient } from './apiClient'
-export type { ApiClient } from './apiClient'
-export { StorageService, SessionStorageService } from './storage'
-export { usersApi, authApi } from './usersApi'
+export { apiClient } from './apiClient';
+export type { ApiClient } from './apiClient';
+export { StorageService, SessionStorageService } from './storage';
+export { usersApi, authApi } from './usersApi';
+export { bookingsApi } from './bookingsApi';
 export type {
   User,
   UserRole,
@@ -17,4 +18,12 @@ export type {
   BanUserResponse,
   DeleteUserResponse,
   WhoAmIResponse,
-} from './usersApi'
+} from './usersApi';
+export type {
+  Booking,
+  CreateBookingRequest,
+  UpdateBookingRequest,
+  ListBookingsQuery,
+  BookingListResponse,
+  ContactInfo,
+} from './bookingsApi';

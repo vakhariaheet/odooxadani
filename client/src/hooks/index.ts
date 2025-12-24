@@ -24,3 +24,15 @@ export {
   userKeys,
   authKeys,
 } from './useUsers';
+
+// Booking API hooks
+export {
+  useBookings,
+  useBooking,
+  useCreateBooking,
+  useUpdateBooking,
+  useCancelBooking,
+  useConfirmBooking,
+  useBookingStats,
+  bookingKeys,
+} from './useBookings';

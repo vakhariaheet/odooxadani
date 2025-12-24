@@ -1,0 +1,97 @@
+createBooking:
+  handler: src/modules/bookings/handlers/createBooking.handler
+  events:
+    - httpApi:
+        path: /api/bookings
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Bookings
+        summary: Create a new booking
+        description: Creates a new booking with conflict checking and payment processing
+        requestBody:
+          description: Booking creation data
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - bookingType
+                  - startDate
+                  - endDate
+                  - startTime
+                  - endTime
+                  - attendeeCount
+                  - contactInfo
+                properties:
+                  venueId:
+                    type: string
+                    description: Venue ID (required for venue bookings)
+                  eventId:
+                    type: string
+                    description: Event ID (required for event bookings)
+                  bookingType:
+                    type: string
+                    enum: [venue, event]
+                    description: Type of booking
+                  startDate:
+                    type: string
+                    format: date
+                    description: Start date (YYYY-MM-DD)
+                  endDate:
+                    type: string
+                    format: date
+                    description: End date (YYYY-MM-DD)
+                  startTime:
+                    type: string
+                    pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+                    description: Start time (HH:mm)
+                  endTime:
+                    type: string
+                    pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+                    description: End time (HH:mm)
+                  attendeeCount:
+                    type: integer
+                    minimum: 1
+                    description: Number of attendees
+                  specialRequests:
+                    type: string
+                    description: Special requests or notes
+                  contactInfo:
+                    type: object
+                    required:
+                      - name
+                      - email
+                    properties:
+                      name:
+                        type: string
+                        description: Contact person name
+                      email:
+                        type: string
+                        format: email
+                        description: Contact email
+                      phone:
+                        type: string
+                        description: Contact phone number
+        methodResponses:
+          - statusCode: 201
+            responseBody:
+              description: Booking created successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Booking'
+          - statusCode: 400
+            responseBody:
+              description: Bad request - validation error
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized
+          - statusCode: 409
+            responseBody:
+              description: Conflict - time slot not available

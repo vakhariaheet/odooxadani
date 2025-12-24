@@ -1,0 +1,84 @@
+updateBooking:
+  handler: src/modules/bookings/handlers/updateBooking.handler
+  events:
+    - httpApi:
+        path: /api/bookings/{id}
+        method: PUT
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Bookings
+        summary: Update booking
+        description: Updates a booking (only pending bookings can be updated)
+        pathParameters:
+          id:
+            type: string
+            description: Booking ID
+            required: true
+        requestBody:
+          description: Booking update data
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  startDate:
+                    type: string
+                    format: date
+                    description: New start date (YYYY-MM-DD)
+                  endDate:
+                    type: string
+                    format: date
+                    description: New end date (YYYY-MM-DD)
+                  startTime:
+                    type: string
+                    pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+                    description: New start time (HH:mm)
+                  endTime:
+                    type: string
+                    pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$'
+                    description: New end time (HH:mm)
+                  attendeeCount:
+                    type: integer
+                    minimum: 1
+                    description: New attendee count
+                  specialRequests:
+                    type: string
+                    description: Updated special requests
+                  contactInfo:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Contact person name
+                      email:
+                        type: string
+                        format: email
+                        description: Contact email
+                      phone:
+                        type: string
+                        description: Contact phone number
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Booking updated successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Booking'
+          - statusCode: 400
+            responseBody:
+              description: Bad request - validation error
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized
+          - statusCode: 404
+            responseBody:
+              description: Booking not found
+          - statusCode: 409
+            responseBody:
+              description: Conflict - updated time slot not available

@@ -79,7 +79,7 @@ class DevOpsScript {
     return {
       epicBranch: process.env.EPIC_BRANCH || 'main',
       stage: process.env.SERVERLESS_STAGE || 'dev',
-      awsProfile: process.env.AWS_PROFILE || 'default',
+      awsProfile: process.env.PROFILE || 'default',
       gitRoot,
       backendPath: join(gitRoot, 'backend'),
       modulesPath: join(gitRoot, 'backend', 'src', 'modules'),
@@ -684,10 +684,10 @@ class DevOpsScript {
     log.step(`Using AWS Profile: ${this.config.awsProfile}`);
 
     try {
-      // Set AWS_PROFILE environment variable for the deployment
+      // Set PROFILE environment variable for the deployment
       const deployEnv = {
         ...process.env,
-        AWS_PROFILE: this.config.awsProfile,
+        PROFILE: this.config.awsProfile,
       };
 
       // Use spawn for real-time output with AWS profile

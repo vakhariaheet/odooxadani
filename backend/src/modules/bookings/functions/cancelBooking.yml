@@ -1,0 +1,37 @@
+cancelBooking:
+  handler: src/modules/bookings/handlers/cancelBooking.handler
+  events:
+    - httpApi:
+        path: /api/bookings/{id}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Bookings
+        summary: Cancel booking
+        description: Cancels a booking and processes refund if applicable
+        pathParameters:
+          id:
+            type: string
+            description: Booking ID
+            required: true
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Booking cancelled successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Booking'
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized
+          - statusCode: 404
+            responseBody:
+              description: Booking not found
+          - statusCode: 400
+            responseBody:
+              description: Bad request - booking cannot be cancelled

@@ -1,0 +1,34 @@
+getBooking:
+  handler: src/modules/bookings/handlers/getBooking.handler
+  events:
+    - httpApi:
+        path: /api/bookings/{id}
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Bookings
+        summary: Get booking details
+        description: Returns details of a specific booking (user can only access their own bookings)
+        pathParameters:
+          id:
+            type: string
+            description: Booking ID
+            required: true
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Booking details
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Booking'
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized
+          - statusCode: 404
+            responseBody:
+              description: Booking not found
