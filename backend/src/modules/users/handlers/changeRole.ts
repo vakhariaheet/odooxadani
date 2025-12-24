@@ -1,9 +1,9 @@
-import { APIGatewayProxyResultV2 } from "aws-lambda";
-import { ClerkUserService } from "../services/ClerkUserService";
-import { ChangeRoleRequest, UserRole } from "../types";
-import { successResponse, handleAsyncError, commonErrors } from "../../../shared/response";
-import { AuthenticatedAPIGatewayEvent, getAuthContext } from "../../../shared/types";
-import { withRbac } from "../../../shared/auth/rbacMiddleware";
+import { APIGatewayProxyResultV2 } from 'aws-lambda';
+import { ClerkUserService } from '../services/ClerkUserService';
+import { ChangeRoleRequest, getAvailableRoles } from '../types';
+import { successResponse, handleAsyncError, commonErrors } from '../../../shared/response';
+import { AuthenticatedAPIGatewayEvent, getAuthContext } from '../../../shared/types';
+import { withRbac } from '../../../shared/auth/rbacMiddleware';
 
 const userService = new ClerkUserService();
 
@@ -16,26 +16,28 @@ const baseHandler = async (
   try {
     const userId = event.pathParameters?.['userId'];
     if (!userId) {
-      return commonErrors.badRequest("User ID is required");
+      return commonErrors.badRequest('User ID is required');
     }
 
     if (!event.body) {
-      return commonErrors.badRequest("Request body is required");
+      return commonErrors.badRequest('Request body is required');
     }
 
     let roleData: ChangeRoleRequest;
     try {
       roleData = JSON.parse(event.body);
     } catch {
-      return commonErrors.badRequest("Invalid JSON in request body");
+      return commonErrors.badRequest('Invalid JSON in request body');
     }
 
     if (!roleData.role) {
-      return commonErrors.badRequest("Role is required");
+      return commonErrors.badRequest('Role is required');
     }
 
-    if (!Object.values(UserRole).includes(roleData.role)) {
-      return commonErrors.badRequest(`Invalid role. Must be one of: ${Object.values(UserRole).join(', ')}`);
+    // Validate role against available roles from permissions config
+    const availableRoles = getAvailableRoles();
+    if (!availableRoles.includes(roleData.role)) {
+      return commonErrors.badRequest(`Invalid role. Must be one of: ${availableRoles.join(', ')}`);
     }
 
     const { userId: adminUserId } = getAuthContext(event);
@@ -50,7 +52,7 @@ const baseHandler = async (
 /**
  * Change user role handler - Admin only
  * Updates a user's role via Clerk publicMetadata
- * 
+ *
  * @route PUT /api/admin/users/{userId}/role
  */
 export const handler = withRbac(baseHandler, 'users', 'update');

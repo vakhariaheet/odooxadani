@@ -107,9 +107,10 @@ function AdminDashboardContent() {
   const resendInvitationMutation = useResendInvitation();
 
   const handleChangeRole = (userId: string, role: UserRole) => {
-    // Validate role before making the request
-    if (!['admin', 'user'].includes(role)) {
-      toast.error(`Invalid role: ${role}. Must be 'admin' or 'user'.`);
+    // Get available roles from permissions data for validation
+    const availableRoles = permissionsData?.data?.roles || ['user', 'admin'];
+    if (!availableRoles.includes(role)) {
+      toast.error(`Invalid role: ${role}. Must be one of: ${availableRoles.join(', ')}`);
       return;
     }
 

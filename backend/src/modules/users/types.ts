@@ -2,6 +2,8 @@
 // USER TYPES - Admin Management Module (Clerk-based)
 // =============================================================================
 
+import { Role } from '../../config/permissions';
+
 // -----------------------------------------------------------------------------
 // Clerk User (simplified view for admin)
 // -----------------------------------------------------------------------------
@@ -11,7 +13,7 @@ export interface UserResponse {
   firstName: string | null;
   lastName: string | null;
   profileImageUrl: string;
-  role: UserRole;
+  role: Role;
   banned: boolean;
   createdAt: number;
   updatedAt: number;
@@ -19,12 +21,9 @@ export interface UserResponse {
 }
 
 // -----------------------------------------------------------------------------
-// Enums
+// Role Type (Dynamic from permissions config)
 // -----------------------------------------------------------------------------
-export enum UserRole {
-  ADMIN = 'admin',
-  USER = 'user',
-}
+export type UserRole = Role;
 
 // -----------------------------------------------------------------------------
 // Admin Request Types
@@ -33,13 +32,13 @@ export enum UserRole {
 /** POST /api/admin/users/invite */
 export interface InviteUserRequest {
   email: string;
-  role?: UserRole;
+  role?: Role;
   redirectUrl?: string;
 }
 
 /** PUT /api/admin/users/{userId}/role */
 export interface ChangeRoleRequest {
-  role: UserRole;
+  role: Role;
 }
 
 /** POST /api/admin/users/{userId}/ban */
@@ -70,7 +69,7 @@ export interface AdminStatsResponse {
   totalUsers: number;
   activeUsers: number;
   bannedUsers: number;
-  usersByRole: Record<UserRole, number>;
+  usersByRole: Record<Role, number>;
 }
 
 // -----------------------------------------------------------------------------
@@ -83,7 +82,7 @@ export interface InvitationResponse {
   emailAddress: string;
   status: 'pending' | 'accepted' | 'revoked';
   publicMetadata: {
-    role?: UserRole;
+    role?: Role;
   };
   createdAt: number;
   updatedAt: number;
@@ -94,3 +93,13 @@ export interface ListInvitationsResponse {
   invitations: InvitationResponse[];
   totalCount: number;
 }
+
+// -----------------------------------------------------------------------------
+// Helper Functions
+// -----------------------------------------------------------------------------
+
+/**
+ * Get all available roles from the permissions configuration
+ * This ensures the frontend always has the latest role definitions
+ */
+export { getAvailableRoles } from '../../config/permissions';
