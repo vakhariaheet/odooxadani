@@ -495,6 +495,14 @@ class DevOpsScript {
     // Get current branch
     const currentBranch = await this.execCommand('git branch --show-current');
 
+    // Fetch and pull latest changes from epic branch
+    log.step(`Fetching latest changes from origin...`);
+    await this.execCommand('git fetch origin');
+
+    log.step(`Pulling latest changes from ${this.config.epicBranch}...`);
+    await this.execCommand(`git pull origin ${this.config.epicBranch}:${this.config.epicBranch}`);
+    log.success(`Successfully updated local ${this.config.epicBranch} branch`);
+
     // Rebase from epic branch
     log.step(`Rebasing from ${this.config.epicBranch}...`);
     try {
