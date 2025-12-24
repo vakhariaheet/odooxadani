@@ -205,7 +205,7 @@ export function EventDetails({
                 <div>
                   <p className="font-medium">Price</p>
                   <p className="text-2xl font-bold text-black">
-                    {formatEventPrice(event.price, event.currency)}
+                    {formatEventPrice(event.price, event.currency || 'USD')}
                   </p>
                 </div>
               </div>

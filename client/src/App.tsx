@@ -24,6 +24,10 @@ import { EventDetailsPage } from './pages/events/EventDetailsPage';
 import { MyEventsPage } from './pages/events/MyEventsPage';
 import { CreateEventPage } from './pages/events/CreateEventPage';
 import { EditEventPage } from './pages/events/EditEventPage';
+import { EventSearchPage } from './pages/events/EventSearchPage';
+import { EventCategoryPage } from './pages/events/EventCategoryPage';
+import { RecommendedEventsPage } from './pages/events/RecommendedEventsPage';
+import { PopularEventsPage } from './pages/events/PopularEventsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import './App.css';
 
@@ -187,6 +191,17 @@ function App() {
         />
         {/* Event Routes */}
         <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/search" element={<EventSearchPage />} />
+        <Route path="/events/category/:category" element={<EventCategoryPage />} />
+        <Route
+          path="/events/recommended"
+          element={
+            <ProtectedRoute>
+              <RecommendedEventsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/events/popular" element={<PopularEventsPage />} />
         <Route path="/events/:id" element={<EventDetailsPage />} />
         <Route
           path="/dashboard/events"

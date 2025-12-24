@@ -21,7 +21,7 @@ export function EditEventPage() {
   const event = eventData?.data;
 
   const handleBack = () => {
-    navigate(`/events/${id}`);
+    navigate('/dashboard');
   };
 
   const handleSubmit = async (data: UpdateEventRequest) => {
@@ -44,9 +44,9 @@ export function EditEventPage() {
           <p className="text-gray-600 mb-6">
             The event you're trying to edit doesn't exist or you don't have permission to edit it.
           </p>
-          <Button onClick={() => navigate('/dashboard/events')} variant="outline">
+          <Button onClick={() => navigate('/dashboard')} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to My Events
+            Back to Dashboard
           </Button>
         </div>
       </div>
@@ -69,7 +69,7 @@ export function EditEventPage() {
       <div className="mb-6">
         <Button onClick={handleBack} variant="outline" size="sm">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Event
+          Back to Dashboard
         </Button>
       </div>
 

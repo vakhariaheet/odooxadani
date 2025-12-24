@@ -1,0 +1,38 @@
+getPopularEvents:
+  handler: src/modules/events/handlers/getPopularEvents.handler
+  events:
+    - httpApi:
+        path: /api/events/popular
+        method: GET
+        swaggerTags:
+          - Events
+        summary: GET /api/events/popular
+        description: Get popular/trending events within specified timeframe
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Popular events list
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: array
+                        items:
+                          type: object
+                          description: Event object
+                      timeframe:
+                        type: string
+                        enum: [week, month]
+                      totalCount:
+                        type: number
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid timeframe parameter
+          - statusCode: 500
+            responseBody:
+              description: Internal Server Error

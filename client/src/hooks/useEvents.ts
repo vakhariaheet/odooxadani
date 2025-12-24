@@ -11,6 +11,7 @@ import type {
   UpdateEventRequest,
   EventListQuery,
   EventListResponse,
+  EventSearchQuery,
 } from '../types/event';
 
 // =============================================================================
@@ -292,5 +293,69 @@ export function useCompleteEvent() {
       // Trigger the update event success logic
       updateEvent.mutate({ eventId, data: { status: 'completed' } });
     },
+  });
+}
+
+// =============================================================================
+// M05: ENHANCED DISCOVERY HOOKS
+// =============================================================================
+
+/**
+ * Enhanced query keys for discovery features
+ */
+export const discoveryKeys = {
+  search: (query: EventSearchQuery) => ['events', 'search', query] as const,
+  category: (category: string, limit?: number) => ['events', 'category', category, limit] as const,
+  recommended: (limit?: number) => ['events', 'recommended', limit] as const,
+  popular: (timeframe?: string, limit?: number) => ['events', 'popular', timeframe, limit] as const,
+};
+
+/**
+ * Hook for advanced event search
+ */
+export function useEventSearch(query: EventSearchQuery, enabled = true) {
+  return useQuery({
+    queryKey: discoveryKeys.search(query),
+    queryFn: () => eventsApi.searchEvents(query),
+    enabled: enabled && (!!query.query || !!query.category || !!query.city),
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Hook to get events by category
+ */
+export function useEventsByCategory(category: string, limit?: number, enabled = true) {
+  return useQuery({
+    queryKey: discoveryKeys.category(category, limit),
+    queryFn: () => eventsApi.getEventsByCategory(category, limit),
+    enabled: enabled && !!category,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Hook to get personalized event recommendations
+ */
+export function useRecommendedEvents(limit?: number, enabled = true) {
+  const { user } = useUser();
+
+  return useQuery({
+    queryKey: discoveryKeys.recommended(limit),
+    queryFn: () => eventsApi.getRecommendedEvents(limit),
+    enabled: enabled && !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Hook to get popular/trending events
+ */
+export function usePopularEvents(timeframe?: 'week' | 'month', limit?: number, enabled = true) {
+  return useQuery({
+    queryKey: discoveryKeys.popular(timeframe, limit),
+    queryFn: () => eventsApi.getPopularEvents(timeframe, limit),
+    enabled,
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }

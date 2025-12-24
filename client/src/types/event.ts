@@ -184,6 +184,99 @@ export interface EventFilters {
 }
 
 // =============================================================================
+// M05: ENHANCED DISCOVERY TYPES
+// =============================================================================
+
+export interface EventSearchQuery {
+  query?: string; // Full-text search query
+  category?: EventCategory;
+  city?: string;
+  location?: {
+    lat: number;
+    lng: number;
+    radius?: number; // in kilometers
+  };
+  priceRange?: {
+    min?: number;
+    max?: number;
+  };
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+  };
+  tags?: string[];
+  sortBy?: 'relevance' | 'date' | 'popularity' | 'price';
+  sortOrder?: 'asc' | 'desc';
+  limit?: number;
+  offset?: number;
+}
+
+export interface EnhancedEventFilters {
+  categories?: EventCategory[];
+  cities?: string[];
+  priceRange?: {
+    min?: number;
+    max?: number;
+  };
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+  };
+  location?: {
+    lat: number;
+    lng: number;
+    radius: number;
+  };
+}
+
+export interface RecommendationRequest {
+  userId: string;
+  limit?: number;
+  categories?: EventCategory[];
+  location?: {
+    lat: number;
+    lng: number;
+    radius?: number;
+  };
+}
+
+export interface PopularEventsResponse {
+  success: boolean;
+  data: {
+    events: Event[];
+    timeframe: 'week' | 'month';
+    totalCount: number;
+  };
+}
+
+export interface CategoryEventsResponse {
+  success: boolean;
+  data: {
+    events: Event[];
+    category: EventCategory;
+    totalCount: number;
+  };
+}
+
+export interface RecommendedEventsResponse {
+  success: boolean;
+  data: {
+    events: Event[];
+    userId: string;
+    totalCount: number;
+  };
+}
+
+export interface EventSearchResponse {
+  success: boolean;
+  data: {
+    events: Event[];
+    totalCount: number;
+    hasMore: boolean;
+  };
+}
+
+// =============================================================================
 // API ERROR TYPE
 // =============================================================================
 
