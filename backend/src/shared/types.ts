@@ -86,8 +86,21 @@ export const getAuthContext = (event: AuthenticatedAPIGatewayEvent): Authenticat
   // Extract role: check multiple possible locations
   // 1. Direct 'role' claim (recommended)
   // 2. Nested in 'metadata.role' (Clerk's default metadata structure)
-  // 3. Default to 'user' if not found
-  const role = claims.role || claims.metadata?.role || 'user';
+  // 3. Nested in 'public_metadata.role'
+  // 4. Default to 'user' if not found
+  const role = claims.role || 
+               claims.metadata?.role || 
+               claims.public_metadata?.role ||
+               (claims as any).publicMetadata?.role ||
+               'user';
+
+  console.log(`[AUTH-DEBUG] Extracting role from claims:`, {
+    'claims.role': claims.role,
+    'claims.metadata?.role': claims.metadata?.role,
+    'claims.public_metadata?.role': (claims as any).public_metadata?.role,
+    'claims.publicMetadata?.role': (claims as any).publicMetadata?.role,
+    'final_role': role
+  });
 
   return {
     userId,

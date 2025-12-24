@@ -1,0 +1,28 @@
+createVenue:
+  handler: src/modules/venues/handlers/createVenue.handler
+  events:
+    - httpApi:
+        path: /api/venues
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Venues
+        summary: POST /api/venues
+        description: Create a new venue (venue owners and admins only)
+        methodResponses:
+          - statusCode: 201
+            responseBody:
+              description: Created - Venue created successfully
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid input data
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
+          - statusCode: 422
+            responseBody:
+              description: Validation Error - Invalid venue data
