@@ -12,31 +12,59 @@ import { AccessControl } from 'accesscontrol';
  * - *Any: Can perform action on any resource
  */
 
-// Define module access permissions for the 'user' role
-// This makes it easy to see at a glance what each role can do per module
-const USER_MODULE_ACCESS: Record<string, { any: string[]; own: string[] }> = {
-  users: {
-    any: [], // Cannot list all users or access other profiles
-    own: ['read', 'update'], // Can read and update own profile only
+// Define module access permissions for each role
+const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
+  user: {
+    users: { any: [], own: ['read', 'update'] },
+    demo: { any: ['read'], own: [] },
+    websocket: { any: ['read', 'update'], own: [] },
+    events: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
+    venues: { any: ['read'], own: [] },
+    bookings: { any: [], own: ['create', 'read', 'update', 'delete'] },
+    landing: { any: ['read'], own: [] },
   },
-  demo: {
-    any: ['read'], // Can access demo endpoints (for testing)
-    own: [],
+  venue_owner: {
+    users: { any: [], own: ['read', 'update'] },
+    demo: { any: ['read'], own: [] },
+    websocket: { any: ['read', 'update'], own: [] },
+    events: { any: ['read'], own: [] },
+    venues: { any: [], own: ['create', 'read', 'update', 'delete'] },
+    bookings: { any: ['read', 'update'], own: [] },
+    landing: { any: ['read'], own: [] },
+    analytics: { any: [], own: ['read'] },
   },
-  websocket: {
-    any: ['read', 'update'], // Can connect and send messages via WebSocket
-    own: [],
+  event_organizer: {
+    users: { any: [], own: ['read', 'update'] },
+    demo: { any: ['read'], own: [] },
+    websocket: { any: ['read', 'update'], own: [] },
+    events: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
+    venues: { any: ['read'], own: [] },
+    bookings: { any: [], own: ['create', 'read', 'update', 'delete'] },
+    landing: { any: ['read'], own: [] },
   },
 };
 
 // All available modules in the system (used for admin grants)
-const ALL_MODULES = ['users', 'demo', 'admin', 'websocket'];
+const ALL_MODULES = [
+  'users',
+  'demo',
+  'admin',
+  'websocket',
+  'events',
+  'venues',
+  'bookings',
+  'landing',
+  'analytics',
+];
 
 // All CRUD actions
 const ALL_ACTIONS = ['create', 'read', 'update', 'delete'] as const;
 
-const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
-  user: USER_MODULE_ACCESS,
+const ROLE_MODULE_ACCESS_WITH_ADMIN: Record<
+  string,
+  Record<string, { any: string[]; own: string[] }>
+> = {
+  ...ROLE_MODULE_ACCESS,
   admin: ALL_MODULES.reduce(
     (modules, moduleName) => {
       modules[moduleName] = { any: [...ALL_ACTIONS], own: [] };
@@ -52,7 +80,7 @@ const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: st
 const createAccessControl = (): AccessControl => {
   const ac = new AccessControl();
 
-  Object.entries(ROLE_MODULE_ACCESS).forEach(([role, modules]) => {
+  Object.entries(ROLE_MODULE_ACCESS_WITH_ADMIN).forEach(([role, modules]) => {
     Object.entries(modules).forEach(([moduleName, permissions]) => {
       permissions.any.forEach((action) => {
         const grantMethod = `${action}Any` as 'createAny' | 'readAny' | 'updateAny' | 'deleteAny';
@@ -73,7 +101,7 @@ const createAccessControl = (): AccessControl => {
 export const ac = createAccessControl();
 
 // Export helper types
-export type Role = keyof typeof ROLE_MODULE_ACCESS;
+export type Role = keyof typeof ROLE_MODULE_ACCESS_WITH_ADMIN;
 export type Action = (typeof ALL_ACTIONS)[number];
 export type ModuleName = (typeof ALL_MODULES)[number];
 
@@ -81,7 +109,7 @@ export type ModuleName = (typeof ALL_MODULES)[number];
  * Get all available roles in the system
  */
 export const getAvailableRoles = (): string[] => {
-  return Object.keys(ROLE_MODULE_ACCESS);
+  return Object.keys(ROLE_MODULE_ACCESS_WITH_ADMIN);
 };
 
 /**
