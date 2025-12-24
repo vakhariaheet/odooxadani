@@ -1,0 +1,37 @@
+searchEvents:
+  handler: src/modules/events/handlers/searchEvents.handler
+  events:
+    - httpApi:
+        path: /api/events/search
+        method: GET
+        swaggerTags:
+          - Events
+        summary: GET /api/events/search
+        description: Advanced event search with multiple filters
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Search results with filtered events
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: array
+                        items:
+                          type: object
+                          description: Event object
+                      totalCount:
+                        type: number
+                      hasMore:
+                        type: boolean
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid search parameters
+          - statusCode: 500
+            responseBody:
+              description: Internal Server Error

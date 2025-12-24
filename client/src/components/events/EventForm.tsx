@@ -56,7 +56,7 @@ export function EventForm({ event, onSubmit, onCancel, isLoading = false, mode }
         city: event.location.city,
         maxAttendees: event.maxAttendees,
         price: event.price,
-        currency: event.currency,
+        currency: event.currency || 'USD',
       });
     }
   }, [event, mode]);

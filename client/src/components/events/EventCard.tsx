@@ -96,7 +96,7 @@ export function EventCard({
 
             <div className="flex items-center font-semibold">
               <DollarSign className="h-4 w-4 mr-1" />
-              <span>{formatEventPrice(event.price, event.currency)}</span>
+              <span>{formatEventPrice(event.price, event.currency || 'USD')}</span>
             </div>
           </div>
         </div>

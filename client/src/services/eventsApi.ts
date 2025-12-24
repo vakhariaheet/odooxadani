@@ -13,6 +13,11 @@ import type {
   CreateEventResponse,
   UpdateEventResponse,
   DeleteEventResponse,
+  EventSearchQuery,
+  EventSearchResponse,
+  PopularEventsResponse,
+  CategoryEventsResponse,
+  RecommendedEventsResponse,
 } from '../types/event';
 
 // =============================================================================
@@ -100,6 +105,107 @@ export const eventsApi = {
   async completeEvent(eventId: string): Promise<UpdateEventResponse> {
     return this.updateEvent(eventId, { status: 'completed' });
   },
+
+  // =============================================================================
+  // M05: ENHANCED DISCOVERY API METHODS
+  // =============================================================================
+
+  /**
+   * Advanced event search with multiple filters
+   */
+  async searchEvents(query: EventSearchQuery): Promise<EventSearchResponse> {
+    const params = new URLSearchParams();
+
+    if (query.query) params.append('q', query.query);
+    if (query.category) params.append('category', query.category);
+    if (query.city) params.append('city', query.city);
+
+    // Location filter
+    if (query.location) {
+      params.append('lat', query.location.lat.toString());
+      params.append('lng', query.location.lng.toString());
+      if (query.location.radius) params.append('radius', query.location.radius.toString());
+    }
+
+    // Price range filter
+    if (query.priceRange) {
+      if (query.priceRange.min !== undefined)
+        params.append('minPrice', query.priceRange.min.toString());
+      if (query.priceRange.max !== undefined)
+        params.append('maxPrice', query.priceRange.max.toString());
+    }
+
+    // Date range filter
+    if (query.dateRange) {
+      if (query.dateRange.startDate) params.append('startDate', query.dateRange.startDate);
+      if (query.dateRange.endDate) params.append('endDate', query.dateRange.endDate);
+    }
+
+    // Tags filter
+    if (query.tags && query.tags.length > 0) {
+      params.append('tags', query.tags.join(','));
+    }
+
+    // Sorting
+    if (query.sortBy) params.append('sortBy', query.sortBy);
+    if (query.sortOrder) params.append('sortOrder', query.sortOrder);
+
+    // Pagination
+    if (query.limit) params.append('limit', query.limit.toString());
+    if (query.offset) params.append('offset', query.offset.toString());
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `/api/events/search?${queryString}` : '/api/events/search';
+
+    return apiClient.get<EventSearchResponse>(endpoint);
+  },
+
+  /**
+   * Get events by category
+   */
+  async getEventsByCategory(category: string, limit?: number): Promise<CategoryEventsResponse> {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+
+    const queryString = params.toString();
+    const endpoint = queryString
+      ? `/api/events/category/${category}?${queryString}`
+      : `/api/events/category/${category}`;
+
+    return apiClient.get<CategoryEventsResponse>(endpoint);
+  },
+
+  /**
+   * Get personalized event recommendations (requires authentication)
+   */
+  async getRecommendedEvents(limit?: number): Promise<RecommendedEventsResponse> {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+
+    const queryString = params.toString();
+    const endpoint = queryString
+      ? `/api/events/recommended?${queryString}`
+      : '/api/events/recommended';
+
+    return apiClient.get<RecommendedEventsResponse>(endpoint, true);
+  },
+
+  /**
+   * Get popular/trending events
+   */
+  async getPopularEvents(
+    timeframe?: 'week' | 'month',
+    limit?: number
+  ): Promise<PopularEventsResponse> {
+    const params = new URLSearchParams();
+    if (timeframe) params.append('timeframe', timeframe);
+    if (limit) params.append('limit', limit.toString());
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `/api/events/popular?${queryString}` : '/api/events/popular';
+
+    return apiClient.get<PopularEventsResponse>(endpoint);
+  },
 };
 
 // =============================================================================
@@ -156,10 +262,55 @@ export function formatEventPrice(price: number, currency: string = 'USD'): strin
     return 'Free';
   }
 
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency,
-  }).format(price);
+  // Validate and sanitize currency code
+  let validCurrency = 'USD'; // Default fallback
+
+  if (currency && typeof currency === 'string') {
+    // Clean the currency code (remove whitespace, convert to uppercase)
+    const cleanCurrency = currency.trim().toUpperCase();
+
+    // List of common valid currency codes
+    const validCurrencies = [
+      'USD',
+      'EUR',
+      'GBP',
+      'JPY',
+      'AUD',
+      'CAD',
+      'CHF',
+      'CNY',
+      'SEK',
+      'NZD',
+      'MXN',
+      'SGD',
+      'HKD',
+      'NOK',
+      'TRY',
+      'RUB',
+      'INR',
+      'BRL',
+      'ZAR',
+      'KRW',
+    ];
+
+    if (validCurrencies.includes(cleanCurrency)) {
+      validCurrency = cleanCurrency;
+    }
+  }
+
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: validCurrency,
+    }).format(price);
+  } catch (error) {
+    // Fallback if currency formatting fails
+    console.warn(`Invalid currency code: ${currency}, falling back to USD`);
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(price);
+  }
 }
 
 /**

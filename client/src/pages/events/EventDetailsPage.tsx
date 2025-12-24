@@ -24,7 +24,11 @@ export function EventDetailsPage() {
   const isOwner = !!(event && user && event.organizerId === user.id);
 
   const handleBack = () => {
-    navigate(-1);
+    if (isOwner) {
+      navigate('/dashboard');
+    } else {
+      navigate(-1);
+    }
   };
 
   const handleEdit = () => {
@@ -37,7 +41,7 @@ export function EventDetailsPage() {
     try {
       await deleteEvent.mutateAsync(id);
       toast.success('Event deleted successfully');
-      navigate('/dashboard/events');
+      navigate('/dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Failed to delete event');
     }
@@ -98,9 +102,9 @@ export function EventDetailsPage() {
           <p className="text-gray-600 mb-6">
             The event you're looking for doesn't exist or has been removed.
           </p>
-          <Button onClick={handleBack} variant="outline">
+          <Button onClick={() => navigate('/dashboard')} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Go Back
+            Back to Dashboard
           </Button>
         </div>
       </div>
@@ -113,7 +117,7 @@ export function EventDetailsPage() {
       <div className="mb-6">
         <Button onClick={handleBack} variant="outline" size="sm">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          {isOwner ? 'Back to Dashboard' : 'Back'}
         </Button>
       </div>
 

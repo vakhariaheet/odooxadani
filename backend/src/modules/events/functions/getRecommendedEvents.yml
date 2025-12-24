@@ -1,0 +1,39 @@
+getRecommendedEvents:
+  handler: src/modules/events/handlers/getRecommendedEvents.handler
+  events:
+    - httpApi:
+        path: /api/events/recommended
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Events
+        summary: GET /api/events/recommended
+        description: Get personalized event recommendations for authenticated user
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Personalized event recommendations
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: array
+                        items:
+                          type: object
+                          description: Event object
+                      userId:
+                        type: string
+                      totalCount:
+                        type: number
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Authentication required
+          - statusCode: 500
+            responseBody:
+              description: Internal Server Error
