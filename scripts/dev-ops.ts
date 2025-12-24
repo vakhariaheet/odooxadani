@@ -68,12 +68,26 @@ class DevOpsScript {
     // Find git root
     const gitRoot = this.findGitRoot();
 
-    // Load environment variables
+    // Load environment variables from backend/.env
     const envPath = join(gitRoot, 'backend', '.env');
     if (existsSync(envPath)) {
-      const envContent = readFileSync(envPath, 'utf-8');
-      const envVars = this.parseEnvFile(envContent);
-      process.env = { ...process.env, ...envVars };
+      try {
+        const envContent = readFileSync(envPath, 'utf-8');
+        const envVars = this.parseEnvFile(envContent);
+
+        // Merge with existing process.env, giving priority to existing env vars
+        Object.entries(envVars).forEach(([key, value]) => {
+          if (!process.env[key]) {
+            process.env[key] = value;
+          }
+        });
+
+        log.info(`Loaded environment variables from: ${envPath}`);
+      } catch (error) {
+        log.warning(`Failed to load .env file: ${(error as Error).message}`);
+      }
+    } else {
+      log.warning(`No .env file found at: ${envPath}`);
     }
 
     return {
@@ -88,21 +102,37 @@ class DevOpsScript {
 
   private findGitRoot(): string {
     let currentDir = process.cwd();
-    while (currentDir !== '/') {
+    const root = resolve('/'); // This will be 'C:\' on Windows, '/' on Unix
+
+    while (currentDir !== root) {
       if (existsSync(join(currentDir, '.git'))) {
         return currentDir;
       }
-      currentDir = resolve(currentDir, '..');
+      const parentDir = resolve(currentDir, '..');
+      // Prevent infinite loop if we can't go up further
+      if (parentDir === currentDir) {
+        break;
+      }
+      currentDir = parentDir;
     }
     throw new Error('Not in a git repository');
   }
 
   private parseEnvFile(content: string): Record<string, string> {
     const env: Record<string, string> = {};
-    content.split('\n').forEach((line) => {
-      const match = line.match(/^([^#][^=]*?)=(.*)$/);
+    // Handle both Unix (\n) and Windows (\r\n) line endings
+    content.split(/\r?\n/).forEach((line) => {
+      // Skip empty lines and comments
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith('#')) {
+        return;
+      }
+
+      const match = trimmedLine.match(/^([^=]+?)=(.*)$/);
       if (match) {
-        env[match[1].trim()] = match[2].trim().replace(/^["']|["']$/g, '');
+        const key = match[1].trim();
+        const value = match[2].trim().replace(/^["']|["']$/g, '');
+        env[key] = value;
       }
     });
     return env;
@@ -726,6 +756,22 @@ class DevOpsScript {
     console.log(`  Stage: ${colors.cyan}${this.config.stage}${colors.reset}`);
     console.log(`  AWS Profile: ${colors.cyan}${this.config.awsProfile}${colors.reset}`);
     console.log(`  Git Root: ${colors.cyan}${this.config.gitRoot}${colors.reset}`);
+
+    // Debug info for troubleshooting
+    if (process.env.NODE_ENV === 'development' || process.argv.includes('--debug')) {
+      console.log(`\n${colors.dim}Debug Info:${colors.reset}`);
+      console.log(`  Platform: ${colors.dim}${process.platform}${colors.reset}`);
+      console.log(`  CWD: ${colors.dim}${process.cwd()}${colors.reset}`);
+      console.log(
+        `  EPIC_BRANCH env: ${colors.dim}${process.env.EPIC_BRANCH || 'not set'}${colors.reset}`
+      );
+      console.log(
+        `  SERVERLESS_STAGE env: ${colors.dim}${process.env.SERVERLESS_STAGE || 'not set'}${colors.reset}`
+      );
+      console.log(
+        `  AWS_PROFILE env: ${colors.dim}${process.env.AWS_PROFILE || 'not set'}${colors.reset}`
+      );
+    }
 
     const options = [
       '🆕 New Module Creation',
