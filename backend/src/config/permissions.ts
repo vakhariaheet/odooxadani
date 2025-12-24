@@ -28,7 +28,7 @@ const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: st
     demo: { any: ['read'], own: [] },
     websocket: { any: ['read', 'update'], own: [] },
     events: { any: ['read'], own: [] },
-    venues: { any: [], own: ['create', 'read', 'update', 'delete'] },
+    venues: { any: ['read'], own: ['create', 'update', 'delete'] },
     bookings: { any: ['read', 'update'], own: [] },
     landing: { any: ['read'], own: [] },
     analytics: { any: [], own: ['read'] },

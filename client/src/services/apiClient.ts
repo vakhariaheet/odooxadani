@@ -31,10 +31,16 @@ class ApiClient {
         const token = await this.getToken();
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
+          // Debug: Log token details (first/last 10 chars for security)
+          console.log('🔑 Token attached:', token.substring(0, 10) + '...' + token.substring(token.length - 10));
+        } else {
+          console.warn('⚠️ No token available');
         }
       } catch (error) {
-        console.warn('Failed to get auth token:', error);
+        console.warn('❌ Failed to get auth token:', error);
       }
+    } else {
+      console.warn('⚠️ No auth provider set');
     }
 
     const response = await fetch(url, {

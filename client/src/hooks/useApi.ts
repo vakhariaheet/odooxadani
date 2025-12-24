@@ -30,7 +30,7 @@ export function useApi<T = any>(options: UseApiOptions = {}) {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
-      const token = await getToken()
+      const token = await getToken({template: "rbac"})
       const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`
       
       const response = await fetch(url, {
