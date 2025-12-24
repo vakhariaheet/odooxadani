@@ -1,0 +1,10 @@
+getClientDashboard:
+  handler: src/modules/client-portal/handlers/getClientDashboard.handler
+  events:
+    - httpApi:
+        path: /client/dashboard
+        method: get
+        authorizer:
+          name: clerkJwtAuthorizer
+  timeout: 29
+  memorySize: 256

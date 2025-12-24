@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import { SignedIn, SignedOut, UserButton, useUser, useAuth } from '@clerk/clerk-react';
 import { Toaster } from 'sonner';
@@ -23,6 +24,32 @@ import { ProposalViewPage } from './pages/proposals/ProposalViewPage';
 import { ProposalEditPage } from './pages/proposals/ProposalEditPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import './App.css';
+=======
+import { Routes, Route, Link, Navigate } from 'react-router-dom'
+import { SignedIn, SignedOut, UserButton, useUser, useAuth } from '@clerk/clerk-react'
+import { Toaster } from 'sonner'
+import { SignInPage } from './pages/SignInPage'
+import { SignUpPage } from './pages/SignUpPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { AdminPage } from './pages/AdminPage'
+import { LandingPage } from './pages/LandingPage'
+import { PricingPage } from './pages/PricingPage'
+import { FeaturesPage } from './pages/FeaturesPage'
+import { AboutPage } from './pages/AboutPage'
+import { DemoPage } from './pages/DemoPage'
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage'
+import { TermsOfServicePage } from './pages/TermsOfServicePage'
+import { CookiePolicyPage } from './pages/CookiePolicyPage'
+import { NotFoundPage } from './pages/NotFoundPage'
+import { WebSocketTestPage } from './pages/WebSocketTestPage'
+import { ClientDashboardPage } from './pages/ClientDashboardPage'
+import { ClientProposalsPage } from './pages/ClientProposalsPage'
+import { ClientContractsPage } from './pages/ClientContractsPage'
+import { ClientInvoicesPage } from './pages/ClientInvoicesPage'
+import { ClientProfilePage } from './pages/ClientProfilePage'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import './App.css'
+>>>>>>> Stashed changes
 
 // Component to redirect authenticated users away from auth pages
 function AuthPageWrapper({ children }: { children: React.ReactNode }) {
@@ -75,6 +102,7 @@ function App() {
       </header>
 
       <Routes>
+<<<<<<< Updated upstream
         <Route
           path="/"
           element={
@@ -243,6 +271,76 @@ function App() {
             </ProtectedRoute>
           }
         />
+=======
+        <Route path="/" element={
+          <>
+            <SignedOut>
+              <LandingPage />
+            </SignedOut>
+            <SignedIn>
+              <Navigate to="/dashboard" replace />
+            </SignedIn>
+          </>
+        } />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/demo" element={<DemoPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+        <Route path="/sign-in/*" element={
+          <AuthPageWrapper>
+            <SignInPage />
+          </AuthPageWrapper>
+        } />
+        <Route path="/sign-up/*" element={
+          <AuthPageWrapper>
+            <SignUpPage />
+          </AuthPageWrapper>
+        } />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/websocket-test" element={
+          <ProtectedRoute>
+            <WebSocketTestPage />
+          </ProtectedRoute>
+        } />
+        {/* Client Portal Routes */}
+        <Route path="/client/dashboard" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientDashboardPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/client/proposals" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientProposalsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/client/contracts" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientContractsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/client/invoices" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientInvoicesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/client/profile" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientProfilePage />
+          </ProtectedRoute>
+        } />
+>>>>>>> Stashed changes
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>

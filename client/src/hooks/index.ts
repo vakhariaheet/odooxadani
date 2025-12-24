@@ -22,6 +22,7 @@ export {
   useDeleteUser,
   userKeys,
   authKeys,
+<<<<<<< Updated upstream
 } from './useUsers';
 
 // Contract API hooks
@@ -47,3 +48,18 @@ export {
   useRejectProposal,
   proposalKeys,
 } from './useProposals';
+=======
+} from './useUsers'
+
+// Client Portal hooks
+export {
+  useClientDashboard,
+  useClientProposals,
+  useClientContracts,
+  useClientInvoices,
+  useClientProfile,
+  useUpdateClientProfile,
+  useRefreshClientPortal,
+  clientPortalKeys,
+} from './useClientPortal'
+>>>>>>> Stashed changes

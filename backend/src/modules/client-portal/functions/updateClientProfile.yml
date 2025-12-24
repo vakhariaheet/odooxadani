@@ -1,0 +1,10 @@
+updateClientProfile:
+  handler: src/modules/client-portal/handlers/updateClientProfile.handler
+  events:
+    - httpApi:
+        path: /client/profile
+        method: put
+        authorizer:
+          name: clerkJwtAuthorizer
+  timeout: 29
+  memorySize: 256

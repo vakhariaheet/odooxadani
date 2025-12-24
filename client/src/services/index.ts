@@ -1,9 +1,17 @@
 // Export all services
+<<<<<<< Updated upstream
 export { apiClient } from './apiClient';
 export type { ApiClient } from './apiClient';
 export { StorageService, SessionStorageService } from './storage';
 export { usersApi, authApi } from './usersApi';
 export { contractsApi } from './contractsApi';
+=======
+export { apiClient } from './apiClient'
+export type { ApiClient } from './apiClient'
+export { StorageService, SessionStorageService } from './storage'
+export { usersApi, authApi } from './usersApi'
+export { ClientPortalApi } from './clientPortalApi'
+>>>>>>> Stashed changes
 export type {
   User,
   UserRole,

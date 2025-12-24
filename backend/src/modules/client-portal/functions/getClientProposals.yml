@@ -1,0 +1,10 @@
+getClientProposals:
+  handler: src/modules/client-portal/handlers/getClientProposals.handler
+  events:
+    - httpApi:
+        path: /client/proposals
+        method: get
+        authorizer:
+          name: clerkJwtAuthorizer
+  timeout: 29
+  memorySize: 256

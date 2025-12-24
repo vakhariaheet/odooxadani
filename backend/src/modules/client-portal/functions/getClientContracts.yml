@@ -1,0 +1,10 @@
+getClientContracts:
+  handler: src/modules/client-portal/handlers/getClientContracts.handler
+  events:
+    - httpApi:
+        path: /client/contracts
+        method: get
+        authorizer:
+          name: clerkJwtAuthorizer
+  timeout: 29
+  memorySize: 256

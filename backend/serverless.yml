@@ -2,6 +2,9 @@ service: odoo-xadani-backend
 
 frameworkVersion: '3'
 
+# Configuration validation mode - prepare for v4 behavior
+configValidationMode: error
+
 provider:
   name: aws
   runtime: nodejs20.x
@@ -129,9 +132,8 @@ custom:
     domainName: ${self:custom.domains.${self:provider.stage}}
     # Use regional endpoint for ap-south-1 (edge not supported in all regions)
     endpointType: regional
-    # Certificate ARN (use this instead of certificateName to avoid needing acm:ListCertificates)
-    # Get ARN from AWS Console: ACM → Certificates → Copy ARN
-    certificateArn: ${env:ACM_CERTIFICATE_ARN, ''}
+    # Certificate name (let plugin find the certificate automatically)
+    certificateName: '*.hac.heetvakharia.in'
     # Create Route53 record (set to false since we use Cloudflare)
     createRoute53Record: false
     # For HTTP API (API Gateway v2)
@@ -142,6 +144,12 @@ custom:
     stage: ${self:provider.stage}
     # Enable/disable based on env var
     enabled: ${self:custom.customDomainEnabled}
+    # Base path for API mapping (helps avoid conflicts)
+    basePath: ''
+    # Allow existing mappings to be updated/replaced
+    preserveExternalPathMappings: false
+    # Security policy for the domain
+    securityPolicy: tls_1_2
 
   # Stage-specific settings
   stages:
@@ -255,3 +263,9 @@ functions:
   - ${file(src/modules/proposals/functions/deleteProposal.yml)}
   # WebSocket module
   - ${file(src/modules/websocket/functions/websocket.yml)}
+  # Client Portal module
+  - ${file(src/modules/client-portal/functions/getClientDashboard.yml)}
+  - ${file(src/modules/client-portal/functions/getClientProposals.yml)}
+  - ${file(src/modules/client-portal/functions/getClientContracts.yml)}
+  - ${file(src/modules/client-portal/functions/getClientInvoices.yml)}
+  - ${file(src/modules/client-portal/functions/updateClientProfile.yml)}

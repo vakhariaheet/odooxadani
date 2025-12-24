@@ -1,0 +1,10 @@
+getClientInvoices:
+  handler: src/modules/client-portal/handlers/getClientInvoices.handler
+  events:
+    - httpApi:
+        path: /client/invoices
+        method: get
+        authorizer:
+          name: clerkJwtAuthorizer
+  timeout: 29
+  memorySize: 256
