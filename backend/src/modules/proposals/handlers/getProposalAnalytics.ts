@@ -1,0 +1,43 @@
+import { APIGatewayProxyResultV2 } from 'aws-lambda';
+import { AuthenticatedAPIGatewayEvent, getAuthContext } from '../../../shared/types';
+import { withRbacOwn } from '../../../shared/auth/rbacMiddleware';
+import { successResponse, handleAsyncError } from '../../../shared/response';
+import { ProposalService } from '../services/ProposalService';
+
+const proposalService = new ProposalService();
+
+/**
+ * Base handler for getting proposal analytics
+ */
+const baseHandler = async (
+  event: AuthenticatedAPIGatewayEvent
+): Promise<APIGatewayProxyResultV2> => {
+  try {
+    const { userId, role } = getAuthContext(event);
+    const proposalId = event.pathParameters?.['id'];
+
+    if (!proposalId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          success: false,
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'Proposal ID is required',
+          },
+        }),
+      };
+    }
+
+    const analytics = await proposalService.getProposalAnalytics(proposalId, userId, role);
+    return successResponse({ analytics });
+  } catch (error) {
+    return handleAsyncError(error);
+  }
+};
+
+/**
+ * GET /api/proposals/:id/analytics
+ * Get analytics data for a proposal
+ */
+export const handler = withRbacOwn(baseHandler, 'proposals', 'read');

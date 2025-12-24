@@ -253,5 +253,12 @@ functions:
   - ${file(src/modules/proposals/functions/createProposal.yml)}
   - ${file(src/modules/proposals/functions/updateProposal.yml)}
   - ${file(src/modules/proposals/functions/deleteProposal.yml)}
+  # Proposals M05 Enhanced Features
+  - ${file(src/modules/proposals/functions/getProposalAnalytics.yml)}
+  - ${file(src/modules/proposals/functions/trackProposalView.yml)}
+  - ${file(src/modules/proposals/functions/addProposalComment.yml)}
+  - ${file(src/modules/proposals/functions/getProposalComments.yml)}
+  - ${file(src/modules/proposals/functions/duplicateProposal.yml)}
+  - ${file(src/modules/proposals/functions/getProposalVersions.yml)}
   # WebSocket module
   - ${file(src/modules/websocket/functions/websocket.yml)}

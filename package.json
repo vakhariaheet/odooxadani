@@ -31,5 +31,9 @@
     "npm": ">=10.0.0"
   },
   "author": "Odoo Xadani Team",
-  "license": "MIT"
+  "license": "MIT",
+  "optionalDependencies": {
+    "@esbuild/win32-x64": "^0.27.2",
+    "@rollup/rollup-win32-x64-msvc": "^4.54.0"
+  }
 }

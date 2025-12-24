@@ -29,16 +29,9 @@
     "paths": {
       "@shared/*": ["src/shared/*"],
       "@modules/*": ["src/modules/*"]
-    }
+    },
+    "types": ["node"]
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "*.test.ts",
-    "*.spec.ts",
-    ".serverless"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "*.test.ts", "*.spec.ts", ".serverless", "tests"]
 }

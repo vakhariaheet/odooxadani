@@ -97,6 +97,59 @@ export const proposalsApi = {
       status: 'rejected',
     });
   },
+
+  // =============================================================================
+  // M05 ENHANCED FEATURES
+  // =============================================================================
+
+  /**
+   * Get proposal analytics
+   */
+  async getAnalytics(proposalId: string): Promise<any> {
+    const response = await apiClient.get<any>(`/api/proposals/${proposalId}/analytics`);
+    return response.data?.analytics || response.analytics || response;
+  },
+
+  /**
+   * Track proposal view
+   */
+  async trackView(
+    proposalId: string,
+    data: { timeSpent: number; section?: string; userAgent?: string }
+  ): Promise<any> {
+    return apiClient.post<any>(`/api/proposals/${proposalId}/track-view`, data);
+  },
+
+  /**
+   * Add comment to proposal
+   */
+  async addComment(
+    proposalId: string,
+    data: { content: string; isInternal?: boolean }
+  ): Promise<any> {
+    return apiClient.post<any>(`/api/proposals/${proposalId}/comments`, data);
+  },
+
+  /**
+   * Get proposal comments
+   */
+  async getComments(proposalId: string): Promise<any[]> {
+    return apiClient.get<any[]>(`/api/proposals/${proposalId}/comments`);
+  },
+
+  /**
+   * Duplicate proposal
+   */
+  async duplicate(proposalId: string): Promise<any> {
+    return apiClient.post<any>(`/api/proposals/${proposalId}/duplicate`);
+  },
+
+  /**
+   * Get proposal version history
+   */
+  async getVersions(proposalId: string): Promise<any[]> {
+    return apiClient.get<any[]>(`/api/proposals/${proposalId}/versions`);
+  },
 };
 
 // Re-export types for convenience

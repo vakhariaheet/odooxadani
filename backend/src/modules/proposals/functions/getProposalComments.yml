@@ -1,0 +1,12 @@
+getProposalComments:
+  handler: src/modules/proposals/handlers/getProposalComments.handler
+  memorySize: ${self:custom.stageConfig.memorySize}
+  timeout: ${self:custom.stageConfig.timeout}
+  events:
+    - httpApi:
+        path: /api/proposals/{id}/comments
+        method: get
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}

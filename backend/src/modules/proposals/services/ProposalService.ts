@@ -14,7 +14,6 @@ import {
   ViewEvent,
   ProposalComment,
   ProposalVersion,
-  EngagementMetrics,
   TrackViewRequest,
   AddCommentRequest,
   ProposalAnalyticsDynamoItem,
@@ -842,10 +841,12 @@ export class ProposalService {
       }
 
       // Calculate engagement score (simplified)
+      const totalViews = updates.totalViews!;
+      const timeSpentViewing = updates.timeSpentViewing!;
       const engagementScore = Math.min(
         100,
         Math.round(
-          updates.totalViews * 2 + (updates.timeSpentViewing / 60) * 5 // 5 points per minute
+          totalViews * 2 + (timeSpentViewing / 60) * 5 // 5 points per minute
         )
       );
       updates.engagementScore = engagementScore;
@@ -905,7 +906,7 @@ export class ProposalService {
       );
 
       const versionNumber =
-        existingVersions.items.length > 0 ? existingVersions.items[0].versionNumber + 1 : 1;
+        existingVersions.items.length > 0 ? existingVersions.items[0]!.versionNumber + 1 : 1;
 
       const now = new Date().toISOString();
       const version: ProposalVersionDynamoItem = {

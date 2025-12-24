@@ -2,12 +2,7 @@ import { APIGatewayProxyResultV2 } from 'aws-lambda';
 import { successResponse, handleAsyncError } from '../../../shared/response';
 import { AuthenticatedAPIGatewayEvent } from '../../../shared/types';
 import { withRbac } from '../../../shared/auth/rbacMiddleware';
-import {
-  getRolePermissions,
-  getAvailableRoles,
-  getAvailableModules,
-  getAvailableActions,
-} from '../../../config/permissions';
+import { getRolePermissions, getAvailableRoles } from '../../../config/permissions';
 
 /**
  * Base handler for getting system permissions and roles (admin only)
@@ -31,8 +26,6 @@ const baseHandler = async (
     const response = {
       roles,
       permissions: rolePermissions,
-      modules: getAvailableModules(),
-      actions: getAvailableActions(),
     };
 
     return successResponse(response);

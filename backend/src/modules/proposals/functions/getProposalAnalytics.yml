@@ -1,0 +1,12 @@
+getProposalAnalytics:
+  handler: src/modules/proposals/handlers/getProposalAnalytics.handler
+  memorySize: ${self:custom.stageConfig.memorySize}
+  timeout: ${self:custom.stageConfig.timeout}
+  events:
+    - httpApi:
+        path: /api/proposals/{id}/analytics
+        method: get
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}

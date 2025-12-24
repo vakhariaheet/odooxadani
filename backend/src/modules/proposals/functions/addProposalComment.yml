@@ -1,0 +1,12 @@
+addProposalComment:
+  handler: src/modules/proposals/handlers/addProposalComment.handler
+  memorySize: ${self:custom.stageConfig.memorySize}
+  timeout: ${self:custom.stageConfig.timeout}
+  events:
+    - httpApi:
+        path: /api/proposals/{id}/comments
+        method: post
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
