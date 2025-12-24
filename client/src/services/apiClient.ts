@@ -13,7 +13,11 @@ class ApiClient {
     this.getToken = getToken;
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    requireAuth: boolean = true
+  ): Promise<T> {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
 
     const headers: Record<string, string> = {
@@ -21,8 +25,8 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
-    // Add auth token if available
-    if (this.getToken) {
+    // Add auth token only if required and available
+    if (requireAuth && this.getToken) {
       try {
         const token = await this.getToken();
         if (token) {
@@ -52,33 +56,45 @@ class ApiClient {
     return response.text() as unknown as T;
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string, requireAuth: boolean = true): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' }, requireAuth);
   }
 
-  async post<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+  async post<T>(endpoint: string, data?: any, requireAuth: boolean = true): Promise<T> {
+    return this.request<T>(
+      endpoint,
+      {
+        method: 'POST',
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      requireAuth
+    );
   }
 
-  async put<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+  async put<T>(endpoint: string, data?: any, requireAuth: boolean = true): Promise<T> {
+    return this.request<T>(
+      endpoint,
+      {
+        method: 'PUT',
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      requireAuth
+    );
   }
 
-  async patch<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+  async patch<T>(endpoint: string, data?: any, requireAuth: boolean = true): Promise<T> {
+    return this.request<T>(
+      endpoint,
+      {
+        method: 'PATCH',
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      requireAuth
+    );
   }
 
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+  async delete<T>(endpoint: string, requireAuth: boolean = true): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE' }, requireAuth);
   }
 
   // File upload helper

@@ -233,3 +233,9 @@ functions:
   - ${file(src/modules/bookings/functions/updateBooking.yml)}
   - ${file(src/modules/bookings/functions/cancelBooking.yml)}
   - ${file(src/modules/bookings/functions/confirmBooking.yml)}
+  # Events module
+  - ${file(src/modules/events/functions/createEvent.yml)}
+  - ${file(src/modules/events/functions/listEvents.yml)}
+  - ${file(src/modules/events/functions/getEvent.yml)}
+  - ${file(src/modules/events/functions/updateEvent.yml)}
+  - ${file(src/modules/events/functions/deleteEvent.yml)}

@@ -1,10 +1,12 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 
 export function DashboardPage() {
   const { user } = useUser();
   const location = useLocation();
+  const navigate = useNavigate();
   const isAdmin = (user?.publicMetadata?.role as string) === 'admin';
+  const isEventOrganizer = (user?.publicMetadata?.role as string) === 'event_organizer';
 
   return (
     <>
@@ -22,6 +24,20 @@ export function DashboardPage() {
           My Bookings
         </Link>
         <Link
+          to="/events"
+          className={`nav-btn ${location.pathname.startsWith('/events') ? 'active' : ''}`}
+        >
+          Events
+        </Link>
+        {(isEventOrganizer || isAdmin) && (
+          <Link
+            to="/dashboard/events"
+            className={`nav-btn ${location.pathname === '/dashboard/events' ? 'active' : ''}`}
+          >
+            My Events
+          </Link>
+        )}
+        <Link
           to="/websocket-test"
           className={`nav-btn ${location.pathname === '/websocket-test' ? 'active' : ''}`}
         >
@@ -38,6 +54,69 @@ export function DashboardPage() {
         <div className="dashboard">
           <h2>Dashboard</h2>
           <p>You're successfully signed in!</p>
+
+          {/* Quick Actions */}
+          <div
+            className="quick-actions"
+            style={{
+              margin: '2rem 0',
+              padding: '1.5rem',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+            }}
+          >
+            <h3>Quick Actions</h3>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+              <button
+                onClick={() => navigate('/events')}
+                className="nav-btn"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                Browse Events
+              </button>
+
+              {(isEventOrganizer || isAdmin) && (
+                <>
+                  <button
+                    onClick={() => navigate('/dashboard/events')}
+                    className="nav-btn"
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Manage My Events
+                  </button>
+                  <button
+                    onClick={() => navigate('/dashboard/events/create')}
+                    className="nav-btn"
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: '#17a2b8',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Create New Event
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
           <div className="user-info">
             <h3>User Information:</h3>
             <p>

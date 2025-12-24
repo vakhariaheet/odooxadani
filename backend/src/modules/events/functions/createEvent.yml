@@ -1,0 +1,36 @@
+createEvent:
+  handler: src/modules/events/handlers/createEvent.handler
+  events:
+    - httpApi:
+        path: /api/events
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Events
+        summary: POST /api/events
+        description: Create a new event
+        methodResponses:
+          - statusCode: 201
+            responseBody:
+              description: Event created successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    description: Created event object
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid input data
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
+          - statusCode: 422
+            responseBody:
+              description: Validation Error - Invalid event data

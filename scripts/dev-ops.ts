@@ -77,9 +77,9 @@ class DevOpsScript {
     }
 
     return {
-      epicBranch: process.env.EPIC_BRANCH || 'main',
-      stage: process.env.SERVERLESS_STAGE || 'dev',
-      awsProfile: process.env.PROFILE || 'default',
+      epicBranch: process.env.EPIC_BRANCH || 'feat/EventHub',
+      stage: process.env.SERVERLESS_STAGE || 'dev-tirth',
+      awsProfile: process.env.PROFILE || 'heetvakharia',
       gitRoot,
       backendPath: join(gitRoot, 'backend'),
       modulesPath: join(gitRoot, 'backend', 'src', 'modules'),

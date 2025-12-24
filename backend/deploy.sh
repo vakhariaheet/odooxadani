@@ -255,14 +255,14 @@ TMPDIR="${TMPDIR:-/tmp}"
 mkdir -p "$TMPDIR"
 DEPLOY_START=$(date +%s)
 npx serverless deploy --stage "$STAGE" --verbose 2>&1 | tee "$TMPDIR/serverless-deploy-$STAGE.log"
-# Capture the exit code of the serverless command (PIPESTATUS[0]) because of the pipe
-DEPLOY_EXIT=${PIPESTATUS[0]:-0}
+# Capture the exit code of the serverless command
+DEPLOY_EXIT=$?
 DEPLOY_END=$(date +%s)
 DEPLOY_DURATION=$((DEPLOY_END - DEPLOY_START))
 
 if [[ $DEPLOY_EXIT -ne 0 ]]; then
     echo ""
-    echo -e "${RED}❌ Serverless deployment failed (exit code: ${DEPLOY_EXIT}).${NC}"
+    echo -e "${RED}✗ Serverless deployment failed (exit code: ${DEPLOY_EXIT}).${NC}"
     echo -e "${YELLOW}-- Begin last 200 lines of serverless log --${NC}"
     tail -n 200 "$TMPDIR/serverless-deploy-$STAGE.log" || true
     echo -e "${YELLOW}-- End of serverless log --${NC}"
