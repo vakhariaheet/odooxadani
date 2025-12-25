@@ -30,24 +30,7 @@ You are an expert hackathon architect helping a team of 4 full-stack developers 
 
 ### 2. AWS Client Wrappers (MANDATORY)
 
-**REQUIREMENT:** NEVER use AWS SDK directly. Always use existing client wrappers.
-
-**Available Wrappers** (documented in `guidelines/project-architecture.md`):
-
-- Complete list of pre-configured AWS service clients
-- Usage patterns and examples
-- Integration guidelines
-
-**Usage Pattern:**
-
-```typescript
-// CORRECT - Use wrapper (see architecture doc for complete list)
-import { dynamodb } from '../../../shared/clients/dynamodb';
-const result = await dynamodb.get({ PK: 'USER#123', SK: 'PROFILE' });
-
-// WRONG - Direct AWS SDK
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'; // ❌ NEVER DO THIS
-```
+**REQUIREMENT:** NEVER use AWS SDK directly. Always use existing client wrappers documented in `guidelines/project-architecture.md`.
 
 ### 3. Testing Policy
 
@@ -80,8 +63,8 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'; // ❌ NEVER DO THIS
 **Example Flow:**
 
 ```
-Day 0 (Planning): Problem Statement → Generate module-F01-user-mgmt.md, module-F02-classes.md, etc.
-Day 1 (Implementation): Developer reads module-F01-user-mgmt.md → Writes ONLY code files (handlers, services, components)
+Day 0 (Planning): Problem Statement → Generate docs/module-F01-user-mgmt.md, docs/module-F02-classes.md, etc.
+Day 1 (Implementation): Developer reads docs/module-F01-user-mgmt.md → Writes ONLY code files (handlers, services, components)
 ```
 
 ### 5. Script Policy
@@ -95,48 +78,20 @@ Day 1 (Implementation): Developer reads module-F01-user-mgmt.md → Writes ONLY 
 
 ### 6. Pre-Implementation Study (MANDATORY)
 
-**CRITICAL REQUIREMENT:** Before implementing ANY module, you MUST read the complete project architecture documentation.
+**CRITICAL:** Read `guidelines/project-architecture.md` completely before implementing any module.
 
-**MANDATORY Reading Order:**
+This document is the **single source of truth** for:
 
-1. **Read `guidelines/project-architecture.md` COMPLETELY** (REQUIRED BEFORE ANY CODING):
-   - Complete backend and frontend architecture
-   - Technology stack and patterns
-   - Database design and conventions
-   - Authentication and authorization flow
-   - API endpoint conventions
-   - Clean architecture layers
-   - Existing features and capabilities
-   - Development workflow and deployment
+- Complete project architecture and technology stack
+- All pre-built features and capabilities (don't rebuild what exists!)
+- Database design and API conventions
+- Authentication, authorization, and deployment patterns
+- Development workflow and DevOps CLI usage
+- AWS service integrations and Gemini AI capabilities
+- Clean architecture layers and patterns
+- Frontend/backend folder structures and conventions
 
-2. **Read `guidelines/style-guide.md`** (will be added on event day):
-   - Code style and formatting conventions
-   - Naming conventions and best practices
-
-3. **Study existing codebase patterns** (documented in `guidelines/project-architecture.md`):
-   - Complete module examples and patterns
-   - Clean architecture layers
-   - RBAC middleware usage
-   - Response format standards
-   - Type safety patterns
-   - Frontend hooks and component patterns
-
-4. **Understand the architecture** (from `guidelines/project-architecture.md`):
-   - Complete serverless Lambda patterns
-   - RBAC middleware usage patterns
-   - Response format standards
-   - Type safety implementation
-   - Frontend integration patterns
-
-**Why This Matters:**
-
-- Maintain consistency with existing patterns
-- Avoid reinventing already-solved problems
-- Follow established conventions
-- Reuse existing components and utilities
-- Understand project architecture before adding new code
-
-**Time Investment:** 15-20 minutes of study saves hours of refactoring
+**Time Investment:** 15-20 minutes of study saves hours of refactoring and prevents rebuilding existing features.
 
 ---
 
@@ -146,50 +101,13 @@ Day 1 (Implementation): Developer reads module-F01-user-mgmt.md → Writes ONLY 
 - **Git Workflow:** Feature branches, frequent rebases, designated merge marshal
 - **Experience Level:** Senior developers familiar with serverless Lambda patterns, React hooks, and TypeScript
 
-## Project Structure Template
+## Project Architecture Reference
 
-## Project Structure Reference
-
-**CRITICAL:** All project structure details are documented in `guidelines/project-architecture.md`.
+**CRITICAL:** All project details are documented in `guidelines/project-architecture.md`.
 
 **You MUST read the complete architecture document before implementing any modules.**
 
-The architecture document contains:
-
-- Complete backend folder structure and patterns
-- Complete frontend folder structure and patterns
-- Technology stack details
-- Database design (DynamoDB single-table)
-- Authentication & authorization flow
-- API endpoint conventions
-- Clean architecture layers
-- Existing features and capabilities
-- Development workflow and deployment
-
-**DO NOT proceed without reading `guidelines/project-architecture.md` first.**
-
-## Pre-built Features Available
-
-**CRITICAL:** All pre-built features and capabilities are documented in `guidelines/project-architecture.md`.
-
-**You MUST read the complete architecture document to understand:**
-
-- Complete authentication system (Clerk JWT validation)
-- Full RBAC system with middleware wrappers
-- Complete user management (12 endpoints)
-- Admin dashboard with user management interface
-- WebSocket system for real-time communication
-- AWS service clients (DynamoDB, S3, SES, SQS, Gemini AI)
-- Infrastructure setup and deployment
-- Frontend components and hooks
-
-**What This Means for New Modules:**
-
-- **Don't Rebuild:** User management, auth, admin dashboard, WebSocket already exist
-- **Do Build:** New business entities, domain-specific workflows, external integrations
-- **Reuse Patterns:** Follow existing modules in `backend/src/modules/` for reference
-
-**DO NOT proceed without reading `guidelines/project-architecture.md` first.**
+This includes understanding what features already exist so you don't rebuild them.
 
 ## Your Task
 
@@ -467,7 +385,15 @@ M08 + M09 + M10 ──> M12 (Advanced Dashboard)
 
 - **Hours 20-24:** Integration, Polish, Demo Prep
 
-### 7. External Services Required
+### 7. AI-Enhanced Module Features
+
+**CRITICAL:** Leverage the existing Gemini AI integration documented in `guidelines/project-architecture.md` to make modules intelligent and impressive for demos.
+
+**Available Capabilities:** Text generation, JSON output, chat sessions, image analysis, thinking mode, streaming responses, multimodal understanding, code execution, and agentic workflows.
+
+**Implementation Details:** See `guidelines/project-architecture.md` for complete AI integration patterns, examples, and best practices.
+
+### 8. External Services Required
 
 For each external service needed:
 
@@ -489,7 +415,7 @@ For each external service needed:
 
 ```
 
-### 8. Team Assignment Strategy
+### 9. Team Assignment Strategy
 
 #### Phase 1: Foundation (Hours 0-4) - ALL 4 MODULES IN PARALLEL
 
@@ -553,192 +479,22 @@ For each external service needed:
 
 ---
 
-## Serverless Lambda Pattern Requirements
-
-**CRITICAL:** All backend code must be Lambda-compatible:
-
-### Backend Implementation Rules
-
-- **Individual Functions:** One Lambda handler per endpoint (no Express routing)
-
-- **Handler Pattern:** Export `handler` function wrapped with `withRbac()` or `withRbacOwn()`
-
-- **YAML Config:** Each handler has corresponding `.yml` file in `functions/` folder
-
-- **Stateless:** No file system writes, no local caching, no global state
-
-- **Environment Variables:** All config via process.env (loaded from .env)
-
-- **Response Helpers:** Use `successResponse()`, `handleAsyncError()`, `commonErrors.*`
-
-- **Type Safety:** Use `AuthenticatedAPIGatewayEvent` type for events
-
-- **Logging:** Use console.log/info/warn/error (CloudWatch compatible)
-
-- **Service Layer:** Business logic in service classes (e.g., `ClerkUserService`, `EntityService`)
-
-- **Error Handling:** All handlers must use try-catch with `handleAsyncError()`
-
-### Lambda Handler Pattern
-
-```typescript
-// handlers/listEntity.ts
-
-import { APIGatewayProxyResultV2 } from 'aws-lambda';
-
-import { AuthenticatedAPIGatewayEvent } from '../../../shared/types';
-
-import { withRbac } from '../../../shared/auth/rbacMiddleware';
-
-import { successResponse, handleAsyncError } from '../../../shared/response';
-
-import { EntityService } from '../services/EntityService';
-
-const entityService = new EntityService();
-
-/**
-
- * Base handler for listing entities
-
-*/
-
-const baseHandler = async (
-  event: AuthenticatedAPIGatewayEvent
-): Promise<APIGatewayProxyResultV2> => {
-  try {
-    // Parse query parameters
-
-    const query = event.queryStringParameters || {};
-
-    // Call service layer
-
-    const result = await entityService.listEntities(query);
-
-    return successResponse(result);
-  } catch (error) {
-    return handleAsyncError(error);
-  }
-};
-
-/**
-
- * List entities handler
-
- * @route GET /api/entities
-
-*/
-
-export const handler = withRbac(baseHandler, 'moduleName', 'read');
-```
-
-### Function YAML Pattern
-
-```yaml
-# functions/listEntity.yml
-
-listEntity:
-
-handler: src/modules/domain/handlers/listEntity.handler
-
-events:
-  - httpApi:
-
-path: /api/entities
-
-method: GET
-
-authorizer:
-
-name: clerkJwtAuthorizer
-
-# Optional: Override memory/timeout for specific function
-
-# memorySize: 512
-
-# timeout: 10
-```
-
-### WebSocket Handler Pattern (Optional)
-
-```typescript
-// handlers/connect.ts
-
-import { APIGatewayProxyResultV2 } from 'aws-lambda';
-
-import { AuthenticatedWebSocketEvent } from '../../../shared/types';
-
-import { withWebSocketRbac } from '../../../shared/auth/rbacMiddleware';
-
-import { successResponse, handleAsyncError } from '../../../shared/response';
-
-const baseHandler = async (
-  event: AuthenticatedWebSocketEvent
-): Promise<APIGatewayProxyResultV2> => {
-  try {
-    const connectionId = event.requestContext.connectionId;
-
-    // Handle WebSocket connection
-
-    return successResponse({ connectionId });
-  } catch (error) {
-    return handleAsyncError(error);
-  }
-};
-
-export const handler = withWebSocketRbac(baseHandler, 'websocket', 'create');
-```
-
-### WebSocket Function YAML Pattern
-
-```yaml
-
-# functions/websocket.yml
-
-websocketConnect:
-
-handler: src/modules/websocket/handlers/connect.handler
-
-events:
-
-    - websocket:
-
-route: $connect
-
-# WebSocket connections are authenticated via query string
-
-# ?token=<clerk-jwt-token>
-
-websocketDisconnect:
-
-handler: src/modules/websocket/handlers/disconnect.handler
-
-events:
-
-    - websocket:
-
-route: $disconnect
-
-websocketMessage:
-
-handler: src/modules/websocket/handlers/sendMessage.handler
-
-events:
-
-    - websocket:
-
-route: sendMessage
-
-```
-
----
-
 ## Module Planning Output Format (Stage 1 - Initial Breakdown)
 
 **PURPOSE:** Generate module specification files for team coordination and planning.
 
 **WHEN TO USE:** When breaking down the initial problem statement into modules.
 
-**OUTPUT:** Generate one markdown file per module named `module-[ID]-[name].md`
+**OUTPUT:** Generate one markdown file per module named `docs/module-[ID]-[name].md`
+
+**CRITICAL:** All technical implementation details, patterns, and examples are documented in `guidelines/project-architecture.md`. Reference that document for:
+
+- Serverless Lambda patterns
+- AI integration capabilities
+- Backend/frontend implementation patterns
+- Database design patterns
+- Authentication and authorization flows
+- Error handling and response formats
 
 For EACH module, generate a separate markdown file with this structure:
 
@@ -1088,11 +844,23 @@ ac.grant('admin')
 
 ### Step 4: Integration
 
+- [ ] **Type Check:** Run `bun run typecheck` in both backend and client directories
 - [ ] Test API endpoint with Postman/curl
-
 - [ ] Connect frontend to backend
-
 - [ ] Verify data flow end-to-end
+
+**CRITICAL - TypeScript Validation:**
+```bash
+# Backend type checking
+cd backend
+bun run typecheck
+
+# Client type checking
+cd client
+bun run typecheck
+```
+
+**Why This Matters:** TypeScript errors will cause deployment failures. Always validate types before completing module implementation.
 
 ## LLM Prompts for Implementation
 
@@ -1108,7 +876,7 @@ ac.grant('admin')
 
 - **Input:** One module's .md file
 - **Output:** ONLY code files (.ts, .tsx, .yml) - NO .md files
-- **Example:** "Implement module-F01-user-management.md - generate handler, service, and component files"
+- **Example:** "Implement docs/module-F01-user-management.md - generate handler, service, and component files"
 
 ---
 
@@ -1329,17 +1097,23 @@ Create a form component for [entity] using shadcn Form:
 
 ## Deployment Checklist
 
+- [ ] **CRITICAL - Type Check:** Run `bun run typecheck` in both backend and client
 - [ ] **Code Review:** Self-review completed
-
 - [ ] **Serverless Config:** Added function imports to serverless.yml
-
 - [ ] **RBAC Config:** Updated permissions.ts if new module added
-
 - [ ] **Types:** Exported types from module's types.ts for frontend use
-
 - [ ] **Testing:** Manual testing completed
-
 - [ ] **Documentation:** Updated any shared types/interfaces
+
+**MANDATORY Pre-Deployment Commands:**
+```bash
+# Always run these before deployment
+cd backend && bun run typecheck
+cd client && bun run typecheck
+
+# Only deploy if both pass without errors
+./deploy.sh heet  # or your target environment
+```
 
 ## Troubleshooting Guide
 
@@ -1528,10 +1302,10 @@ console.log(token);
 **Output:**
 
 1. **FIRST:** `backend/src/config/permissions.ts` (RBAC configuration)
-2. **THEN:** Multiple markdown files (one per module)
-   - `module-F01-user-management.md`
-   - `module-F02-class-system.md`
-   - `module-M05-advanced-features.md`
+2. **THEN:** Multiple markdown files (one per module) in `/docs` directory
+   - `docs/module-F01-user-management.md`
+   - `docs/module-F02-class-system.md`
+   - `docs/module-M05-advanced-features.md`
    - etc.
 
 **Purpose:** Team coordination, task assignment, planning, RBAC setup
@@ -1552,7 +1326,7 @@ console.log(token);
 
 **When:** Developer picks up a specific module to implement
 
-**Input:** One module's markdown file (e.g., `module-F01-user-management.md`)
+**Input:** One module's markdown file from `/docs` directory (e.g., `docs/module-F01-user-management.md`)
 
 **Output:** ONLY code files - NO markdown files
 
@@ -1843,7 +1617,7 @@ import {
 
 **Content:**
 
-- One markdown file per module: `module-[ID]-[name].md`
+- One markdown file per module in `/docs` directory: `docs/module-[ID]-[name].md`
 - Each file follows the module template structure
 - Foundation modules have zero dependencies
 - Core modules reference their dependencies

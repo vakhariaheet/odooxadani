@@ -4,28 +4,14 @@
   "description": "Production-grade serverless backend with Clean Architecture",
   "main": "index.js",
   "scripts": {
-    "dev": "serverless offline start",
     "build": "tsc --noEmit",
-    "deploy": "./deploy.sh dev",
-    "deploy:dev": "./deploy.sh dev",
+    "deploy:test": "./deploy.sh test",
     "deploy:prod": "./deploy.sh prod",
-    "deploy:dev:verbose": "./deploy.sh dev -v",
-    "deploy:prod:verbose": "./deploy.sh prod -v",
-    "remove": "serverless remove",
-    "remove:dev": "serverless remove --stage dev",
-    "remove:prod": "serverless remove --stage prod",
-    "logs": "serverless logs -f",
-    "logs:dev": "serverless logs --stage dev -f",
-    "logs:prod": "serverless logs --stage prod -f",
-    "info": "serverless info",
-    "info:dev": "serverless info --stage dev",
-    "info:prod": "serverless info --stage prod",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "typecheck": "tsc --noEmit",
-    "swagger:generate": "serverless generate-swagger"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-apigatewaymanagementapi": "^3.952.0",
@@ -60,7 +46,6 @@
     "serverless-domain-manager": "^8.0.0",
     "serverless-dotenv-plugin": "^6.0.0",
     "serverless-esbuild": "^1.49.0",
-    "serverless-offline": "^13.3.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.3.2"
   },

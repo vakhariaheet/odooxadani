@@ -519,8 +519,231 @@ client/
 ### 4.3 Third-party Services
 
 - **Clerk**: Authentication and user management
-- **Google Gemini**: AI integration (client configured)
+- **Google Gemini AI**: Latest Gemini 3 models with advanced reasoning, multimodal capabilities, thinking mode, and image generation (client configured)
 - **Cloudflare**: DNS management
+
+### 4.4 AWS Client Wrappers (MANDATORY)
+
+**CRITICAL:** NEVER use AWS SDK directly. Always use the pre-configured client wrappers in `backend/src/shared/clients/`.
+
+#### Available Client Wrappers
+
+**DynamoDB Client** (`backend/src/shared/clients/dynamodb.ts`):
+
+```typescript
+import { dynamodb } from '../../../shared/clients/dynamodb';
+
+// Basic operations
+const item = await dynamodb.get({ PK: 'USER#123', SK: 'PROFILE' });
+await dynamodb.put({ PK: 'USER#123', SK: 'PROFILE', name: 'John' });
+await dynamodb.update({ PK: 'USER#123', SK: 'PROFILE' }, { name: 'Jane' });
+await dynamodb.delete({ PK: 'USER#123', SK: 'PROFILE' });
+
+// Query operations
+const result = await dynamodb.query('PK = :pk', { ':pk': 'USER#123' }, { indexName: 'GSI1' });
+
+// Batch operations
+const items = await dynamodb.batchGet([
+  { PK: 'USER#123', SK: 'PROFILE' },
+  { PK: 'USER#456', SK: 'PROFILE' },
+]);
+```
+
+**S3 Client** (`backend/src/shared/clients/s3.ts`):
+
+```typescript
+import { s3 } from '../../../shared/clients/s3';
+
+// File operations
+const content = await s3.getString('documents/file.txt');
+await s3.putString('documents/file.txt', 'Hello World');
+await s3.putJSON('data/config.json', { setting: 'value' });
+const data = await s3.getJSON<ConfigType>('data/config.json');
+
+// Presigned URLs
+const downloadUrl = await s3.getDownloadUrl('documents/file.pdf', { expiresIn: 3600 });
+const uploadUrl = await s3.getUploadUrl('uploads/new-file.jpg', { contentType: 'image/jpeg' });
+
+// File management
+const exists = await s3.exists('documents/file.txt');
+await s3.copy('source.txt', 'backup/source.txt');
+await s3.delete('old-file.txt');
+```
+
+**SES Client** (`backend/src/shared/clients/ses.ts`):
+
+```typescript
+import { ses } from '../../../shared/clients/ses';
+
+// Simple email
+await ses.sendText('user@example.com', 'Welcome!', 'Welcome to our platform');
+await ses.sendHtml('user@example.com', 'Newsletter', '<h1>Latest News</h1>');
+
+// Advanced email
+await ses.send({
+  from: 'noreply@company.com',
+  to: ['user1@example.com', 'user2@example.com'],
+  cc: 'manager@company.com',
+  content: {
+    subject: 'Project Update',
+    text: 'Text version',
+    html: '<p>HTML version</p>',
+  },
+});
+
+// Templated email
+await ses.sendTemplated({
+  from: 'noreply@company.com',
+  to: 'user@example.com',
+  templateName: 'welcome-template',
+  templateData: { userName: 'John', activationLink: 'https://...' },
+});
+```
+
+**SQS Client** (`backend/src/shared/clients/sqs.ts`):
+
+```typescript
+import { sqs } from '../../../shared/clients/sqs';
+
+// Send messages
+const messageId = await sqs.send({ type: 'user-signup', userId: '123' });
+await sqs.sendBatch([
+  { id: '1', body: { type: 'email', to: 'user1@example.com' } },
+  { id: '2', body: { type: 'email', to: 'user2@example.com' } },
+]);
+
+// Receive and process
+const messages = await sqs.receive<TaskMessage>({ maxNumberOfMessages: 10 });
+for (const message of messages) {
+  // Process message
+  await processTask(message.body);
+  // Delete after successful processing
+  await sqs.delete(message.receiptHandle);
+}
+
+// Auto-processing with error handling
+await sqs.process<TaskMessage>(async (message) => {
+  await processTask(message.body);
+  // Message automatically deleted on success
+});
+```
+
+#### Client Wrapper Benefits
+
+1. **Type Safety**: Full TypeScript support with proper types
+2. **Error Handling**: Consistent error logging and handling
+3. **Simplified API**: Cleaner, more intuitive method names
+4. **Auto-Configuration**: Environment variables handled automatically
+5. **Best Practices**: Built-in retry logic, connection pooling, etc.
+6. **Logging**: Integrated with project logging system
+7. **Testing**: Easier to mock for unit tests
+
+#### Environment Configuration
+
+Each client wrapper uses environment variables for configuration:
+
+```env
+# DynamoDB
+DYNAMODB_TABLE=your-table-name
+AWS_REGION=ap-south-1
+
+# S3
+S3_BUCKET=your-bucket-name
+
+# SES
+SES_DEFAULT_FROM=noreply@yourdomain.com
+SES_CONFIGURATION_SET=your-config-set
+
+# SQS
+SQS_QUEUE_URL=https://sqs.region.amazonaws.com/account/queue-name
+```
+
+#### Usage Rules
+
+**✅ CORRECT - Use Wrappers:**
+
+```typescript
+import { dynamodb, s3, ses, sqs } from '../../../shared/clients';
+
+// All operations through wrappers
+const user = await dynamodb.get({ PK: 'USER#123', SK: 'PROFILE' });
+await s3.putString('files/data.txt', content);
+await ses.sendText(email, subject, message);
+await sqs.send(taskData);
+```
+
+**❌ WRONG - Direct AWS SDK:**
+
+```typescript
+// NEVER DO THIS
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { S3Client } from '@aws-sdk/client-s3';
+import { SESClient } from '@aws-sdk/client-ses';
+import { SQSClient } from '@aws-sdk/client-sqs';
+```
+
+#### Creating New Client Wrappers
+
+If you need a new AWS service, create a wrapper following the established pattern:
+
+1. **File Structure**: `backend/src/shared/clients/service-name.ts`
+2. **Class Pattern**: Export both class and default instance
+3. **Type Safety**: Full TypeScript interfaces
+4. **Error Handling**: Use shared logger
+5. **Environment Config**: Support environment variables
+6. **Export**: Add to `backend/src/shared/clients/index.ts`
+
+### 4.5 Gemini AI Integration
+
+**Available Models (Latest Gemini 3 Series)**:
+
+- `gemini-3-pro-preview`: Most intelligent model with multimodal understanding and agentic capabilities
+- `gemini-3-flash-preview`: Frontier intelligence built for speed (default)
+- `gemini-3-pro-image-preview`: Image generation and editing with advanced visual reasoning
+
+**Core Capabilities**:
+
+- **Text Generation**: Content creation, summaries, descriptions, recommendations
+- **JSON Output**: Structured data generation, form auto-completion, data transformation
+- **Chat Sessions**: Interactive AI assistants, customer support, Q&A systems
+- **Image Analysis**: Document processing, visual content analysis, OCR-like features
+- **Image Generation**: Create and edit images from text prompts with style controls
+- **Thinking Mode**: Complex reasoning, problem-solving, step-by-step analysis (Gemini 3 enhanced)
+- **Streaming Responses**: Real-time AI responses, live content generation
+- **Multimodal Understanding**: Advanced visual and spatial reasoning capabilities
+- **Code Execution**: Built-in code execution for dynamic problem solving
+- **Agentic Workflows**: Advanced autonomous task completion
+
+**Client Usage Pattern**:
+
+```typescript
+import { gemini, createGemini } from '../../../shared/clients/gemini';
+
+// Text generation
+const result = await gemini.generate('Generate a product description...');
+
+// JSON output
+const data = await gemini.generateJSON<ProductData>('Extract product info...');
+
+// Image generation
+const imageResult = await gemini.generateImage('A sunset over mountains', {
+  style: 'photographic',
+  quality: 'high',
+  aspectRatio: '16:9',
+});
+
+// Chat session
+const chat = gemini.startChat([], {
+  systemInstruction: 'You are an expert assistant...',
+});
+const response = await chat.send('How can I help?');
+```
+
+**Environment Setup**:
+
+- `GEMINI_API_KEY` - Google AI API key (configured in backend/.env)
+- Client automatically handles authentication and error handling
+- Supports all latest Gemini 3 models with fallback to stable versions
 
 ---
 
@@ -808,6 +1031,7 @@ npm run preview        # Preview production build
    - Creates Pull Request automatically
 
 5. **Deploy Changes**:
+
    ```bash
    npm run devops
    # Select "🚀 Deploy All Functions" or "⚡ Deploy Single Function"
