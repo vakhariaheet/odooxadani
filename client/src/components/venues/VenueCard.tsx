@@ -1,9 +1,10 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Users, DollarSign, Star } from 'lucide-react';
+import { MapPin, Users, DollarSign, Heart } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
+import { useWishlist } from '../../hooks/useWishlist';
+import { toast } from 'sonner';
 import type { Venue } from '../../types/venue';
 import { formatPrice, formatCapacity, VENUE_CATEGORIES, AMENITY_LABELS } from '../../types/venue';
 
@@ -17,6 +18,30 @@ interface VenueCardProps {
 export function VenueCard({ venue, showOwnerActions = false, onEdit, onDelete }: VenueCardProps) {
   const primaryImage = venue.images[0] || '/placeholder-venue.jpg';
   const categoryLabel = VENUE_CATEGORIES[venue.category] || venue.category;
+  const { isInWishlist, toggleWishlist, isAuthenticated } = useWishlist();
+  const isFavorited = isInWishlist(venue.venueId);
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation when clicking wishlist button
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      toast.error('Please sign in to add venues to your wishlist');
+      return;
+    }
+
+    console.log('VenueCard - toggling wishlist for venue:', venue.venueId, 'currently favorited:', isFavorited);
+    const success = toggleWishlist(venue.venueId);
+    if (success) {
+      if (isFavorited) {
+        toast.success('Removed from wishlist');
+      } else {
+        toast.success('Added to wishlist');
+      }
+    } else {
+      console.error('Failed to toggle wishlist for venue:', venue.venueId);
+    }
+  };
 
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-200">
@@ -36,13 +61,25 @@ export function VenueCard({ venue, showOwnerActions = false, onEdit, onDelete }:
               {categoryLabel}
             </Badge>
           </div>
-          {venue.status !== 'active' && (
-            <div className="absolute top-2 right-2">
+          
+          {/* Wishlist Button */}
+          <div className="absolute top-2 right-2 flex gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleWishlistToggle}
+              className="bg-white/90 hover:bg-white p-2"
+              title={isFavorited ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
+              <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+            </Button>
+            
+            {venue.status !== 'active' && (
               <Badge variant="destructive">
                 {venue.status === 'inactive' ? 'Inactive' : 'Maintenance'}
               </Badge>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -105,21 +142,25 @@ export function VenueCard({ venue, showOwnerActions = false, onEdit, onDelete }:
 
         {showOwnerActions && (
           <>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit?.(venue)}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDelete?.(venue)}
-              className="text-destructive hover:text-destructive"
-            >
-              Delete
-            </Button>
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(venue)}
+              >
+                Edit
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onDelete(venue)}
+                className="text-destructive hover:text-destructive"
+              >
+                Delete
+              </Button>
+            )}
           </>
         )}
       </CardFooter>

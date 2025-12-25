@@ -1,55 +1,93 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, Grid, List, SlidersHorizontal } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
 import { Card, CardContent } from '../ui/card';
-import { Separator } from '../ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { VenueCard } from './VenueCard';
 import { useVenues } from '../../hooks/useVenues';
-import type { VenueSearchQuery, VenueCategory } from '../../types/venue';
-import { VENUE_CATEGORIES, COMMON_AMENITIES, AMENITY_LABELS } from '../../types/venue';
+import { usePermissions } from '../../hooks/usePermissions';
+import { useWishlist } from '../../hooks/useWishlist';
+import type { VenueSearchQuery, VenueCategory, Venue } from '../../types/venue';
+import { VENUE_CATEGORIES, AMENITY_LABELS } from '../../types/venue';
 
 interface VenueListProps {
   showOwnerActions?: boolean;
-  onEditVenue?: (venue: any) => void;
-  onDeleteVenue?: (venue: any) => void;
+  onEditVenue?: (venue: Venue) => void;
+  onDeleteVenue?: (venue: Venue) => void;
 }
 
 export function VenueList({ showOwnerActions = false, onEditVenue, onDeleteVenue }: VenueListProps) {
+  const { getCurrentUserId, canEditVenues, canDeleteVenues } = usePermissions();
+  const { validateWishlistItems, getWishlistCount } = useWishlist();
   const [searchQuery, setSearchQuery] = useState<VenueSearchQuery>({
     limit: 12,
     offset: 0,
     sortBy: 'createdAt',
     sortOrder: 'desc'
   });
-  const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
 
-  const { data: venuesResponse, isLoading, error } = useVenues(searchQuery);
+  // Get current user ID
+  const currentUserId = getCurrentUserId();
+
+  // Debounce search text
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  // Create search query with debounced text
+  const searchQueryWithDebounce = {
+    ...searchQuery,
+    city: debouncedSearchText.trim() || undefined,
+  };
+
+  const { data: venuesResponse, isLoading, error } = useVenues(searchQueryWithDebounce);
 
   const venues = venuesResponse?.data?.venues || [];
   const totalCount = venuesResponse?.data?.totalCount || 0;
-  // const filters = venuesResponse?.data?.filters;
 
-  const handleSearch = (text: string) => {
+  // Validate wishlist items when venues are loaded
+  useEffect(() => {
+    if (!isLoading && venues.length > 0 && getWishlistCount() > 0) {
+      const availableVenueIds = venues.map(venue => venue.venueId);
+      validateWishlistItems(availableVenueIds);
+    }
+  }, [isLoading, venues, validateWishlistItems, getWishlistCount]);
+
+  const handleSearch = useCallback((text: string) => {
     setSearchText(text);
-    // In a real implementation, you might want to search by venue name
-    // For now, we'll just update the city filter if it looks like a city name
-    setSearchQuery(prev => ({
-      ...prev,
-      city: text.trim() || undefined,
-      offset: 0
-    }));
-  };
+  }, []);
 
-  const handleFilterChange = (key: keyof VenueSearchQuery, value: any) => {
+  const handleFilterChange = (key: keyof VenueSearchQuery, value: string | number | string[] | undefined) => {
     setSearchQuery(prev => ({
       ...prev,
       [key]: value,
       offset: 0 // Reset pagination when filters change
+    }));
+  };
+
+  const handleSortChange = (sortBy: 'name' | 'price' | 'capacity' | 'createdAt', sortOrder: 'asc' | 'desc') => {
+    setSearchQuery(prev => ({
+      ...prev,
+      sortBy,
+      sortOrder,
+      offset: 0 // Reset pagination when sorting changes
+    }));
+  };
+
+  const handleCategoryFilter = (category: VenueCategory | '') => {
+    setSearchQuery(prev => ({
+      ...prev,
+      category: category || undefined,
+      offset: 0 // Reset pagination when category changes
     }));
   };
 
@@ -70,6 +108,7 @@ export function VenueList({ showOwnerActions = false, onEditVenue, onDeleteVenue
       sortOrder: 'desc'
     });
     setSearchText('');
+    setDebouncedSearchText('');
   };
 
   const loadMore = () => {
@@ -106,20 +145,86 @@ export function VenueList({ showOwnerActions = false, onEditVenue, onDeleteVenue
             placeholder="Search venues by city..."
             value={searchText}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 pr-10"
           />
+          {searchText && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchText('');
+                setDebouncedSearchText('');
+              }}
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+            >
+              ✕
+            </Button>
+          )}
+          {isLoading && searchText && (
+            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+            </div>
+          )}
         </div>
         
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Filters
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleSortChange('name', 'asc')}>
+                Name (A-Z)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('name', 'desc')}>
+                Name (Z-A)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('city', 'asc')}>
+                City (A-Z)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('city', 'desc')}>
+                City (Z-A)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('capacity', 'asc')}>
+                Capacity (Low to High)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('capacity', 'desc')}>
+                Capacity (High to Low)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('price', 'asc')}>
+                Price (Low to High)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('price', 'desc')}>
+                Price (High to Low)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('createdAt', 'desc')}>
+                Newest First
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSortChange('createdAt', 'asc')}>
+                Oldest First
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Category</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleCategoryFilter('')}>
+                All Categories
+              </DropdownMenuItem>
+              {Object.entries(VENUE_CATEGORIES).map(([key, label]) => (
+                <DropdownMenuItem key={key} onClick={() => handleCategoryFilter(key)}>
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           <div className="flex border rounded-md">
             <Button
@@ -142,117 +247,14 @@ export function VenueList({ showOwnerActions = false, onEditVenue, onDeleteVenue
         </div>
       </div>
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Category Filter */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Category</label>
-                <Select
-                  value={searchQuery.category || ''}
-                  onValueChange={(value) => handleFilterChange('category', value || undefined)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All categories</SelectItem>
-                    {Object.entries(VENUE_CATEGORIES).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Capacity Filter */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Min Capacity</label>
-                <Input
-                  type="number"
-                  placeholder="Min guests"
-                  value={searchQuery.minCapacity || ''}
-                  onChange={(e) => handleFilterChange('minCapacity', e.target.value ? parseInt(e.target.value) : undefined)}
-                />
-              </div>
-
-              {/* Price Filter */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Max Price</label>
-                <Input
-                  type="number"
-                  placeholder="Max price"
-                  value={searchQuery.maxPrice || ''}
-                  onChange={(e) => handleFilterChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                />
-              </div>
-
-              {/* Sort */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Sort By</label>
-                <Select
-                  value={`${searchQuery.sortBy}-${searchQuery.sortOrder}`}
-                  onValueChange={(value) => {
-                    const [sortBy, sortOrder] = value.split('-');
-                    handleFilterChange('sortBy', sortBy);
-                    handleFilterChange('sortOrder', sortOrder);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="createdAt-desc">Newest First</SelectItem>
-                    <SelectItem value="createdAt-asc">Oldest First</SelectItem>
-                    <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                    <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                    <SelectItem value="capacity-asc">Capacity: Small to Large</SelectItem>
-                    <SelectItem value="capacity-desc">Capacity: Large to Small</SelectItem>
-                    <SelectItem value="name-asc">Name: A to Z</SelectItem>
-                    <SelectItem value="name-desc">Name: Z to A</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Amenities Filter */}
-            <div className="mt-4">
-              <label className="text-sm font-medium mb-2 block">Amenities</label>
-              <div className="flex flex-wrap gap-2">
-                {COMMON_AMENITIES.slice(0, 10).map((amenity) => (
-                  <Badge
-                    key={amenity}
-                    variant={searchQuery.amenities?.includes(amenity) ? 'default' : 'outline'}
-                    className="cursor-pointer"
-                    onClick={() => handleAmenityToggle(amenity)}
-                  >
-                    {AMENITY_LABELS[amenity] || amenity}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <Separator className="my-4" />
-            
-            <div className="flex justify-between">
-              <Button variant="outline" onClick={clearFilters}>
-                Clear Filters
-              </Button>
-              <Button onClick={() => setShowFilters(false)}>
-                Apply Filters
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Results Header */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {isLoading ? 'Loading...' : `${totalCount} venues found`}
+          {isLoading ? 'Loading...' : 
+           debouncedSearchText ? 
+             `${totalCount} venues found in "${debouncedSearchText}"` : 
+             `${totalCount} venues found`
+          }
         </p>
         
         {/* Active Filters */}
@@ -300,10 +302,29 @@ export function VenueList({ showOwnerActions = false, onEditVenue, onDeleteVenue
       ) : venues.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">No venues found matching your criteria.</p>
-            <Button variant="outline" onClick={clearFilters}>
-              Clear Filters
-            </Button>
+            {debouncedSearchText ? (
+              <>
+                <p className="text-muted-foreground mb-4">
+                  No venues found in "{debouncedSearchText}". Try searching for a different city.
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setSearchText('');
+                    setDebouncedSearchText('');
+                  }}
+                >
+                  Clear Search
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-muted-foreground mb-4">No venues found matching your criteria.</p>
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear Filters
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -312,15 +333,25 @@ export function VenueList({ showOwnerActions = false, onEditVenue, onDeleteVenue
             ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
             : 'space-y-4'
         }>
-          {venues.map((venue) => (
-            <VenueCard
-              key={venue.venueId}
-              venue={venue}
-              showOwnerActions={showOwnerActions}
-              onEdit={onEditVenue}
-              onDelete={onDeleteVenue}
-            />
-          ))}
+          {venues.map((venue) => {
+            // Check if current user owns this venue
+            const isOwner = Boolean(currentUserId && venue.ownerId === currentUserId);
+            
+            // Determine if owner actions should be shown based on permissions
+            const shouldShowOwnerActions = showOwnerActions || (
+              isOwner && (canEditVenues(true) || canDeleteVenues(true))
+            );
+            
+            return (
+              <VenueCard
+                key={venue.venueId}
+                venue={venue}
+                showOwnerActions={shouldShowOwnerActions}
+                onEdit={canEditVenues(isOwner) ? onEditVenue : undefined}
+                onDelete={canDeleteVenues(isOwner) ? onDeleteVenue : undefined}
+              />
+            );
+          })}
         </div>
       )}
 

@@ -96,6 +96,7 @@ const baseHandler = async (
     }
 
     const result = await venueService.listVenues(query);
+    
     return successResponse(result);
   } catch (error) {
     return handleAsyncError(error);

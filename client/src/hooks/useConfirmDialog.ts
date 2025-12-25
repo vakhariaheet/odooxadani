@@ -21,7 +21,7 @@ export function useConfirmDialog() {
     message: '',
   });
 
-  const showConfirm = useCallback((options: Omit<ConfirmDialogState, 'isOpen'>) => {
+  const showConfirm = useCallback((options: Omit<ConfirmDialogState, 'isOpen' | 'onConfirm'>) => {
     return new Promise<boolean>((resolve) => {
       setDialogState({
         ...options,
@@ -37,6 +37,12 @@ export function useConfirmDialog() {
   const hideConfirm = useCallback(() => {
     setDialogState(prev => ({ ...prev, isOpen: false }));
   }, []);
+
+  const handleConfirm = useCallback(() => {
+    if (dialogState.onConfirm) {
+      dialogState.onConfirm();
+    }
+  }, [dialogState.onConfirm]);
 
   const confirmDelete = useCallback((itemName: string = 'this item') => {
     return showConfirm({
@@ -72,6 +78,7 @@ export function useConfirmDialog() {
     dialogState,
     showConfirm,
     hideConfirm,
+    handleConfirm,
     confirmDelete,
     confirmBan,
     confirmRevoke,
