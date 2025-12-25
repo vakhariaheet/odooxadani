@@ -250,6 +250,7 @@ client/
 │   │   ├── AdminDashboard.tsx      # Main admin dashboard
 │   │   ├── ApiProvider.tsx         # API client provider
 │   │   ├── ProtectedRoute.tsx      # Route protection wrapper
+│   │   ├── ScrollToTop.tsx         # Auto scroll to top component
 │   │   ├── WebSocketDemo.tsx       # WebSocket demo
 │   │   ├── WebSocketExample.tsx    # WebSocket example
 │   │   └── WebSocketTest.tsx       # WebSocket testing
@@ -259,6 +260,7 @@ client/
 │   │   ├── useConfirmDialog.ts     # Confirmation dialog hook
 │   │   ├── useDebounce.ts          # Debounce hook
 │   │   ├── useLocalStorage.ts      # Local storage hook
+│   │   ├── useScrollToTop.ts       # Auto scroll to top on route change
 │   │   ├── useUsers.ts             # User management hook
 │   │   ├── useWebSocket.ts         # WebSocket hook
 │   │   └── index.ts                # Hook exports
@@ -337,6 +339,7 @@ client/
 - `useLocalStorage()` - Persistent client-side storage
 - `useDebounce()` - Debounced values
 - `useConfirmDialog()` - Confirmation dialogs
+- `useScrollToTop()` - Auto scroll to top on route changes
 
 **Clerk Integration**:
 
@@ -548,7 +551,185 @@ dev-heet  ─┘
 
 ---
 
-## 6. DEVELOPMENT WORKFLOW
+## 6. DEVOPS CLI TOOL
+
+### 6.1 Overview
+
+The project includes a comprehensive DevOps CLI tool (`scripts/devops/`) that streamlines the entire development workflow with proper git management, module creation, and serverless deployment.
+
+### 6.2 Features
+
+- 🆕 **Module Management**: Create new modules or work on existing ones with documentation integration
+- ✅ **Smart Git Workflow**: Proper branch management with rebase and conflict resolution
+- 🔄 **Pull & Rebase**: Keep your feature branches up-to-date with epic branch
+- 🚀 **Serverless Deployment**: Full and function-specific deployments with pre-checks
+- 🎨 **Great UX**: Interactive menus, progress indicators, and clean table formatting
+- ⚙️ **Configurable**: Environment-based configuration with sensible defaults
+- 📖 **Documentation Integration**: Reads module specs from `/docs` directory
+- 🛡️ **Safe Operations**: Force-push with lease, conflict detection, and error recovery
+
+### 6.3 CLI Structure
+
+```
+scripts/devops/
+├── src/
+│   ├── commands/
+│   │   ├── deploy.ts               # Deployment commands
+│   │   └── module.ts               # Module management commands
+│   ├── utils/
+│   │   ├── config.ts               # Configuration management
+│   │   ├── display.ts              # UI/UX utilities
+│   │   ├── git.ts                  # Git operations
+│   │   └── modules.ts              # Module discovery
+│   ├── types/
+│   │   └── index.ts                # TypeScript definitions
+│   └── index.ts                    # CLI entry point
+├── package.json                    # CLI dependencies
+├── tsconfig.json                   # TypeScript configuration
+├── .env.example                    # Environment template
+└── README.md                       # CLI documentation
+```
+
+### 6.4 Available Commands
+
+| Command           | Description                                      | Alias |
+| ----------------- | ------------------------------------------------ | ----- |
+| `module new`      | Create/select module and checkout feature branch | `m n` |
+| `module complete` | Commit, rebase, push, and create PR              | `m c` |
+| `module sync`     | Pull latest changes and rebase current branch    | `m s` |
+| `deploy all`      | Full serverless deployment                       | `d a` |
+| `deploy function` | Deploy specific function                         | `d f` |
+| `config`          | Show current configuration                       | -     |
+
+### 6.5 Module Documentation Integration
+
+The CLI integrates with module documentation in the `/docs` directory:
+
+- **File Pattern**: `module-{ID}-{name}.md` (e.g., `module-F01-proposal-management.md`)
+- **Status Display**: Shows if module is planned (📝) or implemented (✅)
+- **Time Estimates**: Extracts estimated time from documentation
+- **Branch Naming**: Uses module ID for consistent branch names (e.g., `feat/F01-proposal-management`)
+
+### 6.6 Git Workflow Integration
+
+**Enhanced Git Operations**:
+
+- Proper pull before rebase to get latest changes
+- Conflict detection and resolution prompts with LLM-ready output
+- Stash management for uncommitted changes
+- Force-push with lease for safety (prevents overwriting others' work)
+- Separate sync command for keeping branches up-to-date
+
+**Branch Management**:
+
+- Epic branch: Main development branch (configurable via `EPIC_BRANCH`)
+- Feature branches: `feat/{module-id}` pattern
+- Automatic branch creation and checkout
+- Pull Request creation via GitHub CLI
+
+### 6.7 Deployment Integration
+
+**Pre-deployment Checks**:
+
+- Serverless Framework installation validation
+- AWS credentials validation for specified profile
+- Environment configuration verification
+- Function discovery across all modules
+
+**Deployment Options**:
+
+- Full deployment: All functions and resources
+- Function-specific deployment: Interactive selection
+- Multi-stage support: dev/test/prod environments
+- AWS profile management
+
+### 6.8 Configuration
+
+**Environment Variables**:
+
+```env
+# Git Configuration
+EPIC_BRANCH=main
+DEFAULT_COMMIT_MESSAGE_PREFIX=feat:
+
+# Deployment Configuration
+SERVERLESS_STAGE=dev
+DEVOPS_AWS_PROFILE=default
+
+# Paths (relative to git root)
+BACKEND_PATH=backend
+MODULES_PATH=backend/src/modules
+```
+
+### 6.9 Usage Examples
+
+**Start New Feature**:
+
+```bash
+cd scripts/devops
+npm run dev module new
+```
+
+- Handles uncommitted changes
+- Pulls latest from epic branch
+- Shows available modules from `/docs` directory
+- Creates/checks out feature branch
+- Shows module documentation and next steps
+
+**Keep Branch Updated**:
+
+```bash
+npm run dev module sync
+```
+
+- Handles uncommitted changes
+- Pulls latest from epic branch
+- Rebases current branch on top of epic branch
+- Handles merge conflicts with LLM-ready prompts
+
+**Complete Feature**:
+
+```bash
+npm run dev module complete
+```
+
+- Commits changes with proper message format
+- Rebases from epic branch (with latest pull)
+- Pushes branch with force-with-lease
+- Creates Pull Request using GitHub CLI
+
+**Deploy Changes**:
+
+```bash
+npm run dev deploy function
+```
+
+- Validates environment and credentials
+- Interactive function selection
+- Deploys to configured stage
+
+### 6.10 Safety Features
+
+- **Force-push with lease**: Prevents overwriting others' work
+- **Conflict detection**: Identifies merge conflicts before they cause issues
+- **Stash management**: Safely handles uncommitted changes
+- **Pre-deployment checks**: Validates environment before deployment
+- **Error recovery**: Graceful handling of failed operations
+- **Branch protection**: Never directly pushes to epic branch
+
+### 6.11 Integration with Project Architecture
+
+The DevOps CLI is designed to work seamlessly with the project's architecture:
+
+- **Module Discovery**: Automatically finds modules in `backend/src/modules/`
+- **Function Detection**: Discovers Lambda functions from `.yml` files
+- **Documentation Integration**: Reads module specs from `/docs/module-*.md`
+- **Deployment Integration**: Works with existing `deploy.sh` and Serverless Framework
+- **Git Workflow**: Follows the project's branching strategy and conventions
+
+---
+
+## 7. DEVELOPMENT WORKFLOW (Updated)
 
 **Scripts**:
 
@@ -560,6 +741,16 @@ npm test               # Run all tests
 npm run lint           # Lint all workspaces
 npm run typecheck      # Type check all workspaces
 npm run format         # Format code with Prettier
+npm run devops         # Start DevOps CLI (interactive mode)
+
+# DevOps CLI (scripts/devops/)
+npm run dev            # Interactive mode
+npm run dev m n        # New module creation
+npm run dev m c        # Complete module (commit, rebase, push, PR)
+npm run dev m s        # Pull and rebase current branch
+npm run dev d a        # Deploy all functions
+npm run dev d f        # Deploy specific function
+npm run dev config     # Show configuration
 
 # Backend
 npm run dev            # Start offline development
@@ -573,7 +764,60 @@ npm run build          # Build for production
 npm run preview        # Preview production build
 ```
 
-**Git Workflow**:
+**Enhanced Git Workflow with DevOps CLI**:
+
+1. **Start New Feature**:
+
+   ```bash
+   npm run devops        # or cd scripts/devops && npm run dev
+   # Select "🆕 New Module Creation"
+   ```
+
+   - Automatically handles uncommitted changes
+   - Pulls latest from epic branch
+   - Shows available modules from documentation
+   - Creates feature branch with proper naming
+
+2. **Development Process**:
+   - Follow module architecture guidelines
+   - Implement handlers, services, and types
+   - Update permissions.ts if needed
+   - Regular commits with conventional format
+
+3. **Keep Branch Updated**:
+
+   ```bash
+   npm run devops
+   # Select "🔄 Pull and Rebase"
+   ```
+
+   - Pulls latest changes from epic branch
+   - Rebases current branch safely
+   - Handles merge conflicts with LLM assistance
+
+4. **Complete Feature**:
+
+   ```bash
+   npm run devops
+   # Select "✅ Complete Module"
+   ```
+
+   - Commits final changes
+   - Rebases from epic branch
+   - Pushes with force-with-lease
+   - Creates Pull Request automatically
+
+5. **Deploy Changes**:
+   ```bash
+   npm run devops
+   # Select "🚀 Deploy All Functions" or "⚡ Deploy Single Function"
+   ```
+
+   - Pre-deployment validation
+   - Interactive function selection
+   - Deploys to configured stage
+
+**Traditional Git Workflow** (still supported):
 
 - Conventional commits
 - Husky pre-commit hooks
@@ -582,30 +826,42 @@ npm run preview        # Preview production build
 
 ---
 
-## 7. TECHNOLOGY SUMMARY
+## 8. TECHNOLOGY SUMMARY
 
-| Layer                  | Technology              | Purpose             |
-| ---------------------- | ----------------------- | ------------------- |
-| **Backend Runtime**    | AWS Lambda + Node.js 20 | Serverless compute  |
-| **Backend API**        | HTTP API v2 + WebSocket | API Gateway         |
-| **Backend Auth**       | Clerk + JWT             | Authentication      |
-| **Backend Auth**       | AccessControl           | RBAC                |
-| **Backend DB**         | DynamoDB                | NoSQL database      |
-| **Backend Build**      | TypeScript + esbuild    | Language & bundling |
-| **Backend Deploy**     | Serverless Framework    | Infrastructure      |
-| **Frontend Framework** | React 19                | UI library          |
-| **Frontend Routing**   | React Router v7         | Navigation          |
-| **Frontend State**     | TanStack Query          | Server state        |
-| **Frontend Auth**      | Clerk React SDK         | Authentication UI   |
-| **Frontend UI**        | shadcn/ui + Tailwind    | Component library   |
-| **Frontend Build**     | Vite                    | Build tool          |
-| **Frontend Styling**   | Tailwind CSS v4         | CSS framework       |
+| Layer                  | Technology              | Purpose               |
+| ---------------------- | ----------------------- | --------------------- |
+| **Backend Runtime**    | AWS Lambda + Node.js 20 | Serverless compute    |
+| **Backend API**        | HTTP API v2 + WebSocket | API Gateway           |
+| **Backend Auth**       | Clerk + JWT             | Authentication        |
+| **Backend Auth**       | AccessControl           | RBAC                  |
+| **Backend DB**         | DynamoDB                | NoSQL database        |
+| **Backend Build**      | TypeScript + esbuild    | Language & bundling   |
+| **Backend Deploy**     | Serverless Framework    | Infrastructure        |
+| **Frontend Framework** | React 19                | UI library            |
+| **Frontend Routing**   | React Router v7         | Navigation            |
+| **Frontend State**     | TanStack Query          | Server state          |
+| **Frontend Auth**      | Clerk React SDK         | Authentication UI     |
+| **Frontend UI**        | shadcn/ui + Tailwind    | Component library     |
+| **Frontend Build**     | Vite                    | Build tool            |
+| **Frontend Styling**   | Tailwind CSS v4         | CSS framework         |
+| **DevOps CLI**         | TypeScript + Commander  | Development workflow  |
+| **DevOps Git**         | simple-git + inquirer   | Git operations        |
+| **DevOps Deploy**      | Serverless + AWS CLI    | Deployment automation |
 
 ---
 
-## 8. ARCHITECTURE DIAGRAM
+## 9. ARCHITECTURE DIAGRAM
 
 ```
+┌─────────────────────────────────────────────────────────────┐
+│                     DEVOPS CLI TOOL                         │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │ Commands: module new/complete/sync, deploy all/func │   │
+│  │ Features: Git workflow, Module docs, Deployment     │   │
+│  │ Integration: GitHub CLI, AWS CLI, Serverless        │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                        CLIENT (React)                        │
 │  ┌──────────────────────────────────────────────────────┐   │
@@ -644,12 +900,13 @@ npm run preview        # Preview production build
         ┌──────────────────────────────────────┐
         │   Clerk (Authentication)             │
         │   Cloudflare (DNS)                   │
+        │   GitHub (Source Control & CI)       │
         └──────────────────────────────────────┘
 ```
 
 ---
 
-## 9. GETTING STARTED
+## 10. GETTING STARTED
 
 ### Prerequisites
 
@@ -657,6 +914,7 @@ npm run preview        # Preview production build
 - Bun package manager
 - AWS CLI configured
 - Clerk account setup
+- GitHub CLI (for PR creation)
 
 ### Quick Start
 
@@ -680,7 +938,29 @@ npm run preview        # Preview production build
    # Edit client/.env with API URL
    ```
 
-3. **Development**:
+3. **DevOps CLI Setup**:
+
+   ```bash
+   cd scripts/devops
+   npm install
+   cp .env.example .env
+   # Edit .env with your configuration
+   npm run build  # Optional: for faster execution
+   ```
+
+4. **Development with DevOps CLI**:
+
+   ```bash
+   # Start new feature
+   npm run devops
+   # Select "🆕 New Module Creation"
+
+   # Or use direct commands
+   cd scripts/devops
+   npm run dev module new
+   ```
+
+5. **Traditional Development** (alternative):
 
    ```bash
    # Start backend (in one terminal)
@@ -690,11 +970,20 @@ npm run preview        # Preview production build
    npm run client
    ```
 
-4. **Deploy**:
+6. **Deploy with DevOps CLI**:
    ```bash
-   # Deploy to dev stage
-   cd backend
-   npm run deploy:dev
+   npm run devops
+   # Select "🚀 Deploy All Functions" or "⚡ Deploy Single Function"
    ```
 
-This comprehensive architecture provides a solid foundation for a production-grade serverless application with modern development practices, scalability, and maintainability.
+### DevOps CLI Benefits
+
+The DevOps CLI streamlines the entire development workflow:
+
+- **Automated Git Operations**: Proper branching, rebasing, and conflict resolution
+- **Module Documentation Integration**: Reads specs from `/docs` directory
+- **Safe Deployment**: Pre-checks and validation before deployment
+- **Interactive UX**: Clean menus, progress indicators, and helpful prompts
+- **Error Recovery**: Graceful handling of common development issues
+
+This comprehensive architecture provides a solid foundation for a production-grade serverless application with modern development practices, scalability, maintainability, and an enhanced developer experience through the integrated DevOps CLI tool.
