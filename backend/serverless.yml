@@ -43,6 +43,11 @@ provider:
                 - '/'
                 - - Fn::GetAtt: [MainTable, Arn]
                   - 'index/*'
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: '*'
 
   # HTTP API (API Gateway v2) with JWT Authorizer
   httpApi:
@@ -244,3 +249,11 @@ functions:
   - ${file(src/modules/events/functions/getEventsByCategory.yml)}
   - ${file(src/modules/events/functions/getRecommendedEvents.yml)}
   - ${file(src/modules/events/functions/getPopularEvents.yml)}
+  # Venues module
+  - ${file(src/modules/venues/functions/listVenues.yml)}
+  - ${file(src/modules/venues/functions/getVenue.yml)}
+  - ${file(src/modules/venues/functions/createVenue.yml)}
+  - ${file(src/modules/venues/functions/updateVenue.yml)}
+  - ${file(src/modules/venues/functions/deleteVenue.yml)}
+  - ${file(src/modules/venues/functions/getAvailability.yml)}
+  - ${file(src/modules/venues/functions/contactOwner.yml)}

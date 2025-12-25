@@ -1,0 +1,31 @@
+updateVenue:
+  handler: src/modules/venues/handlers/updateVenue.handler
+  events:
+    - httpApi:
+        path: /api/venues/{id}
+        method: PUT
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Venues
+        summary: PUT /api/venues/{id}
+        description: Update venue (own venues only)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Venue updated successfully
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid input data
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Can only update own venues
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Venue not found
+          - statusCode: 422
+            responseBody:
+              description: Validation Error - Invalid venue data

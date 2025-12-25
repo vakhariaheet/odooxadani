@@ -1,0 +1,10 @@
+contactOwner:
+  handler: src/modules/venues/handlers/contactOwner.handler
+  events:
+    - httpApi:
+        path: /api/venues/{id}/contact
+        method: post
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    SES_DEFAULT_FROM: ${env:SES_DEFAULT_FROM, 'noreply@odooxadani.com'}

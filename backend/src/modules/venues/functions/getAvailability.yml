@@ -1,0 +1,28 @@
+getAvailability:
+  handler: src/modules/venues/handlers/getAvailability.handler
+  events:
+    - httpApi:
+        path: /api/venues/{id}/availability
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Venues
+        summary: GET /api/venues/{id}/availability
+        description: Get venue availability for date range
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Returns availability slots
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid date parameters
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Venue not found

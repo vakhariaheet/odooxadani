@@ -1,0 +1,25 @@
+deleteVenue:
+  handler: src/modules/venues/handlers/deleteVenue.handler
+  events:
+    - httpApi:
+        path: /api/venues/{id}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Venues
+        summary: DELETE /api/venues/{id}
+        description: Delete venue (own venues only)
+        methodResponses:
+          - statusCode: 204
+            responseBody:
+              description: No Content - Venue deleted successfully
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Can only delete own venues
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Venue not found

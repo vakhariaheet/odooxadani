@@ -3,8 +3,10 @@ import { AccessControl } from 'accesscontrol';
 /**
  * RBAC Configuration using accesscontrol library
  *
- * Two roles:
- * - user: Can only access own resources in users module, read-only access to demo
+ * Four roles with proper separation of concerns:
+ * - user: Regular attendees - can browse events/venues, manage own bookings and profile
+ * - venue_owner: Venue managers - can manage their venues, view bookings, access analytics
+ * - event_organizer: Event creators - can create/manage events, handle event bookings
  * - admin: Full access to all modules and all resources
  *
  * Actions follow accesscontrol naming convention:
@@ -18,28 +20,28 @@ const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: st
     users: { any: [], own: ['read', 'update'] },
     demo: { any: ['read'], own: [] },
     websocket: { any: ['read', 'update'], own: [] },
-    events: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
+    events: { any: ['read'], own: [] }, // Users can only browse events, not create them
     venues: { any: ['read'], own: [] },
-    bookings: { any: [], own: ['create', 'read', 'update', 'delete'] },
+    bookings: { any: [], own: ['create', 'read', 'update', 'delete'] }, // Full CRUD on own bookings
     landing: { any: ['read'], own: [] },
   },
   venue_owner: {
     users: { any: [], own: ['read', 'update'] },
     demo: { any: ['read'], own: [] },
     websocket: { any: ['read', 'update'], own: [] },
-    events: { any: ['read'], own: [] },
-    venues: { any: [], own: ['create', 'read', 'update', 'delete'] },
-    bookings: { any: ['read', 'update'], own: [] },
+    events: { any: ['read'], own: [] }, // Can browse events but not create them
+    venues: { any: ['read'], own: ['create', 'read', 'update', 'delete'] }, // Full CRUD on own venues
+    bookings: { any: ['read', 'update'], own: [] }, // Can view/manage bookings for their venues
     landing: { any: ['read'], own: [] },
-    analytics: { any: [], own: ['read'] },
+    analytics: { any: [], own: ['read'] }, // Analytics for their own venues
   },
   event_organizer: {
     users: { any: [], own: ['read', 'update'] },
     demo: { any: ['read'], own: [] },
     websocket: { any: ['read', 'update'], own: [] },
-    events: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
-    venues: { any: ['read'], own: [] },
-    bookings: { any: [], own: ['create', 'read', 'update', 'delete'] },
+    events: { any: ['read'], own: ['create', 'read', 'update', 'delete'] }, // Full CRUD on own events
+    venues: { any: ['read'], own: [] }, // Can browse venues to book for events
+    bookings: { any: [], own: ['create', 'read', 'update', 'delete'] }, // Manage bookings for their events
     landing: { any: ['read'], own: [] },
   },
 };
