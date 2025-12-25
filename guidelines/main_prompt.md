@@ -263,6 +263,7 @@ export type Role = 'student' | 'teacher' | 'admin';
 - Service: Business logic in service class
 - Types: Shared TypeScript types
 - RBAC: Permission configuration for the module
+- **AI Feature: MANDATORY** - At least one AI-powered feature (e.g., smart content generation, intelligent search, AI recommendations)
 
 **Frontend-Only Modules:**
 
@@ -271,6 +272,7 @@ export type Role = 'student' | 'teacher' | 'admin';
 - Routing: New routes in React Router
 - Styling: shadcn/ui components, responsive design
 - **No Backend Required:** Can be demo-ready immediately
+- **AI Feature: OPTIONAL** - Static content modules don't require AI
 
 **Backend-Only Modules:**
 
@@ -279,6 +281,7 @@ export type Role = 'student' | 'teacher' | 'admin';
 - Types: API request/response types
 - RBAC: Permission configuration
 - **No Frontend Required:** Can be tested with Postman/curl
+- **AI Feature: MANDATORY** - AI-powered data processing or intelligent API responses
 
 **CRITICAL Independence Rule:** Foundation modules must NOT depend on each other's:
 
@@ -385,13 +388,38 @@ M08 + M09 + M10 ──> M12 (Advanced Dashboard)
 
 - **Hours 20-24:** Integration, Polish, Demo Prep
 
-### 7. AI-Enhanced Module Features
+### 7. AI-Enhanced Module Features (MANDATORY)
 
-**CRITICAL:** Leverage the existing Gemini AI integration documented in `guidelines/project-architecture.md` to make modules intelligent and impressive for demos.
+**CRITICAL REQUIREMENT:** ALL full-stack and backend modules MUST include at least one AI-powered feature using the existing Gemini AI integration.
 
-**Available Capabilities:** Text generation, JSON output, chat sessions, image analysis, thinking mode, streaming responses, multimodal understanding, code execution, and agentic workflows.
+**Why This Matters:**
+
+- Makes demos more impressive and engaging
+- Showcases modern AI capabilities to judges
+- Differentiates your solution from basic CRUD applications
+- Leverages the pre-built Gemini AI infrastructure
+
+**Available AI Capabilities:** Text generation, JSON output, chat sessions, image analysis, thinking mode, streaming responses, multimodal understanding, code execution, and agentic workflows.
+
+**AI Feature Requirements by Module Type:**
+
+- **Full-Stack Modules:** Must include AI feature in both backend service and frontend UI
+- **Backend-Only Modules:** Must include AI-powered data processing or intelligent API responses
+- **Frontend-Only Modules:** No AI requirement (static content/landing pages)
+- **Integration Modules:** Must use AI for intelligent data correlation or smart recommendations
 
 **Implementation Details:** See `guidelines/project-architecture.md` for complete AI integration patterns, examples, and best practices.
+
+**Common AI Feature Examples:**
+
+- **Smart Content Generation:** Auto-generate descriptions, summaries, or recommendations
+- **Intelligent Search:** AI-powered search with natural language queries
+- **Data Analysis:** AI insights and pattern recognition from user data
+- **Personalization:** AI-driven personalized experiences and suggestions
+- **Content Moderation:** AI-powered content filtering and safety checks
+- **Smart Forms:** AI assistance for form completion and validation
+- **Predictive Features:** AI predictions based on historical data
+- **Natural Language Processing:** Convert user input to structured data
 
 ### 8. External Services Required
 
@@ -547,6 +575,10 @@ For EACH module, generate a separate markdown file with this structure:
 
 - Keep handlers thin - delegate to service methods
 
+- **MANDATORY AI Integration:** Include at least one AI-powered feature using Gemini client
+
+- **AI Examples:** Smart content generation, intelligent data processing, AI recommendations, natural language queries
+
 - [ ] **Type Definitions:** Add types to `types.ts` for requests/responses
 
 - Request query/body types
@@ -577,6 +609,12 @@ For EACH module, generate a separate markdown file with this structure:
 - [ ] **shadcn Components:** [button, form, table, dialog, etc.]
 
 - [ ] **API Integration:** [Which endpoints to call] (Skip if Frontend-only)
+
+- [ ] **AI Features:** [AI-powered UI components] (MANDATORY for Full-stack modules)
+
+- **AI Examples:** Smart search, AI-generated content, intelligent recommendations, chat interfaces
+
+- Use existing Gemini client integration patterns from project architecture
 
 - [ ] **State Management:** [Local state, context, or external store]
 
@@ -728,6 +766,7 @@ backend/src/modules/[domain]/
 
 ```typescript
 // services/EntityService.ts
+import { geminiClient } from '../../../shared/clients/gemini';
 
 export class EntityService {
   async listEntities(query: ListQuery): Promise<EntityListResponse> {
@@ -741,6 +780,38 @@ export class EntityService {
 
   async createEntity(data: CreateEntityRequest): Promise<Entity> {
     // Create new entity
+  }
+
+  // MANDATORY: AI-powered feature
+  async generateEntitySummary(entityId: string): Promise<string> {
+    const entity = await this.getEntity(entityId);
+    const prompt = `Generate a concise summary for this entity: ${JSON.stringify(entity)}`;
+
+    const response = await geminiClient.generateText({
+      prompt,
+      maxTokens: 150
+    });
+
+    return response.text;
+  }
+
+  // MANDATORY: AI-powered intelligent search
+  async searchEntitiesWithAI(naturalLanguageQuery: string): Promise<Entity[]> {
+    // Convert natural language to structured query using AI
+    const structuredQuery = await geminiClient.generateJSON({
+      prompt: `Convert this search query to structured filters: "${naturalLanguageQuery}"`,
+      schema: {
+        type: 'object',
+        properties: {
+          filters: { type: 'object' },
+          sortBy: { type: 'string' },
+          limit: { type: 'number' }
+        }
+      }
+    });
+
+    // Use structured query to search entities
+    return this.searchEntities(structuredQuery);
   }
 }
 ```
@@ -940,6 +1011,12 @@ Create a service class [EntityService] for [specific functionality]:
 
 - Return typed responses matching types.ts
 
+- **MANDATORY AI Integration:** Include at least one method using geminiClient
+
+- **AI Examples:** generateSummary(), intelligentSearch(), aiRecommendations(), smartValidation()
+
+- Import: `import { geminiClient } from '../../../shared/clients/gemini'`
+
 ```
 
 3. **Function YAML Creation:**
@@ -979,6 +1056,12 @@ Create a React component using shadcn/ui for [specific functionality]:
 - Display errors with toast or error message
 
 - Include proper accessibility attributes
+
+- **MANDATORY AI Features (for Full-stack modules):** Include AI-powered UI elements
+
+- **AI Examples:** Smart search bar, AI-generated content display, intelligent recommendations, chat interface
+
+- **AI Implementation:** Call AI endpoints from backend, display AI responses with loading states
 
 ```
 
@@ -1055,6 +1138,7 @@ Create a form component for [entity] using shadcn Form:
 - [ ] [Specific, testable requirement 1]
 - [ ] [Specific, testable requirement 2]
 - [ ] [Specific, testable requirement 3]
+- [ ] **AI Feature Working:** At least one AI-powered feature implemented and functional (MANDATORY for Full-stack/Backend modules)
 - [ ] **Demo Ready:** Can demonstrate complete feature (frontend + backend) in 30 seconds
 - [ ] **Full-Stack Working:** Frontend connects to backend, backend connects to database
 - [ ] **Lambda Compatible:** Backend code works in serverless environment
