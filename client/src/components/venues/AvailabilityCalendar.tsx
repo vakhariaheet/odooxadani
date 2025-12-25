@@ -1,19 +1,27 @@
-import React, { useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, ChevronLeft, ChevronRight, Clock, Users } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { useVenueAvailability } from '../../hooks/useVenues';
+import { toast } from 'sonner';
 import type { AvailabilitySlot, TimeSlot } from '../../types/venue';
 
 interface AvailabilityCalendarProps {
   venueId: string;
   onTimeSlotSelect?: (date: string, timeSlot: TimeSlot) => void;
+  maxCapacity?: number;
 }
 
-export function AvailabilityCalendar({ venueId, onTimeSlotSelect }: AvailabilityCalendarProps) {
+export function AvailabilityCalendar({ venueId, onTimeSlotSelect, maxCapacity = 100 }: AvailabilityCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showBookingDialog, setShowBookingDialog] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{ date: string; slot: TimeSlot } | null>(null);
+  const [guestCount, setGuestCount] = useState('');
 
   // Calculate date range (current month)
   const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -87,6 +95,58 @@ export function AvailabilityCalendar({ venueId, onTimeSlotSelect }: Availability
     return dateString < today;
   };
 
+  const handleTimeSlotClick = (date: string, slot: TimeSlot) => {
+    setSelectedTimeSlot({ date, slot });
+    setShowBookingDialog(true);
+  };
+
+  const handleBookingSubmit = async () => {
+    if (!selectedTimeSlot || !guestCount) {
+      toast.error('Please enter the number of guests');
+      return;
+    }
+
+    const guests = parseInt(guestCount);
+    if (guests <= 0 || guests > maxCapacity) {
+      toast.error(`Guest count must be between 1 and ${maxCapacity}`);
+      return;
+    }
+
+    try {
+      // ⚠️ PLACEHOLDER NOTICE ⚠️
+      // This is a UI mockup for the booking system module (F04)
+      // Actual booking API call will be implemented in F04
+      // DO NOT implement real booking logic here
+      console.log('PLACEHOLDER: Booking timeslot (F04 will implement):', {
+        venueId,
+        date: selectedTimeSlot.date,
+        timeSlot: selectedTimeSlot.slot,
+        guestCount: guests
+      });
+
+      // Simulate API call for demo purposes only
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      toast.success(`Time slot selection recorded for ${guests} guests! (Booking system coming in F04)`);
+      
+      // Call the callback if provided
+      onTimeSlotSelect?.(selectedTimeSlot.date, selectedTimeSlot.slot);
+      
+      // Reset and close dialog
+      setShowBookingDialog(false);
+      setSelectedTimeSlot(null);
+      setGuestCount('');
+    } catch (err) {
+      console.error('Time slot selection error:', err);
+      toast.error('Failed to record time slot selection. Please try again.');
+    }
+  };
+
+  const handleDialogClose = () => {
+    setShowBookingDialog(false);
+    setSelectedTimeSlot(null);
+    setGuestCount('');
+  };
   const formatTime = (time: string): string => {
     const [hours, minutes] = time.split(':');
     const hour = parseInt(hours);
@@ -103,6 +163,7 @@ export function AvailabilityCalendar({ venueId, onTimeSlotSelect }: Availability
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   if (error) {
+    console.error('Availability error:', error);
     return (
       <Card>
         <CardContent className="p-6 text-center">
@@ -265,8 +326,9 @@ export function AvailabilityCalendar({ venueId, onTimeSlotSelect }: Availability
                           variant="outline"
                           size="sm"
                           className="justify-start text-green-700 border-green-200 hover:bg-green-50"
-                          onClick={() => onTimeSlotSelect?.(selectedDate, slot)}
+                          onClick={() => handleTimeSlotClick(selectedDate, slot)}
                         >
+                          <Clock className="h-4 w-4 mr-2" />
                           {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                         </Button>
                       ))}
@@ -295,6 +357,56 @@ export function AvailabilityCalendar({ venueId, onTimeSlotSelect }: Availability
           </CardContent>
         </Card>
       )}
+
+      {/* Booking Dialog */}
+      <Dialog open={showBookingDialog} onOpenChange={handleDialogClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Book Time Slot</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {selectedTimeSlot && (
+              <div className="bg-muted p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Selected Time Slot</h4>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p><strong>Date:</strong> {new Date(selectedTimeSlot.date).toLocaleDateString()}</p>
+                  <p><strong>Time:</strong> {formatTime(selectedTimeSlot.slot.startTime)} - {formatTime(selectedTimeSlot.slot.endTime)}</p>
+                </div>
+              </div>
+            )}
+            
+            <div>
+              <Label htmlFor="guestCount">Number of Guests *</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="guestCount"
+                  type="number"
+                  placeholder="Enter number of guests"
+                  value={guestCount}
+                  onChange={(e) => setGuestCount(e.target.value)}
+                  min="1"
+                  max={maxCapacity}
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Maximum capacity: {maxCapacity} guests
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDialogClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleBookingSubmit} disabled={!guestCount}>
+              Book Time Slot
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

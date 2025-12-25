@@ -22,7 +22,7 @@ export class VenueService {
   /**
    * Create a new venue
    */
-  async createVenue(data: CreateVenueRequest, userId: string): Promise<Venue> {
+  async createVenue(data: CreateVenueRequest, userId: string, userEmail?: string, userName?: string): Promise<Venue> {
     // Validate input data
     const validationErrors = validateVenueData(data);
     if (validationErrors.length > 0) {
@@ -31,6 +31,11 @@ export class VenueService {
 
     const venueId = generateVenueId();
     const now = new Date().toISOString();
+
+    // Store owner profile for contact functionality
+    if (userEmail) {
+      await this.storeOwnerProfile(userId, userName || userEmail, userEmail);
+    }
 
     // Create venue record
     const venueRecord: VenueRecord = {
@@ -232,12 +237,8 @@ export class VenueService {
       ':status': 'active'
     };
 
-    // Add city filter if specified
-    if (city) {
-      filterExpression += ' AND contains(#location, :city)';
-      expressionAttributeNames['#location'] = 'location';
-      expressionAttributeValues[':city'] = city.toLowerCase();
-    }
+    // Note: We'll filter by city in JavaScript below for more reliable results
+    // DynamoDB's contains() function on nested objects can be unreliable
 
     const result = await dynamodb.scan<VenueRecord>({
       filterExpression,
@@ -409,6 +410,93 @@ export class VenueService {
       createdAt: record.createdAt,
       updatedAt: record.updatedAt
     };
+  }
+
+  /**
+   * Get venue owner details for contact functionality
+   */
+  async getVenueOwnerDetails(ownerId: string): Promise<{ name?: string; email?: string } | null> {
+    try {
+      // Query for owner details stored during venue creation
+      const result = await dynamodb.query<any>(
+        'PK = :pk AND begins_with(SK, :sk)',
+        { 
+          ':pk': `USER#${ownerId}`,
+          ':sk': 'PROFILE'
+        }
+      );
+
+      if (result.items.length > 0) {
+        const ownerProfile = result.items[0];
+        return {
+          name: ownerProfile.name,
+          email: ownerProfile.email
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error fetching venue owner details:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Log contact attempt for analytics
+   */
+  async logContactAttempt(data: {
+    venueId: string;
+    ownerId: string;
+    contactorId: string;
+    contactorEmail: string;
+    inquiryType: string;
+    subject: string;
+    timestamp: string;
+  }): Promise<void> {
+    try {
+      const contactRecord = {
+        PK: `VENUE#${data.venueId}`,
+        SK: `CONTACT#${data.timestamp}#${data.contactorId}`,
+        GSI1PK: `USER#${data.ownerId}`,
+        GSI1SK: `CONTACT#${data.timestamp}`,
+        
+        venueId: data.venueId,
+        ownerId: data.ownerId,
+        contactorId: data.contactorId,
+        contactorEmail: data.contactorEmail,
+        inquiryType: data.inquiryType,
+        subject: data.subject,
+        timestamp: data.timestamp,
+        createdAt: data.timestamp
+      };
+
+      await dynamodb.put(contactRecord);
+    } catch (error) {
+      console.error('Error logging contact attempt:', error);
+      // Don't throw error - logging failure shouldn't break the contact flow
+    }
+  }
+
+  /**
+   * Store owner profile during venue creation
+   */
+  async storeOwnerProfile(userId: string, name: string, email: string): Promise<void> {
+    try {
+      const ownerProfile = {
+        PK: `USER#${userId}`,
+        SK: 'PROFILE',
+        userId,
+        name,
+        email,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      await dynamodb.put(ownerProfile);
+    } catch (error) {
+      console.error('Error storing owner profile:', error);
+      // Don't throw error - profile storage failure shouldn't break venue creation
+    }
   }
 
   /**

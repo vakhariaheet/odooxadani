@@ -3,10 +3,14 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
-    project: './tsconfig.json',
+    project: true,
+    tsconfigRootDir: __dirname,
   },
   plugins: ['@typescript-eslint'],
-  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
+  extends: [
+    'eslint:recommended', 
+    '@typescript-eslint/recommended'
+  ],
   env: {
     node: true,
     es2022: true,
@@ -15,6 +19,14 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-non-null-assertion': 'off',
   },
-  ignorePatterns: ['node_modules/', 'dist/', '.serverless/', 'coverage/', '*.config.js'],
+  ignorePatterns: [
+    'node_modules/', 
+    'dist/', 
+    '.serverless/', 
+    'coverage/', 
+    '*.config.js',
+    '*.js'
+  ],
 };

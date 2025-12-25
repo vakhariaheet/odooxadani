@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Building2 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { VenueList } from '../../components/venues/VenueList';
 import { useMyVenues, useDeleteVenue } from '../../hooks/useVenues';
 import { useConfirmDialog } from '../../hooks/useConfirmDialog';
+import { usePermissions } from '../../hooks/usePermissions';
+import { useWishlist } from '../../hooks/useWishlist';
 import { toast } from 'sonner';
 import type { Venue } from '../../types/venue';
 
@@ -13,7 +16,9 @@ export function MyVenuesPage() {
   const navigate = useNavigate();
   const { data: venuesResponse, isLoading } = useMyVenues();
   const deleteVenueMutation = useDeleteVenue();
-  const { showConfirm: showConfirmDialog } = useConfirmDialog();
+  const { dialogState, showConfirm: showConfirmDialog, hideConfirm, handleConfirm } = useConfirmDialog();
+  const { canCreateVenues, canEditVenues, canDeleteVenues, getCurrentUserId } = usePermissions();
+  const { validateWishlistItems, getWishlistCount } = useWishlist();
 
   const venues = venuesResponse?.data?.venues || [];
   const totalCount = venuesResponse?.data?.totalCount || 0;
@@ -22,15 +27,42 @@ export function MyVenuesPage() {
     document.title = 'My Venues - Odoo Xadani';
   }, []);
 
+  // Validate wishlist items when owner venues are loaded
+  useEffect(() => {
+    if (!isLoading && venues.length > 0 && getWishlistCount() > 0) {
+      const availableVenueIds = venues.map(venue => venue.venueId);
+      validateWishlistItems(availableVenueIds);
+    }
+  }, [isLoading, venues, validateWishlistItems, getWishlistCount]);
+
   const handleCreateVenue = () => {
-    navigate('/dashboard/venues/create');
+    if (canCreateVenues()) {
+      navigate('/dashboard/venues/create');
+    } else {
+      toast.error('You do not have permission to create venues');
+    }
   };
 
   const handleEditVenue = (venue: Venue) => {
-    navigate(`/dashboard/venues/${venue.venueId}/edit`);
+    const currentUserId = getCurrentUserId();
+    const isOwner = Boolean(currentUserId && venue.ownerId === currentUserId);
+    
+    if (canEditVenues(isOwner)) {
+      navigate(`/dashboard/venues/${venue.venueId}/edit`);
+    } else {
+      toast.error('You do not have permission to edit this venue');
+    }
   };
 
   const handleDeleteVenue = async (venue: Venue) => {
+    const currentUserId = getCurrentUserId();
+    const isOwner = Boolean(currentUserId && venue.ownerId === currentUserId);
+    
+    if (!canDeleteVenues(isOwner)) {
+      toast.error('You do not have permission to delete this venue');
+      return;
+    }
+
     const confirmed = await showConfirmDialog({
       title: 'Delete Venue',
       message: `Are you sure you want to delete "${venue.name}"? This action cannot be undone.`,
@@ -59,10 +91,12 @@ export function MyVenuesPage() {
               Manage your venues and track their performance
             </p>
           </div>
-          <Button onClick={handleCreateVenue} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add New Venue
-          </Button>
+          {canCreateVenues() && (
+            <Button onClick={handleCreateVenue} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Venue
+            </Button>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -134,10 +168,12 @@ export function MyVenuesPage() {
               <p className="text-muted-foreground mb-6">
                 Get started by creating your first venue listing.
               </p>
-              <Button onClick={handleCreateVenue} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create Your First Venue
-              </Button>
+              {canCreateVenues() && (
+                <Button onClick={handleCreateVenue} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Your First Venue
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -147,6 +183,18 @@ export function MyVenuesPage() {
             onDeleteVenue={handleDeleteVenue}
           />
         )}
+
+        {/* Confirm Dialog */}
+        <ConfirmDialog
+          isOpen={dialogState.isOpen}
+          onClose={hideConfirm}
+          onConfirm={handleConfirm}
+          title={dialogState.title}
+          message={dialogState.message}
+          confirmText={dialogState.confirmText}
+          cancelText={dialogState.cancelText}
+          variant={dialogState.variant}
+        />
       </div>
   );
 }

@@ -14,7 +14,7 @@ const baseHandler = async (
   event: AuthenticatedAPIGatewayEvent
 ): Promise<APIGatewayProxyResultV2> => {
   try {
-    const { userId } = getAuthContext(event);
+    const { userId, email } = getAuthContext(event);
 
     if (!event.body) {
       return commonErrors.badRequest('Request body is required');
@@ -50,7 +50,16 @@ const baseHandler = async (
       return commonErrors.badRequest('Pricing must include basePrice, currency, and pricingModel');
     }
 
-    const venue = await venueService.createVenue(requestData, userId);
+    // Extract user name from JWT claims if available
+    const claims = event.requestContext?.authorizer?.jwt?.claims;
+    const userName = claims?.name || 
+                    (claims?.given_name && claims?.family_name ? `${claims.given_name} ${claims.family_name}` : undefined) ||
+                    (claims?.first_name && claims?.last_name ? `${claims.first_name} ${claims.last_name}` : undefined) ||
+                    claims?.given_name || 
+                    claims?.first_name || 
+                    undefined;
+
+    const venue = await venueService.createVenue(requestData, userId, email, userName);
     return successResponse(venue, HTTP_STATUS.CREATED);
   } catch (error) {
     if (error instanceof Error && error.message.includes('Validation failed')) {

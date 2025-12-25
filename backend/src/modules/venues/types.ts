@@ -99,6 +99,15 @@ export interface UpdateVenueRequest {
   status?: VenueStatus;
 }
 
+/** POST /api/venues/:id/contact */
+export interface ContactOwnerRequest {
+  senderName: string;
+  senderEmail: string;
+  inquiryType?: string;
+  subject: string;
+  message: string;
+}
+
 // -----------------------------------------------------------------------------
 // Query & Response Types
 // -----------------------------------------------------------------------------

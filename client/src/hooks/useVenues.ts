@@ -11,6 +11,7 @@ import type {
   VenueSearchQuery,
   AvailabilityQuery,
   VenueListResponse,
+  Venue,
 } from '../types/venue';
 
 // =============================================================================
@@ -38,11 +39,13 @@ export const venueKeys = {
 export function useVenues(query?: VenueSearchQuery & { enabled?: boolean }) {
   const { enabled = true, ...searchQuery } = query || {};
 
+  const queryKey = venueKeys.list(searchQuery);
+
   return useQuery({
-    queryKey: venueKeys.list(searchQuery),
+    queryKey,
     queryFn: () => venuesApi.listVenues(searchQuery),
     enabled,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 5 * 1000, // 5 seconds - shorter for search responsiveness
   });
 }
 
@@ -164,11 +167,12 @@ export function useUpdateVenue() {
       const previousLists = queryClient.getQueriesData({ queryKey: venueKeys.lists() });
 
       // Optimistically update venue detail
-      queryClient.setQueryData(venueKeys.detail(venueId), (oldData: any) => {
-        if (!oldData?.data) return oldData;
+      queryClient.setQueryData(venueKeys.detail(venueId), (oldData: unknown) => {
+        const typedOldData = oldData as { data?: Venue } | undefined;
+        if (!typedOldData?.data) return oldData;
         return {
-          ...oldData,
-          data: { ...oldData.data, ...data, updatedAt: new Date().toISOString() },
+          ...typedOldData,
+          data: { ...typedOldData.data, ...data, updatedAt: new Date().toISOString() },
         };
       });
 
@@ -261,6 +265,39 @@ export function useDeleteVenue() {
         queryKey: [...venueKeys.all, 'availability', venueId] 
       });
 
+      // Clean up wishlist - remove deleted venue from all users' wishlists
+      // This is handled client-side since wishlist is localStorage-based
+      try {
+        // Get all localStorage keys that match wishlist pattern
+        const wishlistKeys = Object.keys(localStorage).filter(key => 
+          key.startsWith('venue_wishlist_')
+        );
+        
+        wishlistKeys.forEach(key => {
+          try {
+            const wishlistData = localStorage.getItem(key);
+            if (wishlistData) {
+              const items = JSON.parse(wishlistData);
+              const filteredItems = items.filter((item: { venueId: string }) => item.venueId !== venueId);
+              
+              if (filteredItems.length !== items.length) {
+                localStorage.setItem(key, JSON.stringify(filteredItems));
+                console.log(`Removed deleted venue ${venueId} from wishlist ${key}`);
+              }
+            }
+          } catch (error) {
+            console.warn(`Failed to clean wishlist ${key}:`, error);
+          }
+        });
+
+        // Dispatch custom event to notify wishlist hooks to refresh
+        window.dispatchEvent(new CustomEvent('venue-deleted', { 
+          detail: { venueId } 
+        }));
+      } catch (error) {
+        console.warn('Failed to clean wishlists after venue deletion:', error);
+      }
+
       // Invalidate lists to ensure consistency
       queryClient.invalidateQueries({ queryKey: venueKeys.lists() });
     },
@@ -294,3 +331,33 @@ export function useVenueSearch(query: VenueSearchQuery, debounceMs = 300) {
 
 // Import useState and useEffect for the search hook
 import { useState, useEffect } from 'react';
+
+// =============================================================================
+// HANDOFF INTERFACE FOR BOOKING MODULES (F04 & M08)
+// =============================================================================
+
+/**
+ * ⚠️ HANDOFF NOTICE ⚠️
+ * The following interfaces are provided for booking system modules to build upon
+ * Do not modify these interfaces without coordinating with booking module development
+ */
+
+// Venue data access interface for booking modules
+export interface VenueHooksForBooking {
+  // Read-only venue data access
+  useVenueDetails: typeof useVenueDetails;
+  useVenueAvailability: typeof useVenueAvailability;
+  useVenues: typeof useVenues;
+  
+  // Query keys for cache management
+  venueKeys: typeof venueKeys;
+}
+
+// Availability checking interface for booking modules
+export interface AvailabilityHooksForBooking {
+  useVenueAvailability: typeof useVenueAvailability;
+  
+  // Future: booking modules will extend this with booking-specific availability
+  // useBookingAvailability?: (venueId: string, bookingId?: string) => any;
+  // useAvailabilityConflicts?: (venueId: string, timeSlot: TimeSlot) => any;
+}

@@ -17,9 +17,9 @@ export function CreateVenuePage() {
 
   const handleSubmit = async (data: CreateVenueRequest) => {
     try {
-      const response = await createVenueMutation.mutateAsync(data);
+      await createVenueMutation.mutateAsync(data);
       toast.success('Venue created successfully!');
-      navigate(`/dashboard/venues/${response.data.venueId}/edit`);
+      navigate('/dashboard/venues'); // Redirect to My Venues list
     } catch (error) {
       toast.error('Failed to create venue. Please try again.');
       throw error; // Re-throw to prevent form from closing

@@ -24,10 +24,24 @@ export interface JwtClaims {
   userid?: string;
   /** User email */
   email?: string;
+  /** User name fields */
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  first_name?: string;
+  last_name?: string;
   /** User role from public_metadata */
   role?: string;
   /** Metadata object (if using nested claim in Clerk) */
   metadata?: {
+    role?: string;
+  };
+  /** Public metadata from Clerk (alternative structure) */
+  public_metadata?: {
+    role?: string;
+  };
+  /** Alternative camelCase public metadata */
+  publicMetadata?: {
     role?: string;
   };
   /** Issued at timestamp */
@@ -87,20 +101,13 @@ export const getAuthContext = (event: AuthenticatedAPIGatewayEvent): Authenticat
   // 1. Direct 'role' claim (recommended)
   // 2. Nested in 'metadata.role' (Clerk's default metadata structure)
   // 3. Nested in 'public_metadata.role'
-  // 4. Default to 'user' if not found
+  // 4. Nested in 'publicMetadata.role' (camelCase variant)
+  // 5. Default to 'user' if not found
   const role = claims.role || 
                claims.metadata?.role || 
                claims.public_metadata?.role ||
-               (claims as any).publicMetadata?.role ||
+               claims.publicMetadata?.role ||
                'user';
-
-  console.log(`[AUTH-DEBUG] Extracting role from claims:`, {
-    'claims.role': claims.role,
-    'claims.metadata?.role': claims.metadata?.role,
-    'claims.public_metadata?.role': (claims as any).public_metadata?.role,
-    'claims.publicMetadata?.role': (claims as any).publicMetadata?.role,
-    'final_role': role
-  });
 
   return {
     userId,

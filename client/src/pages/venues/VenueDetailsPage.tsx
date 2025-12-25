@@ -25,7 +25,7 @@ export function VenueDetailsPage() {
   };
 
   const handleContactOwner = () => {
-    // Open contact modal or navigate to contact page
+    // This will be handled by the VenueDetails component now
     console.log('Contact owner for venue:', id);
   };
 
