@@ -126,81 +126,71 @@ program
   .action(async () => {
     const inquirer = (await import('inquirer')).default;
 
-    while (true) {
-      console.log(chalk.bold('\n🛠️  Main Menu'));
-      console.log(chalk.dim('─'.repeat(30)));
+    console.log(chalk.bold('\n🛠️  Main Menu'));
+    console.log(chalk.dim('─'.repeat(30)));
 
-      const { action } = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'action',
-          message: 'What would you like to do?',
-          choices: [
-            { name: '🆕 New Module Creation', value: 'module-new' },
-            { name: '✅ Complete Module', value: 'module-complete' },
-            { name: '🔄 Pull and Rebase', value: 'module-sync' },
-            { name: '🚀 Deploy All Functions', value: 'deploy-all' },
-            { name: '⚡ Deploy Single Function', value: 'deploy-function' },
-            { name: '⚙️  Show Configuration', value: 'config' },
-            { name: '❌ Exit', value: 'exit' },
-          ],
-          pageSize: 10,
-        },
-      ]);
+    const { action } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'action',
+        message: 'What would you like to do?',
+        choices: [
+          { name: '🆕 New Module Creation', value: 'module-new' },
+          { name: '✅ Complete Module', value: 'module-complete' },
+          { name: '🔄 Pull and Rebase', value: 'module-sync' },
+          { name: '� Deplloy All Functions', value: 'deploy-all' },
+          { name: '⚡ Deploy Single Function', value: 'deploy-function' },
+          { name: '⚙️  Show Configuration', value: 'config' },
+          { name: '❌ Exit', value: 'exit' },
+        ],
+        pageSize: 10,
+      },
+    ]);
 
-      try {
-        switch (action) {
-          case 'module-new':
-            await moduleCmd.newModule();
-            break;
-          case 'module-complete':
-            await moduleCmd.completeModule();
-            break;
-          case 'module-sync':
-            await moduleCmd.pullRebase();
-            break;
-          case 'deploy-all':
-            await deployCmd.fullDeploy();
-            break;
-          case 'deploy-function':
-            await deployCmd.quickDeploy();
-            break;
-          case 'config':
-            const config = ConfigManager.getInstance().getConfig();
+    try {
+      switch (action) {
+        case 'module-new':
+          await moduleCmd.newModule();
+          break;
+        case 'module-complete':
+          await moduleCmd.completeModule();
+          break;
+        case 'module-sync':
+          await moduleCmd.pullRebase();
+          break;
+        case 'deploy-all':
+          await deployCmd.fullDeploy();
+          break;
+        case 'deploy-function':
+          await deployCmd.quickDeploy();
+          break;
+        case 'config':
+          const config = ConfigManager.getInstance().getConfig();
 
-            console.log(chalk.bold('\nCurrent Configuration:'));
-            console.log(chalk.dim('─'.repeat(50)));
-            console.log(`${chalk.yellow('Epic Branch:')} ${chalk.cyan(config.epicBranch)}`);
-            console.log(`${chalk.yellow('Stage:')} ${chalk.cyan(config.stage)}`);
-            console.log(`${chalk.yellow('AWS Profile:')} ${chalk.cyan(config.awsProfile)}`);
-            console.log(`${chalk.yellow('Git Root:')} ${chalk.dim(config.gitRoot)}`);
-            console.log(`${chalk.yellow('Backend Path:')} ${chalk.dim(config.backendPath)}`);
-            console.log(`${chalk.yellow('Modules Path:')} ${chalk.dim(config.modulesPath)}`);
-            console.log(
-              `${chalk.yellow('Commit Prefix:')} ${chalk.cyan(config.defaultCommitPrefix)}`
-            );
-            console.log('');
-            break;
-          case 'exit':
-            console.log(chalk.green('\n👋 Goodbye!'));
-            process.exit(0);
-        }
-      } catch (error) {
-        console.log(chalk.red('\n❌ Operation failed:'), (error as Error).message);
-
-        const { continueMenu } = await inquirer.prompt([
-          {
-            type: 'confirm',
-            name: 'continueMenu',
-            message: 'Would you like to return to the main menu?',
-            default: true,
-          },
-        ]);
-
-        if (!continueMenu) {
-          process.exit(1);
-        }
+          console.log(chalk.bold('\nCurrent Configuration:'));
+          console.log(chalk.dim('─'.repeat(50)));
+          console.log(`${chalk.yellow('Epic Branch:')} ${chalk.cyan(config.epicBranch)}`);
+          console.log(`${chalk.yellow('Stage:')} ${chalk.cyan(config.stage)}`);
+          console.log(`${chalk.yellow('AWS Profile:')} ${chalk.cyan(config.awsProfile)}`);
+          console.log(`${chalk.yellow('Git Root:')} ${chalk.dim(config.gitRoot)}`);
+          console.log(`${chalk.yellow('Backend Path:')} ${chalk.dim(config.backendPath)}`);
+          console.log(`${chalk.yellow('Modules Path:')} ${chalk.dim(config.modulesPath)}`);
+          console.log(
+            `${chalk.yellow('Commit Prefix:')} ${chalk.cyan(config.defaultCommitPrefix)}`
+          );
+          console.log('');
+          break;
+        case 'exit':
+          console.log(chalk.green('\n👋 Goodbye!'));
+          process.exit(0);
       }
+
+      // After completing an action, show success message and exit
+      console.log(chalk.green('\n✨ Operation completed successfully!'));
+      console.log(chalk.dim('Run the command again to perform another action.'));
+    } catch (error) {
+      console.log(chalk.red('\n❌ Operation failed:'), (error as Error).message);
+      process.exit(1);
     }
   });
 

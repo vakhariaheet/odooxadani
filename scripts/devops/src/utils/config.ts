@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync } from 'fs';
 import { join, resolve } from 'path';
 import type { Config } from '../types/index.js';
 
@@ -8,6 +8,7 @@ export class ConfigManager {
   private config: Config;
 
   private constructor() {
+    this.loadEnvironmentVariables();
     this.config = this.loadConfig();
   }
 
@@ -16,6 +17,22 @@ export class ConfigManager {
       ConfigManager.instance = new ConfigManager();
     }
     return ConfigManager.instance;
+  }
+
+  private loadEnvironmentVariables(): void {
+    const gitRoot = this.findGitRoot();
+
+    // Load environment variables in order of precedence (later overrides earlier)
+    const envFiles = [
+      join(gitRoot, 'backend/.env'), // Backend .env
+      join(gitRoot, 'scripts/devops/.env'), // DevOps .env (highest priority)
+    ];
+
+    envFiles.forEach((envFile) => {
+      if (existsSync(envFile)) {
+        config({ path: envFile, override: false }); // Don't override already set variables
+      }
+    });
   }
 
   private findGitRoot(): string {
@@ -31,19 +48,6 @@ export class ConfigManager {
 
   private loadConfig(): Config {
     const gitRoot = this.findGitRoot();
-
-    // Load environment variables from multiple sources
-    // Try to find the devops .env file
-    const devopsEnvPath = join(gitRoot, 'scripts/devops/.env');
-    if (existsSync(devopsEnvPath)) {
-      config({ path: devopsEnvPath });
-    }
-
-    // Also load backend .env
-    const backendEnvPath = join(gitRoot, 'backend/.env');
-    if (existsSync(backendEnvPath)) {
-      config({ path: backendEnvPath });
-    }
 
     // Resolve paths relative to git root
     const backendPath = process.env.BACKEND_PATH
