@@ -17,7 +17,8 @@
     "typecheck": "bun run --filter '*' typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
-    "devops": "bun run scripts/dev-ops.ts"
+    "devops": "cd scripts/devops && npm run dev",
+    "devops:old": "bun run scripts/dev-ops.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
