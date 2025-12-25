@@ -1,20 +1,41 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { HeroSection } from '@/components/landing/HeroSection';
+import { FeaturesSection } from '@/components/landing/FeaturesSection';
+import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
+import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
+import { PricingSection } from '@/components/landing/PricingSection';
+import { ContactSection } from '@/components/landing/ContactSection';
+import { AboutSection } from '@/components/landing/AboutSection';
+import { FooterSection } from '@/components/landing/FooterSection';
 
 export function LandingPage() {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Handle anchor links when navigating to the landing page
+    if (location.hash) {
+      const elementId = location.hash.substring(1); // Remove '#'
+      const element = document.getElementById(elementId);
+      if (element) {
+        // Small delay to ensure the page has rendered
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, [location.hash]);
+
   return (
-    <main className="main-content">
-      <div className="landing-section">
-        <h2>Welcome to Our Hackathon Project</h2>
-        <p>Please sign in to access the application.</p>
-        <div className="landing-buttons">
-          <Link to="/sign-in" className="landing-btn primary">
-            Sign In
-          </Link>
-          <Link to="/sign-up" className="landing-btn secondary">
-            Create Account
-          </Link>
-        </div>
-      </div>
-    </main>
-  )
+    <div className="min-h-screen">
+      <HeroSection />
+      <FeaturesSection />
+      <HowItWorksSection />
+      <TestimonialsSection />
+      <PricingSection />
+      <AboutSection />
+      <ContactSection />
+      <FooterSection />
+    </div>
+  );
 }
