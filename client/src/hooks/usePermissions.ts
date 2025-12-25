@@ -9,7 +9,7 @@ export function usePermissions() {
   // Get user roles from Clerk public metadata
   // Support both 'role' (singular) and 'roles' (array) for flexibility
   const userRole = user?.publicMetadata?.role as string;
-  const userRoles = user?.publicMetadata?.roles as string[] || (userRole ? [userRole] : []);
+  const userRoles = (user?.publicMetadata?.roles as string[]) || (userRole ? [userRole] : []);
   const primaryRole = userRoles[0] || 'user';
 
   /**
@@ -43,11 +43,11 @@ export function usePermissions() {
     }
 
     const resourcePermissions = rolePermissions[resource];
-    
+
     if (isOwner && resourcePermissions.own.includes(action)) {
       return true;
     }
-    
+
     if (resourcePermissions.any.includes(action)) {
       return true;
     }
@@ -94,14 +94,7 @@ export function usePermissions() {
    * Get current user ID
    */
   const getCurrentUserId = (): string | undefined => {
-    const userId = user?.id;
-    console.log('🔍 usePermissions - getCurrentUserId:', {
-      userId: userId,
-      user: user ? { id: user.id, email: user.emailAddresses[0]?.emailAddress } : null,
-      userRoles: userRoles,
-      primaryRole: primaryRole
-    });
-    return userId;
+    return user?.id;
   };
 
   return {

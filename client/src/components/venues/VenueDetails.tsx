@@ -11,12 +11,12 @@ import { useWishlist } from '../../hooks/useWishlist';
 import { usePermissions } from '../../hooks/usePermissions';
 import { toast } from 'sonner';
 import type { Venue } from '../../types/venue';
-import { 
-  formatPrice, 
-  formatCapacity, 
-  formatAddress, 
-  VENUE_CATEGORIES, 
-  AMENITY_LABELS 
+import {
+  formatPrice,
+  formatCapacity,
+  formatAddress,
+  VENUE_CATEGORIES,
+  AMENITY_LABELS,
 } from '../../types/venue';
 
 interface VenueDetailsProps {
@@ -28,13 +28,13 @@ interface VenueDetailsProps {
   onDelete?: () => void;
 }
 
-export function VenueDetails({ 
-  venue, 
-  onBookNow, 
+export function VenueDetails({
+  venue,
+  onBookNow,
   onContactOwner,
   showOwnerActions = false,
   onEdit,
-  onDelete 
+  onDelete,
 }: VenueDetailsProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showContactDialog, setShowContactDialog] = useState(false);
@@ -44,24 +44,19 @@ export function VenueDetails({
   const categoryLabel = VENUE_CATEGORIES[venue.category] || venue.category;
   const images = venue.images.length > 0 ? venue.images : ['/placeholder-venue.jpg'];
   const isFavorited = isInWishlist(venue.venueId);
-  
+
   // Get current user ID and check ownership
   const currentUserId = getCurrentUserId();
-  const isVenueOwner = currentUserId === venue.ownerId;
-  
-  // Debug logging - DETAILED
-  console.log('🔍 VenueDetails - Contact Owner Debug:', {
-    currentUserId: currentUserId,
-    currentUserIdType: typeof currentUserId,
-    venueOwnerId: venue.ownerId,
-    venueOwnerIdType: typeof venue.ownerId,
-    isVenueOwner: isVenueOwner,
-    isAuthenticated: isAuthenticated,
-    venue: venue.name,
-    shouldShowContactButton: !isVenueOwner && isAuthenticated,
-    strictEquality: currentUserId === venue.ownerId,
-    looseEquality: currentUserId == venue.ownerId
-  });
+
+  // More robust ownership check - handle different formats and types
+  const isVenueOwner = Boolean(
+    currentUserId &&
+    venue.ownerId &&
+    (currentUserId === venue.ownerId || currentUserId.toString() === venue.ownerId.toString())
+  );
+
+  // Only show contact button for authenticated non-owners
+  const shouldShowContactButton = isAuthenticated && !isVenueOwner;
 
   const handleWishlistToggle = () => {
     if (!isAuthenticated) {
@@ -69,7 +64,12 @@ export function VenueDetails({
       return;
     }
 
-    console.log('VenueDetails - toggling wishlist for venue:', venue.venueId, 'currently favorited:', isFavorited);
+    console.log(
+      'VenueDetails - toggling wishlist for venue:',
+      venue.venueId,
+      'currently favorited:',
+      isFavorited
+    );
     const success = toggleWishlist(venue.venueId);
     if (success) {
       if (isFavorited) {
@@ -111,22 +111,17 @@ export function VenueDetails({
   };
 
   const handleContactOwner = () => {
-    console.log('Contact Owner clicked:', {
-      currentUserId,
-      venueOwnerId: venue.ownerId,
-      isAuthenticated,
-      venueName: venue.name
-    });
-
     if (!isAuthenticated) {
       toast.error('Please sign in to contact the venue owner');
       return;
     }
 
-    console.log('Opening contact dialog...');
+    if (isVenueOwner) {
+      toast.error('You cannot contact yourself');
+      return;
+    }
+
     setShowContactDialog(true);
-    
-    // Call the original callback if provided (for compatibility)
     onContactOwner?.();
   };
 
@@ -148,7 +143,7 @@ export function VenueDetails({
                     target.src = '/placeholder-venue.jpg';
                   }}
                 />
-                
+
                 {/* Status Badge */}
                 {venue.status !== 'active' && (
                   <div className="absolute top-4 left-4">
@@ -167,7 +162,9 @@ export function VenueDetails({
                     className="bg-white/90 hover:bg-white"
                     title={isFavorited ? 'Remove from wishlist' : 'Add to wishlist'}
                   >
-                    <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart
+                      className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`}
+                    />
                   </Button>
                   <Button
                     size="sm"
@@ -204,9 +201,7 @@ export function VenueDetails({
                     />
                     {index === 3 && images.length > 4 && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <span className="text-white font-semibold">
-                          +{images.length - 4} more
-                        </span>
+                        <span className="text-white font-semibold">+{images.length - 4} more</span>
                       </div>
                     )}
                   </div>
@@ -253,9 +248,7 @@ export function VenueDetails({
             </CardHeader>
 
             <CardContent>
-              <p className="text-muted-foreground leading-relaxed">
-                {venue.description}
-              </p>
+              <p className="text-muted-foreground leading-relaxed">{venue.description}</p>
             </CardContent>
           </Card>
 
@@ -327,9 +320,7 @@ export function VenueDetails({
                       {venue.amenities.map((amenity) => (
                         <div key={amenity} className="flex items-center gap-2">
                           <div className="w-2 h-2 bg-green-500 rounded-full" />
-                          <span className="text-sm">
-                            {AMENITY_LABELS[amenity] || amenity}
-                          </span>
+                          <span className="text-sm">{AMENITY_LABELS[amenity] || amenity}</span>
                         </div>
                       ))}
                     </div>
@@ -343,10 +334,7 @@ export function VenueDetails({
             </TabsContent>
 
             <TabsContent value="availability" className="space-y-4">
-              <AvailabilityCalendar 
-                venueId={venue.venueId} 
-                maxCapacity={venue.capacity.max}
-              />
+              <AvailabilityCalendar venueId={venue.venueId} maxCapacity={venue.capacity.max} />
             </TabsContent>
           </Tabs>
         </div>
@@ -357,9 +345,7 @@ export function VenueDetails({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Book This Venue</span>
-                <span className="text-lg font-bold text-primary">
-                  {formatPrice(venue.pricing)}
-                </span>
+                <span className="text-lg font-bold text-primary">{formatPrice(venue.pricing)}</span>
               </CardTitle>
             </CardHeader>
 
@@ -389,58 +375,30 @@ export function VenueDetails({
                     <Button className="w-full" onClick={onBookNow}>
                       Book Now
                     </Button>
-                    {/* TEMPORARY DEBUG: Always show Contact Owner button */}
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      onClick={handleContactOwner}
-                    >
-                      Contact Owner
-                    </Button>
-                    {/* Original logic (commented for debug) */}
-                    {/* {!isVenueOwner && isAuthenticated && (
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
-                        onClick={handleContactOwner}
-                      >
+                    {shouldShowContactButton ? (
+                      <Button variant="outline" className="w-full" onClick={handleContactOwner}>
                         Contact Owner
                       </Button>
-                    )}
-                    {isVenueOwner && (
+                    ) : isVenueOwner ? (
                       <div className="text-center py-2">
                         <p className="text-sm text-muted-foreground">Your Venue</p>
                       </div>
-                    )} */}
+                    ) : null}
                   </>
                 ) : (
                   <div className="text-center py-4">
                     <p className="text-sm text-muted-foreground mb-2">
                       This venue is currently {venue.status}
                     </p>
-                    {/* TEMPORARY DEBUG: Always show Contact Owner button */}
-                    <Button 
-                      variant="outline" 
-                      className="w-full" 
-                      onClick={handleContactOwner}
-                    >
-                      Contact Owner {!isVenueOwner && isAuthenticated ? '✅' : '❌'}
-                    </Button>
-                    {/* Original logic (commented for debug) */}
-                    {/* {!isVenueOwner && isAuthenticated && (
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
-                        onClick={handleContactOwner}
-                      >
+                    {shouldShowContactButton ? (
+                      <Button variant="outline" className="w-full" onClick={handleContactOwner}>
                         Contact Owner
                       </Button>
-                    )}
-                    {isVenueOwner && (
+                    ) : isVenueOwner ? (
                       <div className="text-center py-2">
                         <p className="text-sm text-muted-foreground">Your Venue</p>
                       </div>
-                    )} */}
+                    ) : null}
                   </div>
                 )}
               </div>
