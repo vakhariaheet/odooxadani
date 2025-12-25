@@ -178,6 +178,79 @@ export class ModuleCommand {
     }
   }
 
+  async pullRebase(): Promise<void> {
+    console.log(chalk.blue.bold('\n🔄 Pull and Rebase\n'));
+
+    // Navigate to git root
+    process.chdir(this.config.gitRoot);
+
+    // Check current branch
+    const currentBranch = await this.git.getCurrentBranch();
+    console.log(chalk.dim(`Current branch: ${currentBranch}`));
+
+    // Handle uncommitted changes if any
+    const status = await this.git.getStatus();
+    if (!status.isClean) {
+      console.log(chalk.yellow('⚠️  You have uncommitted changes.'));
+
+      const { action } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'action',
+          message: 'What would you like to do with uncommitted changes?',
+          choices: [
+            { name: 'Stash changes and continue', value: 'stash' },
+            { name: 'Commit changes first', value: 'commit' },
+            { name: 'Cancel operation', value: 'cancel' },
+          ],
+        },
+      ]);
+
+      switch (action) {
+        case 'stash':
+          await this.git.stashChanges('Auto-stash before pull/rebase');
+          break;
+        case 'commit':
+          await this.commitChanges(status);
+          break;
+        case 'cancel':
+          console.log(chalk.yellow('Operation cancelled'));
+          return;
+      }
+    }
+
+    // If on epic branch, just pull
+    if (currentBranch === this.config.epicBranch) {
+      await this.git.pullLatest(this.config.epicBranch);
+      console.log(chalk.green(`✅ Successfully updated ${this.config.epicBranch} branch`));
+      return;
+    }
+
+    // For feature branches, rebase from epic branch
+    console.log(chalk.cyan(`🔄 Rebasing ${currentBranch} from ${this.config.epicBranch}...`));
+    const conflictInfo = await this.git.rebaseFromBranch(this.config.epicBranch);
+
+    if (conflictInfo.hasConflicts) {
+      await this.handleMergeConflicts(conflictInfo.files);
+    }
+
+    console.log(chalk.green('✅ Pull and rebase completed successfully!'));
+
+    // Ask if want to push the rebased branch
+    const { pushBranch } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'pushBranch',
+        message: 'Would you like to push the rebased branch?',
+        default: false,
+      },
+    ]);
+
+    if (pushBranch) {
+      await this.git.pushBranch(currentBranch, true); // Force push with lease
+    }
+  }
+
   private async handleUncommittedChanges(): Promise<void> {
     const status = await this.git.getStatus();
     if (status.isClean) return;

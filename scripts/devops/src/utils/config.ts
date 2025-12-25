@@ -57,7 +57,7 @@ export class ConfigManager {
     return {
       epicBranch: process.env.EPIC_BRANCH || 'main',
       stage: process.env.SERVERLESS_STAGE || 'dev',
-      awsProfile: process.env.AWS_PROFILE || 'default',
+      awsProfile: process.env.DEVOPS_AWS_PROFILE || 'default',
       defaultCommitPrefix: process.env.DEFAULT_COMMIT_MESSAGE_PREFIX || 'feat:',
       gitRoot,
       backendPath,

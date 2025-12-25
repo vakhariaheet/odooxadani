@@ -39,6 +39,10 @@ npm run dev m n  # short alias
 # Complete module (commit, rebase, push, PR)
 npm run dev module complete
 npm run dev m c  # short alias
+
+# Pull and rebase current branch
+npm run dev module sync
+npm run dev m s  # short alias
 ```
 
 #### Deployment Commands
@@ -77,7 +81,7 @@ DEFAULT_COMMIT_MESSAGE_PREFIX=feat:
 
 # Deployment Configuration
 SERVERLESS_STAGE=dev
-AWS_PROFILE=default
+DEVOPS_AWS_PROFILE=default
 
 # Paths (relative to git root)
 BACKEND_PATH=backend
@@ -153,6 +157,7 @@ MODULES_PATH=backend/src/modules
    - Creates Pull Request
 
 4. **Deploy**:
+
    ```bash
    npm run dev deploy function
    ```

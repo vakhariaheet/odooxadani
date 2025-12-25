@@ -58,6 +58,19 @@ moduleCommand
     }
   });
 
+moduleCommand
+  .command('sync')
+  .alias('s')
+  .description('Pull latest changes and rebase current branch')
+  .action(async () => {
+    try {
+      await moduleCmd.pullRebase();
+    } catch (error) {
+      console.log(chalk.red('\n❌ Operation failed:'), (error as Error).message);
+      process.exit(1);
+    }
+  });
+
 // Deploy commands
 const deployCommand = program.command('deploy').alias('d').description('Deployment commands');
 
@@ -125,6 +138,7 @@ program
           choices: [
             { name: '🆕 New Module Creation', value: 'module-new' },
             { name: '✅ Complete Module', value: 'module-complete' },
+            { name: '🔄 Pull and Rebase', value: 'module-sync' },
             { name: '🚀 Deploy All Functions', value: 'deploy-all' },
             { name: '⚡ Deploy Single Function', value: 'deploy-function' },
             { name: '⚙️  Show Configuration', value: 'config' },
@@ -141,6 +155,9 @@ program
             break;
           case 'module-complete':
             await moduleCmd.completeModule();
+            break;
+          case 'module-sync':
+            await moduleCmd.pullRebase();
             break;
           case 'deploy-all':
             await deployCmd.fullDeploy();
