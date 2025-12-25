@@ -13,6 +13,10 @@ import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { WebSocketTestPage } from './pages/WebSocketTestPage';
+import { IdeasListPage } from './pages/ideas/IdeasListPage';
+import { IdeaCreatePage } from './pages/ideas/IdeaCreatePage';
+import { IdeaDetailsPage } from './pages/ideas/IdeaDetailsPage';
+import { IdeaEditPage } from './pages/ideas/IdeaEditPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import './App.css';
@@ -47,6 +51,16 @@ function App() {
         <Link to="/" className="logo-link">
           <h1>HackMatch</h1>
         </Link>
+        <SignedIn>
+          <nav className="main-nav">
+            <Link to="/dashboard" className="nav-link">
+              Dashboard
+            </Link>
+            <Link to="/ideas" className="nav-link">
+              Ideas
+            </Link>
+          </nav>
+        </SignedIn>
         <div className="auth-section">
           <SignedOut>
             <div className="auth-buttons">
@@ -128,6 +142,38 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        <Route
+          path="/ideas"
+          element={
+            <ProtectedRoute>
+              <IdeasListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ideas/new"
+          element={
+            <ProtectedRoute>
+              <IdeaCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ideas/:id"
+          element={
+            <ProtectedRoute>
+              <IdeaDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ideas/:id/edit"
+          element={
+            <ProtectedRoute>
+              <IdeaEditPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>

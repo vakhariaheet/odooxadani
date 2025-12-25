@@ -1,0 +1,13 @@
+enhanceIdea:
+  handler: src/modules/ideas/handlers/enhanceIdea.handler
+  description: 'AI-powered enhancement for idea titles and descriptions'
+  memorySize: ${self:custom.stageConfig.memorySize}
+  timeout: ${self:custom.stageConfig.timeout}
+  events:
+    - httpApi:
+        path: /api/ideas/enhance
+        method: post
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    GEMINI_API_KEY: ${env:GEMINI_API_KEY}

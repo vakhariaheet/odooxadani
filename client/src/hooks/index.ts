@@ -24,3 +24,14 @@ export {
   userKeys,
   authKeys,
 } from './useUsers';
+
+// Ideas API hooks
+export {
+  useIdeas,
+  useIdeaDetails,
+  useCreateIdea,
+  useUpdateIdea,
+  useDeleteIdea,
+  useVoteIdea,
+  ideaKeys,
+} from './useIdeas';

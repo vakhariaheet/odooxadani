@@ -1,0 +1,32 @@
+createIdea:
+  handler: src/modules/ideas/handlers/createIdea.handler
+  events:
+    - httpApi:
+        path: /api/ideas
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Ideas
+        summary: POST /api/ideas
+        description: Create a new idea with AI enhancement
+        methodResponses:
+          - statusCode: 201
+            responseBody:
+              description: Created
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid input
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
