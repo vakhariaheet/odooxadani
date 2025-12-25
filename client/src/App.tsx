@@ -6,6 +6,11 @@ import { SignUpPage } from './pages/SignUpPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { LandingPage } from './pages/LandingPage';
+import { AboutPage } from './pages/AboutPage';
+import { PricingPage } from './pages/PricingPage';
+import { ContactPage } from './pages/ContactPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { WebSocketTestPage } from './pages/WebSocketTestPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -40,7 +45,7 @@ function App() {
       <Toaster position="top-right" richColors closeButton expand={true} duration={4000} />
       <header className="app-header">
         <Link to="/" className="logo-link">
-          <h1>Hackathon App</h1>
+          <h1>HackMatch</h1>
         </Link>
         <div className="auth-section">
           <SignedOut>
@@ -118,6 +123,11 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>

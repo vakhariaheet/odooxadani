@@ -1,0 +1,9 @@
+submitContact:
+  handler: src/modules/contact/handlers/submitContact.handler
+  description: Submit contact form
+  memorySize: ${self:custom.memorySize.${self:provider.stage}, 256}
+  timeout: ${self:custom.timeout.${self:provider.stage}, 29}
+  events:
+    - httpApi:
+        path: /api/contact/submit
+        method: post

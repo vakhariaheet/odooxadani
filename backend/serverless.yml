@@ -22,6 +22,8 @@ provider:
     SWAGGER_USERNAME: ${env:SWAGGER_USERNAME, 'admin'}
     SWAGGER_PASSWORD: ${env:SWAGGER_PASSWORD, 'changeme'}
     MAIN_TABLE_NAME: ${self:service}-${self:provider.stage}-main-table
+    SES_DEFAULT_FROM: ${env:SES_DEFAULT_FROM, 'noreply@webbound.dev'}
+    SUPPORT_EMAIL: ${env:SUPPORT_EMAIL, 'support@webbound.dev'}
 
   # IAM permissions
   iam:
@@ -43,6 +45,13 @@ provider:
                 - '/'
                 - - Fn::GetAtt: [MainTable, Arn]
                   - 'index/*'
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+            - ses:SendTemplatedEmail
+            - ses:SendBulkTemplatedEmail
+          Resource: '*'
 
   # HTTP API (API Gateway v2) with JWT Authorizer
   httpApi:
@@ -226,3 +235,5 @@ functions:
   - ${file(src/modules/demo/functions/whoami.yml)}
   # WebSocket module
   - ${file(src/modules/websocket/functions/websocket.yml)}
+  # Contact module
+  - ${file(src/modules/contact/functions/submitContact.yml)}
