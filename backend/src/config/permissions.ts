@@ -12,31 +12,51 @@ import { AccessControl } from 'accesscontrol';
  * - *Any: Can perform action on any resource
  */
 
-// Define module access permissions for the 'user' role
-// This makes it easy to see at a glance what each role can do per module
-const USER_MODULE_ACCESS: Record<string, { any: string[]; own: string[] }> = {
-  users: {
-    any: [], // Cannot list all users or access other profiles
-    own: ['read', 'update'], // Can read and update own profile only
-  },
-  demo: {
-    any: ['read'], // Can access demo endpoints (for testing)
-    own: [],
-  },
-  websocket: {
-    any: ['read', 'update'], // Can connect and send messages via WebSocket
-    own: [],
-  },
-};
-
 // All available modules in the system (used for admin grants)
-const ALL_MODULES = ['users', 'demo', 'admin', 'websocket'];
+const ALL_MODULES = [
+  'users',
+  'ideas',
+  'teams',
+  'events',
+  'analytics',
+  'judging',
+  'landing',
+  'admin',
+  'demo',
+  'websocket',
+];
 
 // All CRUD actions
 const ALL_ACTIONS = ['create', 'read', 'update', 'delete'] as const;
 
 const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
-  user: USER_MODULE_ACCESS,
+  participant: {
+    users: { any: [], own: ['read', 'update'] },
+    ideas: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
+    teams: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
+    landing: { any: ['read'], own: [] },
+    demo: { any: ['read'], own: [] },
+    websocket: { any: ['read', 'update'], own: [] },
+  },
+  organizer: {
+    users: { any: ['read'], own: ['read', 'update'] },
+    ideas: { any: ['read', 'update', 'delete'], own: [] }, // Can moderate ideas
+    teams: { any: ['read'], own: [] },
+    events: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    analytics: { any: ['read'], own: [] },
+    landing: { any: ['read'], own: [] },
+    demo: { any: ['read'], own: [] },
+    websocket: { any: ['read', 'update'], own: [] },
+  },
+  judge: {
+    users: { any: [], own: ['read', 'update'] },
+    ideas: { any: ['read', 'update'], own: [] }, // Can score and provide feedback
+    teams: { any: ['read'], own: [] },
+    judging: { any: ['create', 'read', 'update'], own: [] },
+    landing: { any: ['read'], own: [] },
+    demo: { any: ['read'], own: [] },
+    websocket: { any: ['read', 'update'], own: [] },
+  },
   admin: ALL_MODULES.reduce(
     (modules, moduleName) => {
       modules[moduleName] = { any: [...ALL_ACTIONS], own: [] };
