@@ -3,13 +3,40 @@ import chalk from 'chalk';
 import ora from 'ora';
 import type { GitStatus, ConflictInfo } from '../types/index.js';
 
+// Set environment variables to prevent vim from opening
+process.env.GIT_EDITOR = 'true';
+process.env.GIT_SEQUENCE_EDITOR = 'true';
+process.env.GIT_MERGE_AUTOEDIT = 'no';
+
 export class GitManager {
   private git: SimpleGit;
   private gitRoot: string;
 
   constructor(gitRoot: string) {
     this.gitRoot = gitRoot;
-    this.git = simpleGit(gitRoot);
+    this.git = simpleGit(gitRoot, {
+      config: [
+        'core.editor=true', // Use 'true' as editor (no-op command)
+        'merge.ours.driver=true', // Handle merge conflicts automatically
+        'rebase.autoStash=true', // Auto-stash uncommitted changes during rebase
+      ],
+    });
+
+    // Initialize git config to prevent vim issues
+    this.setupGitConfig();
+  }
+
+  private async setupGitConfig(): Promise<void> {
+    try {
+      // Set up git configuration to avoid interactive editors
+      await this.git.addConfig('core.editor', 'true');
+      await this.git.addConfig('sequence.editor', 'true');
+      await this.git.addConfig('merge.tool', 'true');
+      await this.git.addConfig('rebase.instructionFormat', '%s');
+    } catch (error) {
+      // Ignore config errors - they're not critical
+      console.warn('Warning: Could not set git config, continuing anyway...');
+    }
   }
 
   async getStatus(): Promise<GitStatus> {
@@ -87,7 +114,8 @@ export class GitManager {
 
     try {
       await this.git.add('.');
-      await this.git.commit(message);
+      // Use -m flag to provide message directly and avoid editor
+      await this.git.commit(message, undefined, { '--no-edit': null });
       spinner.succeed('Changes committed successfully');
     } catch (error) {
       spinner.fail('Failed to commit changes');
@@ -99,6 +127,11 @@ export class GitManager {
     const spinner = ora(`Rebasing from ${baseBranch}...`).start();
 
     try {
+      // Set git config to avoid vim editor issues during rebase
+      await this.git.addConfig('core.editor', 'true');
+      await this.git.addConfig('sequence.editor', 'true');
+      await this.git.addConfig('rebase.instructionFormat', '%s');
+
       // First, fetch latest changes
       await this.git.fetch();
 
@@ -108,10 +141,15 @@ export class GitManager {
       await this.pullLatest(baseBranch);
       await this.checkoutBranch(currentBranch);
 
-      // Now rebase
-      await this.git.rebase([baseBranch]);
-      spinner.succeed('Rebase completed successfully');
+      // Try rebase with non-interactive mode first
+      try {
+        await this.git.rebase([baseBranch, '--no-edit']);
+      } catch (rebaseError) {
+        // If --no-edit fails, try without it (some git versions don't support it)
+        await this.git.rebase([baseBranch]);
+      }
 
+      spinner.succeed('Rebase completed successfully');
       return { files: [], hasConflicts: false };
     } catch (error) {
       spinner.fail('Rebase encountered conflicts');
@@ -131,7 +169,9 @@ export class GitManager {
     const spinner = ora('Continuing rebase...').start();
 
     try {
-      await this.git.rebase(['--continue']);
+      // Ensure no editor is opened during rebase continue
+      await this.git.addConfig('core.editor', 'true');
+      await this.git.rebase(['--continue', '--no-edit']);
       spinner.succeed('Rebase continued successfully');
     } catch (error) {
       spinner.fail('Failed to continue rebase');

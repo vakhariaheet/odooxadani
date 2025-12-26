@@ -198,6 +198,35 @@ export type Role = 'student' | 'teacher' | 'admin';
 
 **CRITICAL PARALLEL WORK RULE:** F01, F02, F03, and F04 must be completely independent and work simultaneously.
 
+**ABSOLUTE INDEPENDENCE REQUIREMENTS:**
+
+**ZERO Dependencies Between Foundation Modules:**
+
+- **No Shared Database Entities:** Each module uses completely separate PK patterns
+  - F01: `ENTITY1#id` (e.g., `PRODUCT#123`, `USER#456`)
+  - F02: No database (frontend-only)
+  - F03: `ENTITY3#id` (e.g., `ORDER#789`, `BOOKING#012`)
+  - F04: `ENTITY4#id` (e.g., `SETTING#345`, `NOTIFICATION#678`)
+
+- **No Cross-Module API Calls:** Foundation modules cannot call each other's endpoints
+- **No Shared Frontend State:** Each module manages its own state independently
+- **No Shared Components:** Each module creates its own components (can be similar, but separate files)
+- **No Business Logic Dependencies:** Each module solves its own problem completely
+
+**VIOLATION EXAMPLES (DO NOT DO):**
+
+- ❌ F03 calling F01's user API to get user data
+- ❌ F04 notifications referencing F01 user IDs
+- ❌ Shared UserContext between F01 and F04
+- ❌ F02 landing page showing live data from F01
+
+**CORRECT INDEPENDENCE EXAMPLES:**
+
+- ✅ F01 manages products with its own user selection (hardcoded test users if needed)
+- ✅ F02 shows static marketing content with no dynamic data
+- ✅ F03 manages orders with its own customer data (separate from F01 users)
+- ✅ F04 manages settings with its own user preferences (independent of F01)
+
 **Foundation Module Rules:**
 
 - Each foundation module must be **Independently Deployable** and **Demo-Ready** (can show working feature in 30 seconds)
@@ -218,18 +247,22 @@ export type Role = 'student' | 'teacher' | 'admin';
 - **F01:** [Primary Business Entity] (e.g., Products, Orders, Bookings, Projects) - **Full-Stack**
   - **Avoid**: User management (already exists), Generic admin features (already exists)
 
-- **F02:** **Site Landing Page** (MANDATORY) - **Frontend-Only**
-  - **Required**: Hero section, features showcase, pricing/plans, contact forms, about section
+- **F02:** **Site Landing Page + Marketing Pages** (MANDATORY) - **Frontend-Only**
+  - **Required**: Hero section, features showcase, pricing/plans, contact forms, about section, FAQ, testimonials
   - **Perfect for parallel work**: No backend dependencies, immediate demo value
+  - **Additional Pages**: Privacy policy, terms of service, help documentation
   - **Avoid**: Authentication pages (already exist), Generic dashboards (already exist)
+  - **AI Integration**: Not typically needed for static marketing content
 
 - **F03:** [Core Business Process OR NEW API Services] (e.g., Search, Checkout, Booking Flow, NEW External Integrations) - **Full-Stack OR Backend-Only**
   - **Avoid**: WebSocket (already exists), Basic CRUD patterns (use existing as reference)
   - **Note**: S3, SES, SQS, Gemini AI clients already exist - build NEW integrations only
+  - **AI Integration**: Add AI-powered search, intelligent recommendations, or smart processing if relevant
 
-- **F04:** [Independent Business Feature OR Static Content] (e.g., Settings Management, Content Management, Public Pages, Notifications System) - **Full-Stack**
+- **F04:** [Independent Business Feature] (e.g., Settings Management, Notification System, Help Center) - **Full-Stack**
   - **Avoid**: Analytics (needs other module data), Cross-module admin features (creates dependencies)
-  - **Good Examples**: App settings, content pages, notification preferences, help system
+  - **Good Examples**: App settings, notification preferences, help system, user preferences
+  - **AI Integration**: Add AI-powered help assistant or smart notifications if relevant to problem statement
 
 **Special Considerations for Common Module Types:**
 
@@ -263,6 +296,7 @@ export type Role = 'student' | 'teacher' | 'admin';
 - Service: Business logic in service class
 - Types: Shared TypeScript types
 - RBAC: Permission configuration for the module
+- **AI Integration:** Add AI features only if module involves content creation or text processing
 
 **Frontend-Only Modules:**
 
@@ -271,6 +305,7 @@ export type Role = 'student' | 'teacher' | 'admin';
 - Routing: New routes in React Router
 - Styling: shadcn/ui components, responsive design
 - **No Backend Required:** Can be demo-ready immediately
+- **AI Integration:** Generally not needed for static content
 
 **Backend-Only Modules:**
 
@@ -279,61 +314,101 @@ export type Role = 'student' | 'teacher' | 'admin';
 - Types: API request/response types
 - RBAC: Permission configuration
 - **No Frontend Required:** Can be tested with Postman/curl
+- **AI Integration:** Add AI processing services if module handles content generation
 
 **CRITICAL Independence Rule:** Foundation modules must NOT depend on each other's:
 
-- Database schemas (each uses separate PK patterns like `PRODUCT#`, `ORDER#`, `BOOKING#`, `SETTING#`)
-- API endpoints (no cross-module API calls during foundation phase)
-- Frontend components (no shared state between foundation modules)
-- Business logic (each module is completely self-contained)
+- **Database schemas:** Each uses completely separate PK patterns with NO shared entities
+- **API endpoints:** ZERO cross-module API calls during foundation phase
+- **Frontend components:** NO shared state, context, or components between foundation modules
+- **Business logic:** Each module is completely self-contained and functional alone
+- **User data:** Each module can have its own user/customer data if needed (no sharing)
 
-**PARALLEL WORK GUARANTEE:** All 4 developers can start coding immediately after RBAC setup with zero coordination needed.
+**TESTING INDEPENDENCE:** Each foundation module must be:
+
+- **Deployable Alone:** Can be deployed and tested without any other foundation module
+- **Demo-Ready Alone:** Can demonstrate complete functionality independently
+- **Data Independent:** Uses its own test data, no references to other modules
+- **UI Independent:** Complete user interface that doesn't reference other modules
+
+**PARALLEL WORK GUARANTEE:** All 5 developers can start coding immediately after RBAC setup with zero coordination needed.
+
+**INTEGRATION PLANNING (CRITICAL):**
+
+**Problem:** Avoid creating disconnected modules that feel like separate apps glued together.
+
+**Solution:** Plan integration points during foundation phase, implement in core phase.
+
+**Integration Strategy:**
+
+1. **Foundation Phase (Hours 0-4):** Build independent, demo-ready modules
+2. **Integration Phase (Hours 4-8):** Connect modules with shared navigation, data flow, and unified UX
+3. **Enhancement Phase (Hours 8-16):** Add cross-module features and advanced functionality
+
+**Required Integration Elements:**
+
+- **Unified Navigation:** Replace default dashboard with problem-specific navigation
+- **Data Flow:** Plan how modules share data (user actions in F01 affect F03, etc.)
+- **Consistent UX:** Shared design patterns, consistent terminology, unified workflows
+- **Cross-Module Features:** Features that span multiple modules (reporting, search, etc.)
+
+**Dashboard Integration Requirements:**
+
+- **NO Generic Admin Dashboard:** Create problem-specific main interface
+- **Contextual Navigation:** Navigation should reflect the problem domain, not generic "modules"
+- **Unified User Journey:** Users should flow naturally between modules
+- **Shared State:** Important data should be accessible across relevant modules
 
 **AVOID in Foundation Modules:**
 
-- **Analytics/Reporting**: Needs data from other modules (save for M10+ phase)
-- **Cross-module Admin**: Needs multiple entities to manage (save for M11+ phase)
-- **Integration Features**: By definition requires other modules (save for M09+ phase)
-- **Dashboards with Multiple Data Sources**: Creates dependencies (save for later phases)
+- **Cross-Module References:** Any feature that needs data from another foundation module
+- **Shared User Management:** Each module can have its own user/customer concept if needed
+- **Analytics/Reporting:** Needs data from multiple modules (save for M10+ phase)
+- **Cross-module Admin:** Needs multiple entities to manage (save for M11+ phase)
+- **Integration Features:** By definition requires other modules (save for M09+ phase)
+- **Dashboards with Multiple Data Sources:** Creates dependencies (save for later phases)
+- **Shared Navigation:** Each module has its own navigation during foundation phase
 
-### 4. Module List Overview
+### 4. Module List Overview (Maximum 10 Modules)
+
+**CRITICAL:** Limit total modules to maximum 10. Each module must serve a specific purpose in the final application puzzle.
 
 Create a table with Foundation modules first (derived from problem statement):
 
-| Module ID | Name | Time Est. | Complexity | Type | Dependencies | Risk |
+| Module ID | Name | Time Est. | Complexity | Type | Dependencies | Risk | Purpose |
 
-|-----------|------|-----------|------------|------|--------------|------|
+|-----------|------|-----------|------------|------|--------------|------|---------|
 
-| **F01** | **[Primary Entity] Management** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** |
+| **F01** | **[Primary Entity] Management** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** | **Core business entity** |
 
-| **F02** | **Site Landing Page** | **30-45min** | **Simple** | **Frontend-only** | **None** | **Low** |
+| **F02** | **Site Landing Page** | **45min** | **Simple** | **Frontend-only** | **None** | **Low** | **Marketing & onboarding** |
 
-| **F03** | **[Core Process/API] Workflow** | **1hr** | **Medium** | **Full-stack/Backend-only** | **None** | **Low** |
+| **F03** | **[Core Process] Workflow** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** | **Main user workflow** |
 
-| **F04** | **Independent Feature/Content** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** |
+| **F04** | **[Support Feature]** | **1hr** | **Medium** | **Full-stack** | **None** | **Low** | **User support/settings** |
 
-| M05 | [Enhanced F01 Features] | [time] | [complexity] | [type] | F01 | [risk] |
+| M05 | [Enhanced F01 + Integration] | 1.5hr | Medium | Full-stack | F01 | Low | Connect F01 to other modules |
 
-| M06 | [Enhanced F02 Features] | [time] | [complexity] | [type] | F02 | [risk] |
+| M06 | [Enhanced F02 + Dynamic Content] | 1hr | Simple | Full-stack | F02+F01 | Low | Make landing page dynamic |
 
-| M07 | [Enhanced F03 Features] | [time] | [complexity] | [type] | F03 | [risk] |
+| M07 | [Enhanced F03 + Advanced Features] | 1.5hr | Medium | Full-stack | F03 | Medium | Advanced workflow features |
 
-| M08 | [Enhanced F04 Features] | [time] | [complexity] | [type] | F04 | [risk] |
+| M08 | [Cross-Module Integration] | 1.5hr | Complex | Integration | F01+F03+F04 | Medium | Connect all modules |
 
-| M09 | [Cross-Entity Integration] | [time] | [complexity] | [type] | F01+F02 | [risk] |
+| M09 | [Analytics & Reporting] | 2hr | Complex | Full-stack | F01+F03 | Medium | Data insights across modules |
 
-| M10 | [Analytics & Reporting] | [time] | [complexity] | [type] | F01+F02+F03 | [risk] |
+| M10 | [Admin Dashboard] | 1.5hr | Medium | Full-stack | All previous | Low | Unified admin interface |
 
-| M11 | [Advanced Admin Dashboard] | [time] | [complexity] | [type] | F04+M09 | [risk] |
+**Module Purpose Guidelines:**
 
-| ... | ... | ... | ... | ... | ... | ... |
+- **F01-F04:** Independent foundation pieces that each solve a core problem
+- **M05-M07:** Enhance foundation modules with advanced features
+- **M08:** Integration layer that makes modules work together seamlessly
+- **M09:** Analytics that provides insights across the integrated system
+- **M10:** Admin interface that manages the complete system
 
-**Module Type Definitions:**
-
-- **Full-stack:** Backend handlers + Frontend components + Database integration
-- **Frontend-only:** React components + Pages + Routing (no backend needed)
-- **Backend-only:** Lambda handlers + Services + Database (no UI needed initially)
-- **Integration:** Connects existing modules together
+**Puzzle Piece Principle:**
+Each module must fit perfectly with others to create a cohesive application. No module should feel like a separate app - they should all contribute to solving the main problem statement together.
 
 ### 5. Dependency Graph
 
@@ -342,11 +417,11 @@ Create a table with Foundation modules first (derived from problem statement):
 ```
 F01 ([Primary Entity])        ──┐
                                │  ALL 4 MODULES
-F02 ([Secondary/Landing])     ──┤  START TOGETHER
+F02 ([Landing/Marketing])     ──┤  START TOGETHER
                                │  ZERO COORDINATION
 F03 ([Core Process/API])      ──┤  PARALLEL EXECUTION
                                │  (Hours 0-4)
-F04 ([Independent Features])      ──┘
+F04 ([Independent Feature])   ──┘
 ```
 
 **CRITICAL:** All 4 foundation modules run simultaneously with zero dependencies.
@@ -355,45 +430,588 @@ F04 ([Independent Features])      ──┘
 
 ```
 
-F01 ──> M05 ([Enhanced Primary Features])
-F02 ──> M06 ([Enhanced Secondary Features])
-F03 ──> M07 ([Advanced Process Features])
-F04 ──> M08 ([Enhanced Independent Features])
+F01 ──> M05 ([Enhanced F01 + Integration Features])
+F02 ──> M06 ([Dynamic Landing Page with F01 Data])
+F03 ──> M07 ([Advanced F03 Workflow Features])
+F04 ──> M08 ([Cross-Module Integration Hub])
 
-F01 + F02 ──> M09 (Cross-Entity Integration)
-F01 + F02 + F03 ──> M10 (Analytics & Reporting - needs data from multiple modules)
-F04 + M09 ──> M11 (Advanced Admin Dashboard - needs integrated data)
-
-```
-
-**Integration Phase (Complex Features):**
+M05 + M06 + M07 ──> M09 (Analytics & Reporting across integrated modules)
+All Modules ──> M10 (Unified Admin Dashboard for complete system)
 
 ```
 
-M05 + M06 + M07 ──> M11 (Multi-Module Integration)
-M08 + M09 + M10 ──> M12 (Advanced Dashboard)
+**Integration Phase (Complete Application):**
 
 ```
 
-### 6. Critical Path Timeline
+M08 (Integration Hub) connects all foundation modules
+M09 (Analytics) provides insights across the integrated system
+M10 (Admin Dashboard) manages the complete unified application
+
+Final Result: Cohesive application where all modules work together seamlessly
+
+```
+
+### 7. Critical Path Timeline (4 Developers)
 
 - **Hours 0-4:** Foundation Phase (F01, F02, F03, F04) - **ALL 4 MODULES WORK IN PARALLEL, ZERO DEPENDENCIES**
 
-- **Hours 4-12:** Core Features (M05, M06, M07, M08) - Build on foundation
+- **Hours 4-12:** Integration & Core Features (M05, M06, M07, M08) - Build on foundation + integrate modules
 
-- **Hours 12-20:** Advanced Features (M09, M10, M11) - Bonus features
+- **Hours 12-20:** Advanced Features (M09, M10) - Cross-module features and analytics
 
-- **Hours 20-24:** Integration, Polish, Demo Prep
+- **Hours 20-24:** Polish, Demo Prep, Bug Fixes
 
-### 7. AI-Enhanced Module Features
+### 7. Enhanced User Experience Features (Problem-Statement Driven)
 
-**CRITICAL:** Leverage the existing Gemini AI integration documented in `guidelines/project-architecture.md` to make modules intelligent and impressive for demos.
+**CORE PRINCIPLE:** All features must genuinely solve user problems identified in the problem statement. Prioritize existing services first, then add external APIs only if they significantly improve UX and are simple to integrate.
 
-**Available Capabilities:** Text generation, JSON output, chat sessions, image analysis, thinking mode, streaming responses, multimodal understanding, code execution, and agentic workflows.
+**PRIORITY ORDER:**
 
-**Implementation Details:** See `guidelines/project-architecture.md` for complete AI integration patterns, examples, and best practices.
+1. **FIRST PRIORITY:** Use existing implemented services (Gemini AI, S3, SES, SQS, DynamoDB)
+2. **SECOND PRIORITY:** Simple external APIs (no auth required or 1-minute setup)
+3. **LAST PRIORITY:** Complex external APIs (save for final modules if time permits)
 
-### 8. External Services Required
+**EXISTING SERVICES (READY TO USE - HIGHEST PRIORITY):**
+
+**Gemini AI Integration (Already Implemented):**
+
+- **Text Enhancement:** Content improvement, grammar checking, tone adjustment
+- **Content Generation:** Descriptions, summaries, suggestions based on user input
+- **Image Generation:** Create images from text prompts for covers, illustrations
+- **JSON Output:** Structured data generation, form auto-completion
+- **Chat Sessions:** Interactive AI assistants, help systems
+- **Image Analysis:** Process uploaded images, extract information
+
+**AWS Services (Already Configured):**
+
+- **S3 Storage:** File uploads, document storage, image hosting
+- **SES Email:** Transactional emails, notifications, invitations
+- **SQS Queues:** Background processing, async tasks, notifications
+- **DynamoDB:** All data storage with single-table design
+
+**Simple External APIs (SECOND PRIORITY - Under 2 Minutes Setup):**
+
+- **QR Code Generation:** `https://api.qrserver.com/v1/create-qr-code/` (no auth)
+- **Lorem Picsum Images:** `https://picsum.photos/` (no auth)
+- **JSONPlaceholder:** `https://jsonplaceholder.typicode.com/` (no auth)
+- **Currency Rates:** `https://api.fixer.io/` (free API key)
+
+**Complex External APIs (LAST PRIORITY - Only if Essential):**
+
+- **Stripe Payments:** Only for e-commerce problems
+- **Google Maps:** Only for location-based problems
+- **Twilio SMS:** Only for communication-heavy problems
+
+**FEATURE SELECTION CRITERIA:**
+
+- ✅ **Uses Existing Services:** Leverages Gemini AI, S3, SES, SQS first
+- ✅ **Problem-Specific:** Directly addresses pain points from problem statement
+- ✅ **User Value:** Measurably improves user workflow or saves time
+- ✅ **Simple Integration:** Can be implemented reliably within hackathon timeframe
+- ❌ **Technology for Technology's sake:** Don't add features just because APIs exist
+- ❌ **Complex Setup:** Avoid APIs requiring complex authentication or setup
+
+**DETAILED IMPLEMENTATION SPECIFICATIONS:**
+
+Each enhancement feature must include complete implementation details to eliminate guesswork:
+
+**Frontend Implementation:**
+
+```typescript
+// Exact component structure with all props and state
+const EnhancementButton = ({
+  onEnhance,
+  isLoading,
+  disabled = false,
+  variant = "outline"
+}: {
+  onEnhance: (data: InputData) => Promise<EnhancedData>;
+  isLoading: boolean;
+  disabled?: boolean;
+  variant?: "outline" | "default";
+}) => {
+  const [result, setResult] = useState<EnhancedData | null>(null);
+
+  const handleEnhance = async () => {
+    try {
+      const enhanced = await onEnhance(inputData);
+      setResult(enhanced);
+    } catch (error) {
+      toast.error('Enhancement failed. Please try again.');
+    }
+  };
+
+  return (
+    <div className="enhancement-container">
+      <Button
+        onClick={handleEnhance}
+        disabled={disabled || isLoading}
+        variant={variant}
+        size="sm"
+      >
+        {isLoading ? 'Processing...' : 'Enhance'}
+      </Button>
+
+      {result && (
+        <EnhancementResult
+          result={result}
+          onAccept={() => applyResult(result)}
+          onReject={() => setResult(null)}
+        />
+      )}
+    </div>
+  );
+};
+```
+
+**Backend Service Implementation:**
+
+```typescript
+// Complete service method with error handling
+export class EntityService {
+  async enhanceContent(params: {
+    content: string;
+    type: 'text' | 'description' | 'title';
+    context?: string;
+  }): Promise<EnhancedContent> {
+    try {
+      // Validate input
+      if (!params.content?.trim()) {
+        throw new Error('Content is required');
+      }
+
+      // Choose enhancement method based on requirements
+      let enhanced: string;
+
+      if (shouldUseAI(params)) {
+        enhanced = await this.enhanceWithAI(params);
+      } else if (shouldUseExternalAPI(params)) {
+        enhanced = await this.enhanceWithAPI(params);
+      } else {
+        enhanced = await this.enhanceWithLogic(params);
+      }
+
+      return {
+        original: params.content,
+        enhanced,
+        method: 'ai' | 'api' | 'logic',
+        confidence: 0.95,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Enhancement failed:', error);
+      throw new Error('Enhancement service unavailable');
+    }
+  }
+
+  private async enhanceWithAI(params: EnhanceParams): Promise<string> {
+    // Specific AI implementation
+  }
+
+  private async enhanceWithAPI(params: EnhanceParams): Promise<string> {
+    // Specific external API implementation
+  }
+
+  private async enhanceWithLogic(params: EnhanceParams): Promise<string> {
+    // Smart logic implementation
+  }
+}
+```
+
+**API Handler Implementation:**
+
+```typescript
+// Complete handler with all error cases
+const baseHandler = async (
+  event: AuthenticatedAPIGatewayEvent
+): Promise<APIGatewayProxyResultV2> => {
+  try {
+    // Parse and validate request
+    const { content, type, context } = JSON.parse(event.body || '{}');
+
+    if (!content) {
+      return errorResponse(400, 'MISSING_CONTENT', 'Content is required');
+    }
+
+    if (!['text', 'description', 'title'].includes(type)) {
+      return errorResponse(400, 'INVALID_TYPE', 'Type must be text, description, or title');
+    }
+
+    // Call service
+    const result = await entityService.enhanceContent({
+      content,
+      type,
+      context,
+    });
+
+    return successResponse(result);
+  } catch (error) {
+    return handleAsyncError(error);
+  }
+};
+
+export const handler = withRbac(baseHandler, 'moduleName', 'update');
+```
+
+**SPECIFIC ENHANCEMENT EXAMPLES BY PROBLEM TYPE:**
+
+**E-commerce Problems:**
+
+- Smart product recommendations (API: recommendation engine)
+- Auto-complete product descriptions (AI: content generation)
+- Price optimization suggestions (Logic: market analysis)
+- Inventory alerts (Logic: threshold monitoring)
+
+**Education Problems:**
+
+- Assignment difficulty estimation (AI: content analysis)
+- Student progress predictions (Logic: performance tracking)
+- Resource recommendations (API: educational content APIs)
+- Plagiarism detection (API: plagiarism services)
+
+**Project Management Problems:**
+
+- Task time estimation (Logic: historical data analysis)
+- Resource allocation optimization (Logic: capacity planning)
+- Risk assessment (AI: pattern recognition)
+- Integration with calendar/email (API: Google/Outlook APIs)
+
+**Healthcare Problems:**
+
+- Appointment scheduling optimization (Logic: availability algorithms)
+- Symptom checker integration (API: medical APIs)
+- Patient communication automation (Logic: template systems)
+- Insurance verification (API: insurance provider APIs)
+
+**IMPLEMENTATION REQUIREMENTS:**
+
+Each enhancement must specify:
+
+1. **Exact trigger conditions:** When and how the feature activates
+2. **Input validation:** What data is required and how to validate it
+3. **Processing logic:** Step-by-step implementation details
+4. **Error handling:** All possible failure scenarios and responses
+5. **User feedback:** Loading states, success/error messages, progress indicators
+6. **Fallback behavior:** What happens when the enhancement fails
+7. **Performance considerations:** Timeouts, caching, rate limiting
+
+**IMPLEMENTATION REQUIREMENTS:**
+
+Each AI feature must include:
+
+1. **Clear User Interface:**
+
+```typescript
+// Subtle integration in existing forms
+<div className="flex items-center gap-2">
+  <Input placeholder="Enter description..." />
+  <Button variant="outline" size="sm" onClick={enhanceText}>
+    Enhance
+  </Button>
+</div>
+```
+
+2. **Detailed Backend Implementation:**
+
+```typescript
+// services/AIService.ts
+export class AIService {
+  async generateAssignment(params: {
+    subject: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    duration: number;
+    topics: string[];
+  }): Promise<Assignment> {
+    // Detailed implementation with Gemini AI
+    // Include prompt engineering
+    // Handle errors gracefully
+    // Return structured data
+  }
+}
+```
+
+3. **Error Handling:**
+
+```typescript
+try {
+  const result = await aiService.generateContent(params);
+  setAiResult(result);
+} catch (error) {
+  toast.error('AI generation failed. Please try again.');
+  console.error('AI Error:', error);
+}
+```
+
+4. **User Feedback:**
+
+```typescript
+// Subtle status updates
+setStatus('Enhancing content...');
+setStatus('Generating suggestions...');
+setStatus('Finalizing...');
+```
+
+**GEMINI AI INTEGRATION PATTERNS:**
+
+Reference `backend/src/shared/clients/gemini.ts` for:
+
+- Text generation with structured prompts
+- JSON output for structured data
+- Image analysis for content creation
+- Streaming responses for real-time feedback
+
+**AI FEATURE DOCUMENTATION TEMPLATE:**
+
+For each AI feature, document:
+
+```markdown
+### AI Feature: [Feature Name]
+
+**Purpose:** [What problem it solves]
+
+**User Trigger:** [How user activates it - button, form, etc.]
+
+**Input Required:** [What user must provide]
+
+**AI Processing:** [What AI does step-by-step]
+
+**Output Format:** [What user receives]
+
+**Implementation:**
+
+- Frontend: [Component with AI button/interface]
+- Backend: [Service method with Gemini integration]
+- Types: [Request/response interfaces]
+
+**Error Handling:** [How failures are handled]
+
+**User Experience:** [Loading states, feedback, options]
+
+**Example Usage:**
+
+1. User clicks "Generate Quiz"
+2. User fills topic and difficulty
+3. AI generates 10 questions with answers
+4. User reviews and can regenerate/edit
+5. User saves final quiz
+```
+
+### 8. Quick-Setup External APIs (Under 5 Minutes Each)
+
+**CRITICAL:** Focus on APIs that can be integrated quickly during hackathons. All APIs listed have generous free tiers and simple authentication.
+
+#### Image Generation & Media APIs
+
+**1. Gemini AI Image Generation (Already Integrated)**
+
+```typescript
+// Already available in backend/src/shared/clients/gemini.ts
+const imageResult = await geminiClient.generateImage({
+  prompt: 'A professional product photo of a laptop',
+  aspectRatio: '16:9',
+  style: 'photographic',
+});
+```
+
+**2. Unsplash API (Stock Photos)**
+
+- **Setup Time:** 2 minutes
+- **Free Tier:** 50 requests/hour
+- **Use Case:** High-quality stock photos for content
+
+```typescript
+// Quick integration
+const response = await fetch(`https://api.unsplash.com/photos/random?query=${query}`, {
+  headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` },
+});
+```
+
+**3. Lorem Picsum (No Auth Required)**
+
+- **Setup Time:** 0 minutes
+- **Free Tier:** Unlimited
+- **Use Case:** Placeholder images during development
+
+```typescript
+// No API key needed
+const imageUrl = `https://picsum.photos/800/600?random=${Math.random()}`;
+```
+
+#### Payment & E-commerce APIs
+
+**4. Stripe API (Test Mode)**
+
+- **Setup Time:** 3 minutes
+- **Free Tier:** Unlimited test transactions
+- **Use Case:** Payment processing, subscriptions
+
+```typescript
+// Test mode - no real money involved
+const stripe = new Stripe(process.env.STRIPE_TEST_KEY);
+const paymentIntent = await stripe.paymentIntents.create({
+  amount: 2000, // $20.00
+  currency: 'usd',
+});
+```
+
+#### Communication APIs
+
+**5. Resend API (Email)**
+
+- **Setup Time:** 2 minutes
+- **Free Tier:** 3,000 emails/month
+- **Use Case:** Transactional emails, notifications
+
+```typescript
+const resend = new Resend(process.env.RESEND_API_KEY);
+await resend.emails.send({
+  from: 'noreply@yourdomain.com',
+  to: user.email,
+  subject: 'Welcome!',
+  html: '<p>Welcome to our platform!</p>',
+});
+```
+
+**6. Twilio API (SMS)**
+
+- **Setup Time:** 4 minutes
+- **Free Tier:** $15 credit
+- **Use Case:** SMS notifications, 2FA
+
+```typescript
+const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
+await client.messages.create({
+  body: 'Your verification code is 123456',
+  from: process.env.TWILIO_PHONE,
+  to: userPhone,
+});
+```
+
+#### Location & Maps APIs
+
+**7. Google Maps API**
+
+- **Setup Time:** 4 minutes
+- **Free Tier:** $200 credit/month
+- **Use Case:** Maps, geocoding, places
+
+```typescript
+const response = await fetch(
+  `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${GOOGLE_MAPS_KEY}`
+);
+```
+
+**8. OpenWeatherMap API**
+
+- **Setup Time:** 2 minutes
+- **Free Tier:** 1,000 calls/day
+- **Use Case:** Weather data for location-based apps
+
+```typescript
+const weather = await fetch(
+  `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${WEATHER_API_KEY}`
+);
+```
+
+#### Utility APIs (No Auth Required)
+
+**9. QR Code Generation**
+
+- **Setup Time:** 0 minutes
+- **Free Tier:** Unlimited
+- **Use Case:** QR codes for sharing, tickets
+
+```typescript
+const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data)}`;
+```
+
+**10. Currency Exchange Rates**
+
+- **Setup Time:** 1 minute
+- **Free Tier:** 1,000 requests/month
+
+```typescript
+const rates = await fetch(`https://api.fixer.io/latest?access_key=${FIXER_API_KEY}&base=USD`);
+```
+
+**11. Lorem Ipsum Text Generation**
+
+- **Setup Time:** 0 minutes
+- **Free Tier:** Unlimited
+
+```typescript
+const lorem = await fetch(`https://loripsum.net/api/5/medium/plaintext`);
+```
+
+#### Content & Text APIs
+
+**12. LanguageTool API (Grammar Check)**
+
+- **Setup Time:** 1 minute
+- **Free Tier:** 20 requests/minute
+
+```typescript
+const response = await fetch('https://api.languagetool.org/v2/check', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: new URLSearchParams({ text: userText, language: 'en-US' }),
+});
+```
+
+#### Quick Setup Instructions
+
+**Environment Variables to Add:**
+
+```bash
+# Add to backend/.env
+UNSPLASH_ACCESS_KEY=your_key_here
+STRIPE_TEST_KEY=sk_test_your_key_here
+RESEND_API_KEY=re_your_key_here
+TWILIO_SID=your_sid_here
+TWILIO_TOKEN=your_token_here
+TWILIO_PHONE=+1234567890
+GOOGLE_MAPS_KEY=your_key_here
+WEATHER_API_KEY=your_key_here
+FIXER_API_KEY=your_key_here
+```
+
+**NPM Packages to Install:**
+
+```bash
+# Backend dependencies
+npm install stripe resend twilio
+
+# Frontend dependencies (if needed)
+npm install @stripe/stripe-js
+```
+
+**Implementation Pattern:**
+
+```typescript
+// services/ExternalAPIService.ts
+export class ExternalAPIService {
+  async generateImage(prompt: string): Promise<string> {
+    // Try Gemini first, fallback to Unsplash
+    try {
+      return await this.geminiImageGeneration(prompt);
+    } catch {
+      return await this.unsplashSearch(prompt);
+    }
+  }
+
+  async sendNotification(user: User, message: string): Promise<void> {
+    // Try email first, fallback to SMS if email fails
+    try {
+      await this.sendEmail(user.email, message);
+    } catch {
+      if (user.phone) {
+        await this.sendSMS(user.phone, message);
+      }
+    }
+  }
+}
+```
 
 For each external service needed:
 
@@ -426,54 +1044,82 @@ For each external service needed:
   - Backend: CRUD handlers + service layer
   - Frontend: List/form components + API integration
   - Database: Entity schema design
+  - Enhancement: Add relevant AI/API features based on problem statement
   - WORKS INDEPENDENTLY
 
-**Dev 2:** F02 (Site Landing Page) - Frontend-only, demo-ready
-  - Landing pages: Hero, features, pricing, contact, about
+**Dev 2:** F02 (Site Landing Page + Marketing) - Frontend-only, demo-ready
+  - Landing pages: Hero, features, pricing, contact, about, FAQ
   - Marketing content and responsive design
-  - No backend dependencies - fastest to demo
+  - No backend dependencies - fastest to demo (30-45min)
+  - Enhancement: Add contact forms, testimonials, dynamic content
   - WORKS INDEPENDENTLY
 
 **Dev 3:** F03 ([Core Process/API Services]) - Full-stack OR Backend-only, demo-ready
   - If Full-stack: Backend + Frontend + Database
   - If Backend-only: API handlers + external integrations + services
+  - Enhancement: Add external API integrations (payment, maps, etc.)
   - WORKS INDEPENDENTLY
 
-**Dev 4:** F04 ([Independent Feature/Content]) - Full-stack, demo-ready
+**Dev 4:** F04 ([Independent Feature]) - Full-stack, demo-ready
   - Backend: Independent feature handlers + service layer
-  - Frontend: Feature UI + content management
-  - Database: Independent entity schemas (e.g., SETTING#, CONTENT#, NOTIFICATION#)
+  - Frontend: Feature UI + management interface
+  - Database: Independent entity schemas (e.g., SETTING#, NOTIFICATION#)
+  - Enhancement: Add smart features (AI help, notifications, etc.)
   - WORKS INDEPENDENTLY
 
 ```
 
-**Key Benefits of Parallel Foundation Work:**
+**Key Benefits of 4-Developer Parallel Foundation Work:**
 
 - **Zero Coordination:** No developer waits for another
 - **Faster Demo Prep:** Frontend-only modules can be demo-ready in 30-45 minutes
 - **Independent Progress:** Each developer makes visible progress without dependencies
 - **Flexible Skills:** Developers can focus on their strengths initially
 - **Risk Mitigation:** If one module has issues, others continue unaffected
+- **Balanced Workload:** F02 being quick allows Dev 2 to help others or add polish
 
-#### Phase 2: Core Features (Hours 4-12)
+#### Phase 2: Integration & Core Features (Hours 4-12)
+
+```
+**CRITICAL:** This phase focuses on making modules work together as a cohesive application.
+
+**Dev 1:** M05 (Enhanced F01 Features) + Navigation Integration
+  - Enhance F01 with advanced features and AI/API integrations
+  - Create problem-specific navigation (replace generic dashboard)
+  - Implement cross-module data sharing patterns
+
+**Dev 2:** M06 (Enhanced F02 Features) + Frontend Integration
+  - Add dynamic content to landing pages using F01 data
+  - Integrate with authentication and user data
+  - Create unified design system across modules
+  - Polish UI/UX across all modules
+
+**Dev 3:** M07 (Enhanced F03 Features) + API Integration
+  - Add advanced F03 functionality with external APIs
+  - Implement cross-module API calls and data flow
+  - Create shared API client patterns and error handling
+
+**Dev 4:** M08 (Enhanced F04 Features) + State Management
+  - Enhance F04 with cross-module features
+  - Implement shared state management and notifications
+  - Create communication patterns between modules
 
 ```
 
-**Dev 1:** M05, M08 (Building on F01)
-
-**Dev 2:** M06, M09 (Building on F02)
-
-**Dev 3:** M07, M10 (Building on F03)
-
-**Dev 4:** M11, Integration (Building on F04)
+#### Phase 3: Advanced Features & Demo Prep (Hours 12-20)
 
 ```
+**Focus:** Advanced functionality, analytics, and demo preparation
 
-#### Phase 3: Advanced Features (Hours 12-20)
+**Dev 1 & 3:** M09 (Cross-Module Integration + Analytics)
+  - Build features that span multiple modules
+  - Cross-module analytics and reporting dashboard
+  - Data visualization and insights
 
-```
-
-[Reassign based on progress and remaining features]
+**Dev 2 & 4:** M10 (Advanced Features + Demo Polish)
+  - Advanced admin interface and bulk operations
+  - UI/UX polish and performance optimization
+  - Demo flow preparation and bug fixes
 
 ```
 
@@ -498,7 +1144,7 @@ For each external service needed:
 
 For EACH module, generate a separate markdown file with this structure:
 
-```markdown
+````markdown
 # Module [ID]: [Module Name]
 
 ## Overview
@@ -520,6 +1166,415 @@ For EACH module, generate a separate markdown file with this structure:
 ## Technical Requirements
 
 **Module Type:** [Full-stack/Frontend-only/Backend-only/Integration]
+
+## Enhancement Features (If Applicable)
+
+**ONLY include this section if the module can benefit from AI, external APIs, or smart logic based on the problem statement.**
+
+### Enhancement Feature: [Feature Name]
+
+**Problem Solved:** [Specific user pain point this addresses from problem statement]
+
+**Enhancement Type:** [AI/External API/Smart Logic] - [Justification for choice]
+
+**User Trigger:** [Exact UI element and user action required]
+
+**Input Requirements:**
+
+- **Required Fields:** [List all required data with types]
+- **Optional Fields:** [List optional data with defaults]
+- **Validation Rules:** [Exact validation logic]
+
+**Processing Logic:**
+
+1. **Input Validation:** [Step-by-step validation process]
+2. **Enhancement Processing:** [Detailed processing steps]
+3. **Result Generation:** [How the enhanced result is created]
+4. **Error Handling:** [All possible error scenarios]
+
+**COMPLETE IMPLEMENTATION SPECIFICATION:**
+
+**Types Definition:**
+
+```typescript
+// types.ts - Add these exact types
+export interface EnhanceRequest {
+  content: string;
+  type: 'text' | 'description' | 'title' | 'other';
+  context?: string;
+  options?: {
+    style?: 'professional' | 'casual' | 'friendly';
+    length?: 'short' | 'medium' | 'long';
+  };
+}
+
+export interface EnhanceResponse {
+  original: string;
+  enhanced: string;
+  method: 'ai' | 'api' | 'logic';
+  confidence: number;
+  suggestions?: string[];
+  timestamp: string;
+}
+
+export interface EnhancementError {
+  code: 'INVALID_INPUT' | 'SERVICE_UNAVAILABLE' | 'RATE_LIMITED';
+  message: string;
+  retryAfter?: number;
+}
+```
+````
+
+**Frontend Component:**
+
+```typescript
+// components/[Entity]/EnhancementButton.tsx
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+import { Spinner } from '@/components/ui/spinner';
+
+interface EnhancementButtonProps {
+  content: string;
+  type: 'text' | 'description' | 'title';
+  onEnhanced: (enhanced: string) => void;
+  disabled?: boolean;
+}
+
+export const EnhancementButton = ({
+  content,
+  type,
+  onEnhanced,
+  disabled = false
+}: EnhancementButtonProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<EnhanceResponse | null>(null);
+
+  const handleEnhance = async () => {
+    if (!content.trim()) {
+      toast.error('Please enter some content first');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/[module]/enhance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await getToken()}`
+        },
+        body: JSON.stringify({
+          content: content.trim(),
+          type,
+          context: 'user_input'
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || 'Enhancement failed');
+      }
+
+      const data = await response.json();
+      setResult(data.data);
+    } catch (error) {
+      console.error('Enhancement error:', error);
+      toast.error(error.message || 'Enhancement failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const acceptEnhancement = () => {
+    if (result) {
+      onEnhanced(result.enhanced);
+      setResult(null);
+      toast.success('Enhancement applied');
+    }
+  };
+
+  return (
+    <div className="enhancement-section">
+      <Button
+        onClick={handleEnhance}
+        disabled={disabled || isLoading || !content.trim()}
+        variant="outline"
+        size="sm"
+        className="ml-2"
+      >
+        {isLoading ? (
+          <>
+            <Spinner className="w-3 h-3 mr-1" />
+            Processing...
+          </>
+        ) : (
+          'Enhance'
+        )}
+      </Button>
+
+      {result && (
+        <div className="mt-2 p-3 bg-muted rounded-md border">
+          <div className="text-sm text-muted-foreground mb-2">
+            Suggestion (confidence: {Math.round(result.confidence * 100)}%):
+          </div>
+          <div className="text-sm mb-3 p-2 bg-background rounded border">
+            {result.enhanced}
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={acceptEnhancement}>
+              Use This
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setResult(null)}>
+              Dismiss
+            </Button>
+            <Button size="sm" variant="ghost" onClick={handleEnhance}>
+              Try Again
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+**Backend Service Method:**
+
+```typescript
+// services/EntityService.ts - Add this method
+async enhanceContent(params: EnhanceRequest): Promise<EnhanceResponse> {
+  try {
+    // Input validation
+    if (!params.content?.trim()) {
+      throw new Error('Content is required');
+    }
+
+    if (params.content.length > 5000) {
+      throw new Error('Content too long (max 5000 characters)');
+    }
+
+    const validTypes = ['text', 'description', 'title'];
+    if (!validTypes.includes(params.type)) {
+      throw new Error(`Invalid type. Must be one of: ${validTypes.join(', ')}`);
+    }
+
+    // Choose enhancement method based on content and requirements
+    let enhanced: string;
+    let method: 'ai' | 'api' | 'logic';
+    let confidence: number;
+
+    if (this.shouldUseAI(params)) {
+      const aiResult = await this.enhanceWithAI(params);
+      enhanced = aiResult.content;
+      method = 'ai';
+      confidence = aiResult.confidence;
+    } else if (this.shouldUseExternalAPI(params)) {
+      const apiResult = await this.enhanceWithAPI(params);
+      enhanced = apiResult.content;
+      method = 'api';
+      confidence = apiResult.confidence;
+    } else {
+      const logicResult = await this.enhanceWithLogic(params);
+      enhanced = logicResult.content;
+      method = 'logic';
+      confidence = logicResult.confidence;
+    }
+
+    return {
+      original: params.content,
+      enhanced,
+      method,
+      confidence,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Enhancement failed:', error);
+    throw new Error(`Enhancement failed: ${error.message}`);
+  }
+}
+
+private shouldUseAI(params: EnhanceRequest): boolean {
+  // Logic to determine when to use AI
+  return params.type === 'text' && params.content.length > 50;
+}
+
+private shouldUseExternalAPI(params: EnhanceRequest): boolean {
+  // Logic to determine when to use external API
+  return params.type === 'description' && params.content.includes('product');
+}
+
+private async enhanceWithAI(params: EnhanceRequest): Promise<{content: string, confidence: number}> {
+  // Implementation using Gemini AI client
+  const prompt = `Improve this ${params.type}: "${params.content}"
+
+  Requirements:
+  - Keep the same meaning and intent
+  - Make it more ${params.options?.style || 'professional'}
+  - Target length: ${params.options?.length || 'medium'}
+  - Return only the improved version, no explanations`;
+
+  const response = await geminiClient.generateContent({
+    prompt,
+    maxTokens: 500
+  });
+
+  return {
+    content: response.content.trim(),
+    confidence: 0.85
+  };
+}
+
+private async enhanceWithAPI(params: EnhanceRequest): Promise<{content: string, confidence: number}> {
+  // Implementation using external API (example: grammar checking service)
+  const response = await fetch('https://api.languagetool.org/v2/check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      text: params.content,
+      language: 'en-US'
+    })
+  });
+
+  const result = await response.json();
+  let enhanced = params.content;
+
+  // Apply corrections
+  result.matches.forEach(match => {
+    if (match.replacements.length > 0) {
+      enhanced = enhanced.replace(
+        match.context.text.substring(match.context.offset, match.context.offset + match.context.length),
+        match.replacements[0].value
+      );
+    }
+  });
+
+  return {
+    content: enhanced,
+    confidence: 0.90
+  };
+}
+
+private async enhanceWithLogic(params: EnhanceRequest): Promise<{content: string, confidence: number}> {
+  // Smart logic enhancement
+  let enhanced = params.content;
+
+  // Capitalize first letter
+  enhanced = enhanced.charAt(0).toUpperCase() + enhanced.slice(1);
+
+  // Remove extra spaces
+  enhanced = enhanced.replace(/\s+/g, ' ').trim();
+
+  // Add period if missing for sentences
+  if (params.type === 'text' && !enhanced.match(/[.!?]$/)) {
+    enhanced += '.';
+  }
+
+  // Title case for titles
+  if (params.type === 'title') {
+    enhanced = enhanced.replace(/\w\S*/g, (txt) =>
+      txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
+  }
+
+  return {
+    content: enhanced,
+    confidence: 0.75
+  };
+}
+```
+
+**API Handler:**
+
+```typescript
+// handlers/enhanceContent.ts
+import { APIGatewayProxyResultV2 } from 'aws-lambda';
+import { AuthenticatedAPIGatewayEvent } from '../../../shared/types';
+import { withRbac } from '../../../shared/auth/rbacMiddleware';
+import { successResponse, errorResponse, handleAsyncError } from '../../../shared/response';
+import { entityService } from '../services/EntityService';
+import { EnhanceRequest } from '../types';
+
+/**
+ * @route POST /api/[module]/enhance
+ * @description Enhance content using AI, external APIs, or smart logic
+ */
+const baseHandler = async (
+  event: AuthenticatedAPIGatewayEvent
+): Promise<APIGatewayProxyResultV2> => {
+  try {
+    // Parse request body
+    const body: EnhanceRequest = JSON.parse(event.body || '{}');
+
+    // Validate required fields
+    if (!body.content) {
+      return errorResponse(400, 'MISSING_CONTENT', 'Content is required');
+    }
+
+    if (!body.type) {
+      return errorResponse(400, 'MISSING_TYPE', 'Type is required');
+    }
+
+    // Validate type
+    const validTypes = ['text', 'description', 'title'];
+    if (!validTypes.includes(body.type)) {
+      return errorResponse(400, 'INVALID_TYPE', `Type must be one of: ${validTypes.join(', ')}`);
+    }
+
+    // Validate content length
+    if (body.content.length > 5000) {
+      return errorResponse(400, 'CONTENT_TOO_LONG', 'Content must be less than 5000 characters');
+    }
+
+    // Call service
+    const result = await entityService.enhanceContent(body);
+
+    return successResponse(result);
+  } catch (error) {
+    return handleAsyncError(error);
+  }
+};
+
+export const handler = withRbac(baseHandler, '[moduleName]', 'update');
+```
+
+**Function Configuration:**
+
+```yaml
+# functions/enhanceContent.yml
+enhanceContent:
+  handler: src/modules/[module]/handlers/enhanceContent.handler
+  events:
+    - httpApi:
+        path: /api/[module]/enhance
+        method: post
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    GEMINI_API_KEY: ${env:GEMINI_API_KEY}
+  timeout: 30
+  memorySize: 512
+```
+
+**Error Handling Scenarios:**
+
+1. **Invalid Input:** Return 400 with specific validation error
+2. **Service Unavailable:** Return 503 with retry-after header
+3. **Rate Limited:** Return 429 with rate limit info
+4. **Timeout:** Return 504 with timeout message
+5. **Authentication Failed:** Return 401 with auth error
+6. **Permission Denied:** Return 403 with permission error
+
+**Testing Checklist:**
+
+- [ ] Valid input produces expected enhancement
+- [ ] Invalid input returns appropriate error
+- [ ] Empty content is rejected
+- [ ] Content too long is rejected
+- [ ] Service failures are handled gracefully
+- [ ] Loading states work correctly
+- [ ] User can accept/reject suggestions
+- [ ] Enhancement integrates properly with form
 
 ### Backend Tasks (Skip if Frontend-only)
 
@@ -589,13 +1644,14 @@ For EACH module, generate a separate markdown file with this structure:
 **CRITICAL - NO TESTS:** Do NOT create any test files (.test.tsx, .spec.tsx) - Skip unit tests for hackathon speed
 
 ### Database Schema (Single Table) - Skip if Frontend-only
+
 ```
 
 pk: [ENTITY]#[id] | sk: [TYPE] | gsi1pk: [grouping] | gsi1sk: [sorting]
 
 - entity-specific fields with types and descriptions
 
-````
+```
 
 ### Integration Points (For Integration modules only)
 
@@ -614,7 +1670,6 @@ pk: [ENTITY]#[id] | sk: [TYPE] | gsi1pk: [grouping] | gsi1sk: [sorting]
 - **Purpose:** [Why needed]
 
 - **Setup Steps:**
-
   1. [Step 1]
 
   2. [Step 2]
@@ -850,6 +1905,7 @@ ac.grant('admin')
 - [ ] Verify data flow end-to-end
 
 **CRITICAL - TypeScript Validation:**
+
 ```bash
 # Backend type checking
 cd backend
@@ -1050,6 +2106,104 @@ Create a form component for [entity] using shadcn Form:
 
 ```
 
+## Integration Requirements (For Core Phase Modules M05+)
+
+**CRITICAL:** Foundation modules (F01-F05) are built independently. Core phase modules (M05+) must integrate properly to create a cohesive application.
+
+### Cross-Module Integration Planning
+
+**Data Integration:**
+
+- [ ] **Shared Data Patterns:** Define how this module shares data with foundation modules
+  - Example: `User actions in F01 (Users) → Notifications in F04 (Notifications)`
+  - Example: `Orders in F01 → Analytics in M10 (Reporting)`
+
+- [ ] **Database Relationships:** Plan GSI-based relationships between modules
+  ```typescript
+  // Example: Link orders to users
+  // User: PK: "USER#123", SK: "PROFILE"
+  // Order: PK: "ORDER#456", SK: "DETAILS", GSI1PK: "USER#123", GSI1SK: "ORDER#456"
+  ```
+
+**Navigation Integration:**
+
+- [ ] **Unified Navigation:** Replace generic admin dashboard with problem-specific navigation
+  - Create domain-specific navigation (e.g., "Student Dashboard", "Teacher Portal", "Course Management")
+  - Remove generic "Admin" → "Users" → "Products" navigation
+  - Add contextual navigation that reflects user workflows
+
+- [ ] **User Journey Mapping:** Define how users flow between modules
+  - Example: Student logs in → Sees courses (F01) → Clicks assignment → Goes to assignments (F03)
+  - Example: Teacher creates course (F01) → Adds students → Sends notifications (F04)
+
+**API Integration:**
+
+- [ ] **Cross-Module API Calls:** Define which modules call each other's APIs
+  ```typescript
+  // Example: Notification module calls User module
+  const users = await apiClient.get('/api/users/by-role/student');
+  const notifications = await apiClient.post('/api/notifications/bulk', {
+    userIds: users.map((u) => u.id),
+    message: 'New assignment available',
+  });
+  ```
+
+**Frontend Integration:**
+
+- [ ] **Shared Components:** Identify reusable components across modules
+  - User selection dropdowns, date pickers, status badges
+  - Consistent styling and behavior
+
+- [ ] **State Management:** Plan shared state between modules
+  ```typescript
+  // Example: Current user context shared across modules
+  const { currentUser, permissions } = useAuth();
+  const { courses } = useCourses(currentUser.id);
+  const { notifications } = useNotifications(currentUser.id);
+  ```
+
+### Problem-Specific Integration Examples
+
+**For Education Platform:**
+
+- Student Dashboard: Shows courses (F01) + assignments (F03) + notifications (F04)
+- Teacher Portal: Manage courses (F01) + create assignments (F03) + send announcements (F04)
+- Admin Panel: User management (F01) + system settings (F04) + analytics (M10)
+
+**For E-commerce Platform:**
+
+- Customer Dashboard: Orders (F01) + wishlist (F03) + account settings (F04)
+- Seller Portal: Products (F01) + inventory (F03) + notifications (F04)
+- Admin Panel: All products + all orders + system management
+
+**For Project Management:**
+
+- Team Dashboard: Projects (F01) + tasks (F03) + team chat (F04)
+- Manager View: All projects + team performance + settings
+- Client Portal: Project progress + deliverables + communication
+
+### Integration Implementation Checklist
+
+- [ ] **Navigation Update:** Remove generic dashboard, add problem-specific navigation
+- [ ] **Shared Types:** Export types that other modules need
+  ```typescript
+  // Export from F01 for use in other modules
+  export type { User, UserRole, UserPermissions } from './types';
+  ```
+- [ ] **API Client Updates:** Add cross-module API calls
+- [ ] **Context Providers:** Share important state across modules
+- [ ] **Consistent Styling:** Use same shadcn components and design patterns
+- [ ] **Error Handling:** Consistent error handling across integrated features
+- [ ] **Loading States:** Consistent loading patterns when modules interact
+
+### Integration Testing
+
+- [ ] **End-to-End Workflows:** Test complete user journeys across modules
+- [ ] **Data Consistency:** Verify data flows correctly between modules
+- [ ] **Navigation Flow:** Ensure users can navigate naturally between features
+- [ ] **Error Scenarios:** Test what happens when one module fails
+- [ ] **Performance:** Ensure cross-module calls don't slow down the app
+
 ## Acceptance Criteria
 
 - [ ] [Specific, testable requirement 1]
@@ -1106,6 +2260,7 @@ Create a form component for [entity] using shadcn Form:
 - [ ] **Documentation:** Updated any shared types/interfaces
 
 **MANDATORY Pre-Deployment Commands:**
+
 ```bash
 # Always run these before deployment
 cd backend && bun run typecheck
@@ -1284,6 +2439,66 @@ console.log(token);
 - **Conflicts With:** [Any modules that might conflict]
 
 ---
+
+## Summary of Key Improvements
+
+### 🧩 **Puzzle Piece Architecture (Maximum 10 Modules)**
+
+- **Strategic Limitation:** Maximum 10 modules to ensure each serves a specific purpose
+- **Cohesive Design:** Each module is a puzzle piece that fits perfectly with others
+- **Purpose-Driven:** Every module contributes to solving the main problem statement
+- **No Standalone Apps:** Modules integrate seamlessly rather than feeling like separate applications
+
+### 🏗️ **Existing Services First Priority**
+
+- **Gemini AI Integration:** Prioritize already-implemented AI capabilities (text generation, image creation, JSON output, chat sessions)
+- **AWS Services Ready:** S3 storage, SES email, SQS queues, DynamoDB all configured and ready to use
+- **Client Wrappers:** Use existing `backend/src/shared/clients/*` - never use AWS SDK directly
+- **Proven Infrastructure:** Build on battle-tested, production-ready services first
+
+### 🚀 **Enhanced Foundation Strategy (4 Modules)**
+
+- **F01-F04:** All foundation modules work in parallel with zero dependencies
+- **F02 Expansion:** Landing page includes comprehensive marketing pages (FAQ, testimonials, help)
+- **Balanced Workload:** F02 being quick allows Dev 2 to help others or add polish
+- **Parallel Guarantee:** All 4 developers can start immediately without coordination
+
+### 🤖 **Smart Feature Integration**
+
+- **Existing Services First:** Gemini AI, S3, SES, SQS before any external APIs
+- **Simple APIs Second:** No-auth APIs (QR codes, Lorem Picsum) for quick wins
+- **Complex APIs Last:** Stripe, Google Maps, Twilio only if essential and time permits
+- **Problem-Driven:** All features must solve real problems from the problem statement
+
+### 🔗 **Proper Integration Planning**
+
+- **Phase-Based Integration:** Foundation (independent) → Integration (connected) → Complete (unified)
+- **No Generic Dashboard:** Replace with problem-specific navigation and user journeys
+- **Cross-Module Data Flow:** Planned GSI-based relationships and API integration patterns
+- **Unified User Experience:** Consistent navigation, shared state, and cohesive workflows
+
+### 📋 **Zero Guesswork Implementation**
+
+- **Complete Code Examples:** Full TypeScript implementations with all imports, types, and error handling
+- **Existing Service Patterns:** Detailed examples using Gemini AI, S3, SES, SQS clients
+- **Integration Requirements:** Detailed cross-module integration planning and implementation
+- **Error Handling:** Comprehensive error scenarios and user feedback patterns
+
+### 🎯 **Hackathon-Optimized Workflow**
+
+- **Two-Stage Process:** Planning (generate .md files) → Implementation (code only)
+- **RBAC First:** Configure permissions.ts before any module work begins
+- **Parallel Foundation:** All developers work simultaneously on independent modules
+- **Integration Focus:** Dedicated phase for making modules work together cohesively
+
+### 🛠️ **Technical Excellence**
+
+- **Existing Infrastructure:** Leverage production-ready AWS services and Gemini AI
+- **Lambda-Compatible:** All backend code follows serverless patterns
+- **Type Safety:** Comprehensive TypeScript patterns and validation
+- **Clean Architecture:** Proper separation of handlers, services, and data layers
+
+This updated approach ensures hackathon teams build cohesive, well-integrated applications using existing infrastructure first, with each module serving as a essential puzzle piece in the complete solution rather than disconnected features.
 
 ````
 
@@ -1656,3 +2871,4 @@ import {
 - Setup instructions
 - Free tier availability
 - Backup plans
+````
