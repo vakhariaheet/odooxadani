@@ -1,0 +1,30 @@
+getIdea:
+  handler: src/modules/ideas/handlers/getIdea.handler
+  events:
+    - httpApi:
+        path: /api/ideas/{id}
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Ideas
+        summary: GET /api/ideas/{id}
+        description: Get idea by ID
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
+          - statusCode: 404
+            responseBody:
+              description: Idea not found

@@ -1,0 +1,30 @@
+deleteIdea:
+  handler: src/modules/ideas/handlers/deleteIdea.handler
+  events:
+    - httpApi:
+        path: /api/ideas/{id}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Ideas
+        summary: DELETE /api/ideas/{id}
+        description: Delete an idea (owner only)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Idea deleted successfully
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Not the idea owner
+          - statusCode: 404
+            responseBody:
+              description: Idea not found

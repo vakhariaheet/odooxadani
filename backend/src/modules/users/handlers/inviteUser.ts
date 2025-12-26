@@ -41,7 +41,7 @@ const baseHandler = async (
 
     const result = await userService.inviteUser(
       inviteData.email,
-      inviteData.role || defaultRole,
+      (inviteData.role as any) || defaultRole,
       inviteData.redirectUrl
     );
 

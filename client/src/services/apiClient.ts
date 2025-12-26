@@ -40,13 +40,23 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      // Extract error message from backend error structure
+      const errorMessage =
+        errorData?.error?.message ||
+        errorData?.message ||
+        `HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(errorMessage);
     }
 
     // Handle empty responses
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      return response.json();
+      const jsonResponse = await response.json();
+      // Extract data field from backend response structure
+      if (jsonResponse && typeof jsonResponse === 'object' && 'data' in jsonResponse) {
+        return jsonResponse.data;
+      }
+      return jsonResponse;
     }
 
     return response.text() as unknown as T;
@@ -119,7 +129,12 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      // Extract error message from backend error structure
+      const errorMessage =
+        errorData?.error?.message ||
+        errorData?.message ||
+        `HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(errorMessage);
     }
 
     return response.json();

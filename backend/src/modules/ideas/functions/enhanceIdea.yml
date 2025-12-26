@@ -1,0 +1,53 @@
+enhanceIdea:
+  handler: src/modules/ideas/handlers/enhanceIdea.handler
+  events:
+    - httpApi:
+        path: /api/ideas/enhance
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Ideas
+        summary: POST /api/ideas/enhance
+        description: Enhance idea description using AI
+  environment:
+    GEMINI_API_KEY: ${env:GEMINI_API_KEY}
+  timeout: 30
+  memorySize: 512
+  methodResponses:
+    - statusCode: 200
+      responseBody:
+        description: Idea enhanced successfully
+        schema:
+          type: object
+          properties:
+            data:
+              type: object
+              properties:
+                enhancedDescription:
+                  type: string
+                suggestedTechStack:
+                  type: array
+                  items:
+                    type: string
+                recommendedTeamRoles:
+                  type: array
+                  items:
+                    type: string
+                improvementSuggestions:
+                  type: array
+                  items:
+                    type: string
+                confidence:
+                  type: number
+                timestamp:
+                  type: string
+    - statusCode: 400
+      responseBody:
+        description: Bad request - Invalid input
+    - statusCode: 401
+      responseBody:
+        description: Unauthorized - Invalid or missing token
+    - statusCode: 403
+      responseBody:
+        description: Forbidden - Insufficient permissions

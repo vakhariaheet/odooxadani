@@ -8,6 +8,10 @@ import { AdminPage } from './pages/AdminPage';
 import { LandingPage } from './pages/LandingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { WebSocketTestPage } from './pages/WebSocketTestPage';
+import { IdeasListPage } from './pages/ideas/IdeasListPage';
+import { IdeaCreatePage } from './pages/ideas/IdeaCreatePage';
+import { IdeaEditPage } from './pages/ideas/IdeaEditPage';
+import { IdeaViewPage } from './pages/ideas/IdeaViewPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import './App.css';
@@ -115,6 +119,38 @@ function App() {
           element={
             <ProtectedRoute>
               <WebSocketTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ideas"
+          element={
+            <ProtectedRoute>
+              <IdeasListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ideas/new"
+          element={
+            <ProtectedRoute>
+              <IdeaCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ideas/:id"
+          element={
+            <ProtectedRoute>
+              <IdeaViewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ideas/:id/edit"
+          element={
+            <ProtectedRoute>
+              <IdeaEditPage />
             </ProtectedRoute>
           }
         />
