@@ -223,6 +223,24 @@ The tool includes comprehensive error handling:
 - **Merge Conflicts**: LLM-ready conflict resolution prompts
 - **Process Interruption**: Graceful cleanup and state recovery
 
+## Troubleshooting
+
+### Git Rebase Getting Stuck with Vim
+
+If you encounter issues where git rebase operations get stuck waiting for vim input, the CLI now includes several fixes:
+
+1. **Environment Variables**: Automatically sets `GIT_EDITOR=true` to prevent vim from opening
+2. **Git Configuration**: Sets `core.editor=true` and `sequence.editor=true` in git config
+3. **Non-Interactive Flags**: Uses `--no-edit` flags during rebase and commit operations
+
+These changes ensure that git operations run non-interactively without requiring manual input.
+
+### Other Common Issues
+
+- **AWS Credentials**: Ensure your AWS profile is configured correctly
+- **GitHub CLI**: Install `gh` CLI for automatic PR creation
+- **Serverless Framework**: Install globally with `npm install -g serverless`
+
 ## Dependencies
 
 - **commander**: CLI framework for command structure
