@@ -1,0 +1,33 @@
+updateIdea:
+  handler: src/modules/ideas/handlers/updateIdea.handler
+  events:
+    - httpApi:
+        path: /api/ideas/{id}
+        method: PUT
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Ideas
+        summary: PUT /api/ideas/{id}
+        description: Update an existing idea (owner only)
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Idea updated successfully
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+          - statusCode: 400
+            responseBody:
+              description: Bad request - Invalid input
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Not the idea owner
+          - statusCode: 404
+            responseBody:
+              description: Idea not found
