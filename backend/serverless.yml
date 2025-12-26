@@ -237,3 +237,11 @@ functions:
   - ${file(src/modules/websocket/functions/websocket.yml)}
   # Contact module
   - ${file(src/modules/contact/functions/submitContact.yml)}
+  # Events module
+  - ${file(src/modules/events/functions/listEvents.yml)}
+  - ${file(src/modules/events/functions/getEvent.yml)}
+  - ${file(src/modules/events/functions/createEvent.yml)}
+  - ${file(src/modules/events/functions/updateEvent.yml)}
+  - ${file(src/modules/events/functions/deleteEvent.yml)}
+  - ${file(src/modules/events/functions/registerEvent.yml)}
+  - ${file(src/modules/events/functions/enhanceEvent.yml)}

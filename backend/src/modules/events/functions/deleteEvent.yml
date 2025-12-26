@@ -1,0 +1,35 @@
+deleteEvent:
+  handler: src/modules/events/handlers/deleteEvent.handler
+  events:
+    - httpApi:
+        path: /api/events/{id}
+        method: DELETE
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Events
+        summary: DELETE /api/events/{id}
+        description: Delete an event (owner only) - soft delete by changing status
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Event deleted successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions or not owner
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Event not found

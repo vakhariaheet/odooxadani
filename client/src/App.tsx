@@ -13,6 +13,10 @@ import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { WebSocketTestPage } from './pages/WebSocketTestPage';
+import { EventsListPage } from './pages/events/EventsListPage';
+import { EventCreatePage } from './pages/events/EventCreatePage';
+import { EventEditPage } from './pages/events/EventEditPage';
+import { EventDetailsPage } from './pages/events/EventDetailsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import './App.css';
@@ -47,6 +51,11 @@ function App() {
         <Link to="/" className="logo-link">
           <h1>HackMatch</h1>
         </Link>
+        <nav className="main-nav">
+          <Link to="/events" className="nav-link">
+            Events
+          </Link>
+        </nav>
         <div className="auth-section">
           <SignedOut>
             <div className="auth-buttons">
@@ -128,6 +137,25 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        {/* Events Routes */}
+        <Route path="/events" element={<EventsListPage />} />
+        <Route
+          path="/events/new"
+          element={
+            <ProtectedRoute>
+              <EventCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/events/:id" element={<EventDetailsPage />} />
+        <Route
+          path="/events/:id/edit"
+          element={
+            <ProtectedRoute>
+              <EventEditPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
