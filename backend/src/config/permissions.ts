@@ -1,50 +1,76 @@
 import { AccessControl } from 'accesscontrol';
 
 /**
- * RBAC Configuration using accesscontrol library
+ * RBAC Configuration for Team Hackathon Matcher & Idea Validator
  *
- * Two roles:
- * - user: Can only access own resources in users module, read-only access to demo
- * - admin: Full access to all modules and all resources
+ * Four roles:
+ * - participant: Can manage own profile, ideas, votes, and teams
+ * - organizer: Can moderate content, manage teams, and view analytics
+ * - judge: Can score ideas and view participant profiles
+ * - admin: Full access to all modules and resources
  *
  * Actions follow accesscontrol naming convention:
  * - *Own: Can only perform action on own resources
  * - *Any: Can perform action on any resource
  */
 
-// Define module access permissions for the 'user' role
-// This makes it easy to see at a glance what each role can do per module
-const USER_MODULE_ACCESS: Record<string, { any: string[]; own: string[] }> = {
-  users: {
-    any: [], // Cannot list all users or access other profiles
-    own: ['read', 'update'], // Can read and update own profile only
+// Define module access permissions for each role
+const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
+  participant: {
+    profiles: { any: ['read'], own: ['read', 'update'] },
+    ideas: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
+    votes: { any: [], own: ['create', 'read', 'delete'] },
+    teams: { any: ['read'], own: ['create', 'read', 'update', 'delete'] },
+    notifications: { any: [], own: ['read', 'update'] },
+    websocket: { any: ['read', 'update'], own: [] },
   },
-  demo: {
-    any: ['read'], // Can access demo endpoints (for testing)
-    own: [],
+  organizer: {
+    profiles: { any: ['read', 'update'], own: [] },
+    ideas: { any: ['read', 'update', 'delete'], own: [] },
+    votes: { any: ['read'], own: [] },
+    teams: { any: ['read', 'update'], own: [] },
+    notifications: { any: ['create', 'read', 'update'], own: [] },
+    moderation: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    analytics: { any: ['read'], own: [] },
+    websocket: { any: ['create', 'read', 'update', 'delete'], own: [] },
   },
-  websocket: {
-    any: ['read', 'update'], // Can connect and send messages via WebSocket
-    own: [],
+  judge: {
+    profiles: { any: ['read'], own: ['read', 'update'] },
+    ideas: { any: ['read'], own: [] },
+    votes: { any: [], own: [] },
+    teams: { any: ['read'], own: [] },
+    scoring: { any: ['create', 'read', 'update'], own: [] },
+    notifications: { any: [], own: ['read', 'update'] },
+    websocket: { any: ['read', 'update'], own: [] },
+  },
+  admin: {
+    profiles: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    ideas: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    votes: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    teams: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    notifications: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    moderation: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    scoring: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    analytics: { any: ['create', 'read', 'update', 'delete'], own: [] },
+    websocket: { any: ['create', 'read', 'update', 'delete'], own: [] },
   },
 };
 
-// All available modules in the system (used for admin grants)
-const ALL_MODULES = ['users', 'demo', 'admin', 'websocket'];
+// All available modules in the system
+const ALL_MODULES = [
+  'profiles',
+  'ideas',
+  'votes',
+  'teams',
+  'notifications',
+  'moderation',
+  'scoring',
+  'analytics',
+  'websocket',
+];
 
 // All CRUD actions
 const ALL_ACTIONS = ['create', 'read', 'update', 'delete'] as const;
-
-const ROLE_MODULE_ACCESS: Record<string, Record<string, { any: string[]; own: string[] }>> = {
-  user: USER_MODULE_ACCESS,
-  admin: ALL_MODULES.reduce(
-    (modules, moduleName) => {
-      modules[moduleName] = { any: [...ALL_ACTIONS], own: [] };
-      return modules;
-    },
-    {} as Record<string, { any: string[]; own: string[] }>
-  ),
-};
 
 /**
  * Create and configure the AccessControl instance
@@ -73,7 +99,7 @@ const createAccessControl = (): AccessControl => {
 export const ac = createAccessControl();
 
 // Export helper types
-export type Role = keyof typeof ROLE_MODULE_ACCESS;
+export type Role = 'participant' | 'organizer' | 'judge' | 'admin';
 export type Action = (typeof ALL_ACTIONS)[number];
 export type ModuleName = (typeof ALL_MODULES)[number];
 
