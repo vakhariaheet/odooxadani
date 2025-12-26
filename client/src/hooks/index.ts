@@ -24,3 +24,6 @@ export {
   userKeys,
   authKeys,
 } from './useUsers';
+
+// Events API hooks
+export * from './useEvents';

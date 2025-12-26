@@ -46,7 +46,20 @@ class ApiClient {
     // Handle empty responses
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      return response.json();
+      const jsonResponse = await response.json();
+
+      // If response has the standard API format {success: true, data: ...}, extract data
+      if (
+        jsonResponse &&
+        typeof jsonResponse === 'object' &&
+        'success' in jsonResponse &&
+        'data' in jsonResponse
+      ) {
+        return jsonResponse.data as T;
+      }
+
+      // Otherwise return the full response
+      return jsonResponse as T;
     }
 
     return response.text() as unknown as T;
@@ -122,7 +135,20 @@ class ApiClient {
       throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
     }
 
-    return response.json();
+    const jsonResponse = await response.json();
+
+    // If response has the standard API format {success: true, data: ...}, extract data
+    if (
+      jsonResponse &&
+      typeof jsonResponse === 'object' &&
+      'success' in jsonResponse &&
+      'data' in jsonResponse
+    ) {
+      return jsonResponse.data as T;
+    }
+
+    // Otherwise return the full response
+    return jsonResponse as T;
   }
 }
 

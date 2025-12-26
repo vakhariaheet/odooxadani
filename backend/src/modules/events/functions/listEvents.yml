@@ -1,0 +1,38 @@
+listEvents:
+  handler: src/modules/events/handlers/listEvents.handler
+  events:
+    - httpApi:
+        path: /api/events
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Events
+        summary: GET /api/events
+        description: List hackathon events with filtering and pagination
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Returns paginated list of events
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      events:
+                        type: array
+                        items:
+                          type: object
+                      total:
+                        type: number
+                      hasMore:
+                        type: boolean
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions

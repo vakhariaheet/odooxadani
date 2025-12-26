@@ -1,0 +1,38 @@
+registerEvent:
+  handler: src/modules/events/handlers/registerEvent.handler
+  events:
+    - httpApi:
+        path: /api/events/{id}/register
+        method: POST
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Events
+        summary: POST /api/events/{id}/register
+        description: Register for an event
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Registered for event successfully
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+          - statusCode: 400
+            responseBody:
+              description: Bad Request - Invalid input or registration not allowed
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Event not found

@@ -1,0 +1,32 @@
+getEvent:
+  handler: src/modules/events/handlers/getEvent.handler
+  events:
+    - httpApi:
+        path: /api/events/{id}
+        method: GET
+        authorizer:
+          name: clerkJwtAuthorizer
+        swaggerTags:
+          - Events
+        summary: GET /api/events/{id}
+        description: Get single event details by ID
+        methodResponses:
+          - statusCode: 200
+            responseBody:
+              description: Success - Returns event details
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+          - statusCode: 401
+            responseBody:
+              description: Unauthorized - Invalid or missing token
+          - statusCode: 403
+            responseBody:
+              description: Forbidden - Insufficient permissions
+          - statusCode: 404
+            responseBody:
+              description: Not Found - Event not found

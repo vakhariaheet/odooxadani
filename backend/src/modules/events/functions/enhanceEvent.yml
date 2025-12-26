@@ -1,0 +1,10 @@
+enhanceEvent:
+  handler: src/modules/events/handlers/enhanceEvent.handler
+  events:
+    - httpApi:
+        path: /api/events/enhance
+        method: post
+        authorizer:
+          name: clerkJwtAuthorizer
+  environment:
+    GEMINI_API_KEY: ${env:GEMINI_API_KEY}
